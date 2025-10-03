@@ -17,6 +17,7 @@ export const verifyAsync = promisify(jwt.verify) as (
   secret: string
 ) => Promise<JwtPayload>;
 
+
 export interface CustomJwtPayload extends JwtPayload {
   id: string;
   username: string;

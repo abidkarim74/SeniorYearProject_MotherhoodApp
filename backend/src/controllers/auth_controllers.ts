@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { User } from "../models/auth_models.js";
 import { hash_password_func, verify_password } from "../services/hashing_services.js";
 import { generateAccessTokenFunc, generateRefreshTokenFunc } from "../services/token_services.js";
+import { verifyAsync, CustomJwtPayload, AuthenticatedRequest } from "../interfaces/auth_interface.js";
 
 
 export const user_signup = async (req: Request, res: Response) => {
@@ -107,8 +108,21 @@ export const user_login = async (req: Request, res: Response) => {
 }
 
 
-export const auth_user = async (req: Request, res: Response) => {
+export const auth_user = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.user) {
+      res.status(401).json({ error: 'You are not authenticated!' });
+      return;
+    }
+
+    const user = await User.findById(req.user.id).select('-password');
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found!' });
+      return;
+    }
+
+    res.status(200).json(user);
 
   } catch (err: any) {
     console.log(err.message);
@@ -119,13 +133,37 @@ export const auth_user = async (req: Request, res: Response) => {
 
 export const refresh_token = async (req: Request, res: Response) => {
   try {
+    const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET as string;
+
+    if (!REFRESH_SECRET) {
+      throw new Error("Refresh Token key does not exist in .env!");
+    }
     const refreshToken = req.cookies.refreshToken;
 
-    res.status(200).json(refreshToken);
+    if (!refreshToken) {
+      res.status(401).json({ error: "You are not authenticated!" });
+      return;
+    }
+    const decoded = await verifyAsync(refreshToken, REFRESH_SECRET) as CustomJwtPayload;
+    
+    if (!decoded) {
+      res.status(403).json({error: 'Invalid user!'});
+    }
+    const user = await User.findOne({ _id: decoded.id });
 
+    if (!user) {
+      res.status(403).json({ error: 'Invalid user!' });
+      return;
+    }
+    const newAccessToken = generateAccessTokenFunc({
+      id: decoded.id,
+      username: decoded.username,
+    });
+
+    res.status(200).json({ accessToken: newAccessToken });
 
   } catch (err: any) {
     console.log(err.message);
-    res.status(500).json({ error: 'Internal server error!' });
+    res.status(500).json({ error: "Internal server error while refreshing token" });
   }
 }

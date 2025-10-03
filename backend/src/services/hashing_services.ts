@@ -9,6 +9,7 @@ export const hash_password_func = async (plainPassword: String) => {
   return hashedPassword;
 }
 
+
 export const verify_password = async (plain_password: string, secret_password: string) => {
   const match = await bcrypt.compare(plain_password, secret_password);
   
