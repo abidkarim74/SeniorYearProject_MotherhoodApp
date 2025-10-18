@@ -1,8 +1,14 @@
+import { useAuth } from "../context/authContext";
+
+
 const Home = () => {
+  const { user } = useAuth();
+
+  console.log(user);
 
   return (
     <div className="home">
-      <h1>Home</h1>
+      <h1>Notes Application</h1>
 
     </div>
   )

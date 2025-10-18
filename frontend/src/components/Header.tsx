@@ -2,11 +2,16 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useState } from "react";
 import { Bell } from "lucide-react";
+import MainLoading from "./MainLoading";
 
 
 const Header = () => {
-  const { logout } = useAuth();
-  // Dummy user data
+  const { logout, accessToken } = useAuth();
+
+  if (!accessToken) {
+    return <MainLoading></MainLoading>
+  }
+
   const userData = {
     name: "John Doe",
     email: "john.doe@example.com",
@@ -17,6 +22,7 @@ const Header = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
 
   const handleLogout = async () => {
     try {
@@ -39,7 +45,6 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo/Brand */}
           <div className="flex items-center">
             <Link 
               to="/" 
@@ -49,7 +54,6 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               to="/" 
@@ -87,7 +91,6 @@ const Header = () => {
               </button>
             </div>
 
-            {/* User Profile */}
             <div className="flex items-center space-x-3">
               <img 
                 src={userData.avatar} 
@@ -137,7 +140,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 pt-4 pb-3">
             {/* Error Message */}

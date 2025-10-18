@@ -192,7 +192,6 @@ const Login = () => {
             )}
           </div>
 
-          {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -276,9 +275,7 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Social Login */}
         <div className="mt-8">
-          {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />

@@ -4,7 +4,9 @@ import {
   useEffect,
   useState,
   type ReactNode,
+  useRef,
 } from "react";
+
 import Cookies from "js-cookie";
 import { type AuthUser } from "../interfaces/AuthInterfaces";
 import { getRequest } from "../api/requests";
@@ -21,76 +23,97 @@ type AuthContextType = {
   logout: () => void;
 };
 
-// Create the context with a default value of null or undefined
+
 const AuthContext = createContext<AuthContextType | null>(null);
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [mainLoading, setLoading] = useState<boolean>(true);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const refreshInProgress = useRef(false); 
+  const initialized = useRef(false); 
 
-  /** 🔹 Refresh Access Token */
   const refreshAccessToken = async (): Promise<string | null> => {
+    if (refreshInProgress.current) {
+      return null;
+    }
+    refreshInProgress.current = true;
+    
     try {
       const response = await api.post("/auth/refresh-token", {});
+
       const token = response.data;
+
       if (token) {
-        setAccessToken(token);
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        return token;
+        setAccessToken(token.accessToken);
+
+        api.defaults.headers.common["Authorization"] = `Bearer ${token.accessToken}`;
+
+        return token.accessToken;
       }
       return null;
-    } catch (err) {
+    } catch (err:any) {
       console.error("Failed to refresh token:", err);
-      logout();
       return null;
+
+    } finally {
+      refreshInProgress.current = false;
     }
   };
 
-  /** 🔹 Get authenticated user */
   const fetchAuthenticatedUser = async (): Promise<AuthUser | null> => {
     try {
       const response = await getRequest("/auth/auth-user");
       return response.data;
-    } catch (error) {
+
+    } catch (error:any) {
       console.error("Failed to fetch authenticated user:", error);
       return null;
     }
   };
 
-  /** 🔹 Logout */
   const logout = async () => {
     try {
       await api.post("/auth/logout");
+
     } catch (error) {
       console.error("Logout API call failed:", error);
+
     } finally {
       setAccessToken(null);
       setUser(null);
+
       delete api.defaults.headers.common["Authorization"];
       
-      // Clear any stored tokens or cookies
-      Cookies.remove("accessToken");
       Cookies.remove("refreshToken");
     }
   };
 
-  /** 🔹 Axios interceptor */
   useEffect(() => {
     const interceptor = api.interceptors.response.use(
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
+        
         if (
           error.response?.status === 401 &&
           !originalRequest._retry &&
-          !originalRequest.url.includes("/auth/refresh-token")
+          !originalRequest.url.includes("/auth/refresh-token") &&
+          !originalRequest.url.includes("/auth/logout")
         ) {
           originalRequest._retry = true;
+
           const newToken = await refreshAccessToken();
+
           if (newToken) {
             originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
+
             return api(originalRequest);
+
+          } else {
+            await logout();
+            return Promise.reject(error);
           }
         }
         return Promise.reject(error);
@@ -102,26 +125,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  /** 🔹 Sync headers */
   useEffect(() => {
     if (accessToken) {
       api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
     } else {
       delete api.defaults.headers.common["Authorization"];
     }
   }, [accessToken]);
 
-  /** 🔹 On mount: always try to refresh using cookie */
   useEffect(() => {
+    if (initialized.current) return;
+    
     const initAuth = async () => {
+      initialized.current = true;
+      
       try {
         const token = await refreshAccessToken();
+
         if (token) {
           const userData = await fetchAuthenticatedUser();
           setUser(userData);
+
+        } else {
+          await logout();
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
+        await logout();
       } finally {
         setLoading(false);
       }
@@ -130,7 +161,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // Create the context value object
   const contextValue: AuthContextType = {
     mainLoading,
     user,

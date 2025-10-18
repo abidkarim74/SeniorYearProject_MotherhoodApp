@@ -90,7 +90,6 @@ const Signup = () => {
       [name]: fieldValue
     }));
 
-    // Clear error when user starts typing
     if (errors[name as keyof SignupErrors]) {
       setErrors(prev => ({
         ...prev,
@@ -135,7 +134,6 @@ const Signup = () => {
     setError(null);
 
     const endpoint = "/auth/signup";
-    // Remove confirmPassword from submission data
     const { confirmPassword, ...submitData } = formData;
 
     try {
@@ -143,7 +141,6 @@ const Signup = () => {
       console.log('Signup successful:', response);
       setIsSuccess(true);
       
-      // Redirect to login after 2 seconds
       setAccessToken(response.accessToken);
       setTimeout(() => {
         navigate('/');
@@ -179,13 +176,11 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 px-4 py-8">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
           <p className="text-gray-600 mt-2">Join us today! Fill in your details</p>
         </div>
 
-        {/* General Error */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
             <div className="flex items-center">
@@ -197,9 +192,7 @@ const Signup = () => {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstname" className="block text-sm font-medium text-gray-700 mb-2">
@@ -255,7 +248,6 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Username Field */}
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username
@@ -283,7 +275,6 @@ const Signup = () => {
             )}
           </div>
 
-          {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -315,7 +306,6 @@ const Signup = () => {
             )}
           </div>
 
-          {/* Confirm Password Field */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Confirm Password
@@ -343,7 +333,6 @@ const Signup = () => {
             )}
           </div>
 
-          {/* Terms and Conditions */}
           <div className="flex items-start space-x-3">
             <label className="flex items-start cursor-pointer mt-1">
               <input
@@ -391,7 +380,6 @@ const Signup = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
