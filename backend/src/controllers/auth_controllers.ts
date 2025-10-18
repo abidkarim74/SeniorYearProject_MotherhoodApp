@@ -167,3 +167,20 @@ export const refresh_token = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error while refreshing token" });
   }
 }
+
+
+export const logout_user = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: "You are not authenticated!" });
+      return;
+    }
+    res.clearCookie('refreshToken');
+
+    res.status(200).json('Logout successfully!');
+
+  } catch (err: any) {
+    console.log(err.message);
+    res.status(500).json({ error: "Internal server error while refreshing token" });
+  }
+}

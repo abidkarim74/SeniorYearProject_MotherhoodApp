@@ -9,6 +9,7 @@ import cors from 'cors';
 
 
 const app: Application = express()
+
 dotenv.config()
 const PORT = process.env.PORT || 8080;
 const allowedOrigins = ["http://localhost:5173"];
@@ -23,8 +24,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser(process.env.SIGNING_SECRET || "my-secret"));
-app.use('/api/auth', auth_router);
 app.use(morgan('dev'));
+app.use('/api/auth', auth_router);
 
 
 app.listen(PORT, () => {
