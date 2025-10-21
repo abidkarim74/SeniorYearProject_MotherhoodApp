@@ -35,7 +35,7 @@ export const user_signup = async (req: Request, res: Response) => {
       username: new_user.username
     });
 
-     res.cookie("refreshToken", refresh_token, {
+    res.cookie("refreshToken", refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
@@ -165,5 +165,29 @@ export const refresh_token = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.log(err.message);
     res.status(500).json({ error: "Internal server error while refreshing token" });
+  }
+}
+
+
+export const logout_user = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      console.log("dasda");
+      res.status(401).json({ error: "You are not authenticated!" });
+      return;
+    }
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: '/', 
+    });
+
+    res.status(200).json('Logout successfully!');
+
+  } catch (err: any) {
+    console.log(err.message);
+    res.status(500).json({ error: "Internal server error while logging out" });
   }
 }

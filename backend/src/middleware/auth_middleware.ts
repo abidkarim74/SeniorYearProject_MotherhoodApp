@@ -11,7 +11,13 @@ export const verify_authentication = async (req: AuthenticatedRequest, res: Resp
       throw new Error("No access token key present in .env");
     }
     const authHeader = req.headers['authorization'];
+
+
     const token = authHeader?.split(' ')[1];
+
+    console.log("This: ", token);
+
+
 
     if (!token) {
       res.status(401).json({ message: 'You are not authenticated!' });
