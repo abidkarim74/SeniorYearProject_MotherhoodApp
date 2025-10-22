@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Baby, Users, Calendar } from "lucide-react";
 import MainLoading from "./MainLoading";
 
 
@@ -9,20 +9,20 @@ const Header = () => {
   const { logout, accessToken } = useAuth();
 
   if (!accessToken) {
-    return <MainLoading></MainLoading>
+    return <MainLoading />;
   }
 
+  // Default user data - replace with actual user data from context/API
   const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face&auto=format",
-    notifications: 3
+    name: "Mother Name",
+    email: "mother@example.com",
+    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face&auto=format",
+    notifications: 2
   };
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
-
 
   const handleLogout = async () => {
     try {
@@ -45,33 +45,52 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Logo */}
           <div className="flex items-center">
             <Link 
               to="/" 
               className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent"
             >
-              NoteApp
+              Motherhood
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
             <Link 
               to="/" 
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
-              Home
+              <Baby className="w-4 h-4 mr-2" />
+              Dashboard
             </Link>
             <Link 
-              to="/notes" 
-              className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              to="/children" 
+              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
-              Notes
+              <Users className="w-4 h-4 mr-2" />
+              My Children
             </Link>
             <Link 
-              to="/create" 
-              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
+              to="/vaccinations" 
+              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
             >
-              Create Note
+              <Calendar className="w-4 h-4 mr-2" />
+              Vaccinations
+            </Link>
+            <Link 
+              to="/community" 
+              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Community
+            </Link>
+            <Link 
+              to="/add-child" 
+              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm flex items-center"
+            >
+              <Baby className="w-4 h-4 mr-2" />
+              Add Child
             </Link>
           </nav>
 
@@ -80,9 +99,7 @@ const Header = () => {
             {/* Notifications */}
             <div className="relative">
               <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                <Bell className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-5 5v-5zM10.24 8.56a5.97 5.97 0 01-4.66-7.5 1 1 0 00-1.14-1.14 7.97 7.97 0 006.16 10.18 1 1 0 001.14-1.14z"/>
-                </Bell>
+                <Bell className="w-5 h-5" />
                 {userData.notifications > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {userData.notifications}
@@ -91,6 +108,7 @@ const Header = () => {
               </button>
             </div>
 
+            {/* Profile */}
             <div className="flex items-center space-x-3">
               <img 
                 src={userData.avatar} 
@@ -99,7 +117,7 @@ const Header = () => {
               />
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                <p className="text-xs text-gray-500">{userData.email}</p>
+                <p className="text-xs text-gray-500">Mother</p>
               </div>
             </div>
 
@@ -140,6 +158,7 @@ const Header = () => {
           </div>
         </div>
 
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 pt-4 pb-3">
             {/* Error Message */}
@@ -149,6 +168,7 @@ const Header = () => {
               </div>
             )}
             
+            {/* Profile Info */}
             <div className="flex items-center px-2 mb-4">
               <img 
                 src={userData.avatar} 
@@ -157,30 +177,51 @@ const Header = () => {
               />
               <div>
                 <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                <p className="text-xs text-gray-500">{userData.email}</p>
+                <p className="text-xs text-gray-500">Mother • {userData.email}</p>
               </div>
             </div>
+
+            {/* Mobile Navigation */}
             <div className="space-y-1">
               <Link 
                 to="/" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
               >
-                Home
+                <Baby className="w-4 h-4 mr-3" />
+                Dashboard
               </Link>
               <Link 
-                to="/notes" 
+                to="/children" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
               >
-                Notes
+                <Users className="w-4 h-4 mr-3" />
+                My Children
               </Link>
               <Link 
-                to="/create" 
+                to="/vaccinations" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3 py-2 text-base font-medium text-blue-600 bg-blue-50 rounded-md"
+                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
               >
-                Create Note
+                <Calendar className="w-4 h-4 mr-3" />
+                Vaccinations
+              </Link>
+              <Link 
+                to="/community" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+              >
+                <Users className="w-4 h-4 mr-3" />
+                Community
+              </Link>
+              <Link 
+                to="/add-child" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center px-3 py-2 text-base font-medium text-blue-600 bg-blue-50 rounded-md"
+              >
+                <Baby className="w-4 h-4 mr-3" />
+                Add Child
               </Link>
               <button 
                 onClick={handleLogout}
