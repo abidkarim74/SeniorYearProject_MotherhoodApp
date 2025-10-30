@@ -1,28 +1,28 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { postRequest } from '../api/requests';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/authContext';
+
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
   rememberMe: boolean;
 }
 
+
 interface LoginErrors {
-  username?: string;
+  email?: string;
   password?: string;
   general?: string;
 }
 
-
-import { useAuth } from '../context/authContext';
-
 const Login = () => {
-  const { setAccessToken} = useAuth();
-
+  const { setAccessToken } = useAuth();
   const navigate = useNavigate();
+  
   const [formData, setFormData] = useState<LoginFormData>({
-    username: '',
+    email: '',
     password: '',
     rememberMe: false
   });
@@ -34,8 +34,9 @@ const Login = () => {
 
   const validateField = (name: string, value: string | boolean): string | null => {
     switch (name) {
-      case 'username':
-        if (!value.toString().trim()) return "Username is required";
+      case 'email':
+        if (!value.toString().trim()) return "Email is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.toString())) return "Please enter a valid email address";
         return null;
       
       case 'password':
@@ -51,9 +52,10 @@ const Login = () => {
   const validateForm = (): boolean => {
     const newErrors: LoginErrors = {};
     
-    Object.keys(formData).forEach(key => {
-      if (key !== 'rememberMe') { // Skip rememberMe for validation
-        const error = validateField(key, formData[key as keyof LoginFormData]);
+    (Object.keys(formData) as Array<keyof LoginFormData>).forEach(key => {
+      if (key !== 'rememberMe') { 
+        const value = formData[key];
+        const error = validateField(key, value as string | boolean);
         if (error) {
           newErrors[key as keyof LoginErrors] = error;
         }
@@ -73,7 +75,6 @@ const Login = () => {
       [name]: fieldValue
     }));
 
-    // Clear error when user starts typing
     if (errors[name as keyof LoginErrors]) {
       setErrors(prev => ({
         ...prev,
@@ -102,9 +103,8 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Mark all fields as touched
     const allTouched = {
-      username: true,
+      email: true,
       password: true,
       rememberMe: true
     };
@@ -129,9 +129,7 @@ const Login = () => {
         localStorage.setItem('rememberMe', 'true');
       }
 
-      setAccessToken(response.accessToken);
-      
-      navigate('/');
+      setAccessToken(response);
       
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please try again.';
@@ -164,34 +162,35 @@ const Login = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          {/* Username Field */}
+          {/* Email Field */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email
             </label>
             <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               onBlur={handleBlur}
-              placeholder="Enter your username"
+              placeholder="Enter your email"
               required
               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                errors.username && touched.username ? 'border-red-300' : 'border-gray-300'
+                errors.email && touched.email ? 'border-red-300' : 'border-gray-300'
               }`}
             />
-            {errors.username && touched.username && (
+            {errors.email && touched.email && (
               <p className="text-red-500 text-xs mt-1 flex items-center">
                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {errors.username}
+                {errors.email}
               </p>
             )}
           </div>
 
+          {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -275,6 +274,7 @@ const Login = () => {
           </p>
         </div>
 
+        {/* Social Login */}
         <div className="mt-8">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

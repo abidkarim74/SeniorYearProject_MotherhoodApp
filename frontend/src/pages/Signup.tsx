@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import { type SignupFormData } from '../interfaces/AuthInterfaces';
 import { type SignupErrors } from '../interfaces/AuthInterfaces';
-
+import { GiCannonShot } from 'react-icons/gi';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -13,6 +13,7 @@ const Signup = () => {
     lastname: '',
     username: '',
     password: '',
+    email: '',
     confirmPassword: '',
     agreeToTerms: false
   });
@@ -51,6 +52,11 @@ const Signup = () => {
         if (!/^[a-zA-Z0-9_]+$/.test(value.toString())) return "Username can only contain letters, numbers, and underscores";
         return null;
       
+      case 'email':
+        if (!value.toString().trim()) return "Email is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.toString())) return "Please enter a valid email address";
+        return null;
+      
       case 'password':
         return validatePassword(value.toString());
       
@@ -70,10 +76,13 @@ const Signup = () => {
   const validateForm = (): boolean => {
     const newErrors: SignupErrors = {};
     
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key as keyof SignupFormData]);
+    // Fix: Use a type-safe approach to iterate through formData
+    (Object.keys(formData) as Array<keyof SignupFormData>).forEach(key => {
+      const value = formData[key];
+      // Since we initialized all values, we can safely assume they're not undefined
+      const error = validateField(key, value as string | boolean);
       if (error) {
-        newErrors[key as keyof SignupErrors] = error;
+        newErrors[key] = error;
       }
     });
 
@@ -90,6 +99,7 @@ const Signup = () => {
       [name]: fieldValue
     }));
 
+    // Clear error for this field if it exists
     if (errors[name as keyof SignupErrors]) {
       setErrors(prev => ({
         ...prev,
@@ -97,6 +107,7 @@ const Signup = () => {
       }));
     }
 
+    // Clear general error
     if (error) setError(null);
   };
 
@@ -134,14 +145,15 @@ const Signup = () => {
     setError(null);
 
     const endpoint = "/auth/signup";
-    const { confirmPassword, ...submitData } = formData;
+    const { confirmPassword, agreeToTerms, ...submitData } = formData;
 
     try {
       const response = await postRequest(endpoint, submitData);
       console.log('Signup successful:', response);
       setIsSuccess(true);
-      
-      setAccessToken(response.accessToken);
+
+      console.log("Signup: ", response);      
+      setAccessToken(response);
       setTimeout(() => {
         navigate('/');
       }, 2000);
@@ -154,6 +166,7 @@ const Signup = () => {
     }
   };
 
+  // ... rest of your JSX remains the same ...
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 px-4 py-8">
@@ -276,6 +289,33 @@ const Signup = () => {
           </div>
 
           <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              placeholder="your@email.com"
+              required
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                errors.email && touched.email ? 'border-red-300' : 'border-gray-300'
+              }`}
+            />
+            {errors.email && touched.email && (
+              <p className="text-red-500 text-xs mt-1 flex items-center">
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
@@ -383,7 +423,7 @@ const Signup = () => {
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            disabled={!formData.agreeToTerms || loading}
+            disabled={loading}
           >
             {loading ? (
               <div className="flex items-center justify-center">

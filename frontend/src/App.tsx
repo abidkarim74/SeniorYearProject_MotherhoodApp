@@ -11,6 +11,7 @@ import Vaccinations from "./pages/Vaccinations";
 import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
 
+
 function App() {
   const { accessToken } = useAuth();
 

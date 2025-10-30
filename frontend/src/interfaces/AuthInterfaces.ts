@@ -1,6 +1,9 @@
 export interface AuthUser {
   id: string,
   username: string,
+  firstname: string,
+  lastname: string,
+  email: string,
   profile_pic: string
 }
 
@@ -10,17 +13,21 @@ export interface SignupFormData {
   firstname: string;
   lastname: string;
   username: string;
+  email: string,
+  agreeToTerms?:boolean;
   password: string;
   confirmPassword: string;
-  agreeToTerms: boolean;
 }
 
+
+// In your AuthInterfaces.ts
 export interface SignupErrors {
   firstname?: string;
   lastname?: string;
   username?: string;
   password?: string;
+  email?: string;
   confirmPassword?: string;
-  agreeToTerms?: string;
+  agreeToTerms?: string; 
   general?: string;
 }

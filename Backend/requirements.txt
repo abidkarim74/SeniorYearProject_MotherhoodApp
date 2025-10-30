@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy[asyncio]
+python-dotenv
+bcrypt==4.0.1
+aiosmtplib
+email-validator
+python-multipart
+imap-tools
+alembic
+asyncpg 
+psycopg2-binary
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]
+itsdangerous

@@ -7,6 +7,7 @@ import {
   useRef,
 } from "react";
 
+
 import Cookies from "js-cookie";
 import { type AuthUser } from "../interfaces/AuthInterfaces";
 import { getRequest } from "../api/requests";
@@ -34,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshInProgress = useRef(false); 
   const initialized = useRef(false); 
 
+  console.log(accessToken);
+
   const refreshAccessToken = async (): Promise<string | null> => {
     if (refreshInProgress.current) {
       return null;
@@ -41,16 +44,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshInProgress.current = true;
     
     try {
-      const response = await api.post("/auth/refresh-token", {});
+      const response = await api.post("/auth/refresh-access-token", {});
 
       const token = response.data;
 
       if (token) {
-        setAccessToken(token.accessToken);
+        setAccessToken(token);
 
-        api.defaults.headers.common["Authorization"] = `Bearer ${token.accessToken}`;
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        return token.accessToken;
+        return token;
       }
       return null;
     } catch (err:any) {
@@ -64,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchAuthenticatedUser = async (): Promise<AuthUser | null> => {
     try {
-      const response = await getRequest("/auth/auth-user");
+      const response = await getRequest("/auth/authenticated-user");
       return response.data;
 
     } catch (error:any) {
@@ -99,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (
           error.response?.status === 401 &&
           !originalRequest._retry &&
-          !originalRequest.url.includes("/auth/refresh-token") &&
+          !originalRequest.url.includes("/auth/refresh-access-token") &&
           !originalRequest.url.includes("/auth/logout")
         ) {
           originalRequest._retry = true;
@@ -142,6 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       try {
         const token = await refreshAccessToken();
+
+        console.log("Came here...", token);
 
         if (token) {
           const userData = await fetchAuthenticatedUser();
