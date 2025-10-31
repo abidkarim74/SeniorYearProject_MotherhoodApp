@@ -7,9 +7,7 @@ pwd_context = CryptContext(
 )
 
 def hash_password_func(password: str):
-    print("111111111")
     hashed_password = pwd_context.hash(password)
-    print("222222222222")
     return hashed_password
 
 
