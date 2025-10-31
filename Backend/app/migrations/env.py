@@ -7,6 +7,7 @@ from alembic import context # type: ignore
 
 from database.db import Base
 from models.user import User
+from models.child import Child, Vaccination, Milestone, FeedingPreference
 
 
 # this is the Alembic Config object, which provides
