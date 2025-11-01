@@ -21,4 +21,11 @@ class ChildController():
     @staticmethod
     async def update_physical_info(id: str, data: ChildPhysicalInfoUpdate, auth_id: str, db: AsyncSession):
         pass
-        
+    
+    
+    @staticmethod
+    async def delete(child_id: str, auth_id: str, db: AsyncSession):
+        pass
+    
+    
+  

@@ -56,7 +56,6 @@ class AuthController():
                                 
         except SQLAlchemyError as e:
             await db.rollback()
-            print(e)
             raise HTTPException(status_code=500, detail='Database error!')
         
         except Exception as e:
@@ -161,9 +160,7 @@ class AuthController():
             result = await db.execute(statement)
             
             row = result.first()
-            
-            print(row)
-
+        
             if row:
                 email, user_id, username, firstname, lastname, profile_pic = row  
                 return {"email": email, "id": user_id, "firstname": firstname, "lastname": lastname, "username": username, "profile_pic": profile_pic }

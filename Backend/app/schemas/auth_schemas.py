@@ -8,7 +8,6 @@ class UserBaseSchema(BaseModel):
     lastname: str
     email: EmailStr
     username: str
-    image_url: Optional[str] = None 
 
 
 class UserCreateSchema(UserBaseSchema):

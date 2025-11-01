@@ -3,6 +3,7 @@ from schemas.profile_schemas import MotherProfileResponse, MotherProfileUpdate
 from middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.db import connect_db
+from controllers.profile_controllers import ProfileController
 
 
 profile_router = APIRouter(
@@ -13,17 +14,17 @@ profile_router = APIRouter(
 
 @profile_router.get('/mother/{id}', response_model=MotherProfileResponse)
 async def mother_profile_detail(id: str, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    pass
+    return await ProfileController.detail(id, db)
 
 
-@profile_router.put('/update', response_model=MotherProfileResponse)
+@profile_router.put('/update')
 async def mother_profile_update(data: MotherProfileUpdate ,payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    pass
+    return await ProfileController.update(payload['id'], data, db)
 
 
-@profile_router.put('/delete', response_model=MotherProfileResponse)
-async def mother_profile_update(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    pass
+@profile_router.delete('/delete')
+async def delete_route(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    return await ProfileController.delete(payload['id'], db)
 
 
 

@@ -6,6 +6,7 @@ from typing import List
 from models.child import GenderEnum
 
 
+
 class MotherProfileResponse(BaseModel):
     id: UUID = Field(default_factory=uuid4) 
     firstname: str
@@ -14,16 +15,16 @@ class MotherProfileResponse(BaseModel):
     email: EmailStr
     profile_pic: str | None = None  
     
-    date_of_birth: datetime 
-    phone_number: constr(pattern=r'^\+?\d{10,15}$') # type: ignore
-    address: str
-    city: str
-    country: str
+    date_of_birth: datetime | None
+    phone_number: constr(pattern=r'^\+?\d{10,15}$') | None # type: ignore
+    address: str | None
+    city: str | None
+    country: str | None
     
     number_of_children: int = 0
     blood_type: str | None = None
     notification_enabled: bool = True
-    preferred_language: str = "en"
+    preferred_language: str | None
     account_created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config():
@@ -36,27 +37,8 @@ class MotherProfileUpdate(BaseModel):
     address: str | None = Field(default=None, max_length=255)
     city: str | None = Field(default=None, max_length=100)
     country: str | None = Field(default=None, max_length=100)
+    date_of_birth: datetime | None = None
     blood_type: str | None = Field(default=None, pattern=r'^(A|B|AB|O)[+-]$')  
 
 
 
-# class ChildProfileResponse(BaseModel):
-#     id: UUID
-#     firstname: str
-#     lastname: Optional[str]
-#     profile_pic: Optional[str]
-#     mother_id: UUID
-#     gender: Optional[GenderEnum]
-#     date_of_birth: Optional[datetime]
-#     blood_type: Optional[str]
-#     pictures: Optional[List[str]]
-#     height: Optional[float]
-#     weight: Optional[float]
-#     head_circumference: Optional[float]
-#     allergies: Optional[str]
-#     medical_conditions: Optional[str]
-#     created_at: datetime
-#     updated_at: datetime
-
-#     class Config:
-#         orm_mode = True

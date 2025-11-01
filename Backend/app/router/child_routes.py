@@ -28,3 +28,8 @@ async def update_personal_info_route(id: str, data: ChildBaseUpdateSchema, paylo
 @child_router.put('/update-physical-info/{id}')
 async def update_physical_info_route(id: str, data: ChildPhysicalInfoUpdate, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
     pass
+
+
+@child_router.delete('/delete/{child_id}')
+async def delete_route(child_id: str, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    pass
