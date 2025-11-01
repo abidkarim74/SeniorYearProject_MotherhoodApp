@@ -40,8 +40,6 @@ class Child(Base):
     weight: Mapped[float | None] = mapped_column(nullable=True)
     
     head_circumference: Mapped[float | None] = mapped_column(nullable=True)
-    allergies: Mapped[str | None] = mapped_column(String, nullable=True)
-    medical_conditions: Mapped[str | None] = mapped_column(String, nullable=True)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -50,6 +48,10 @@ class Child(Base):
     """
     
     sleep_schedule: Mapped[str | None] = mapped_column(String, nullable=True)
+    
+    # allergies: Mapped[str | None] = mapped_column(String, nullable=True)
+    
+    # medical_conditions: Mapped[str | None] = mapped_column(String, nullable=True)
     """
 
 

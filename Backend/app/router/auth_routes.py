@@ -8,7 +8,7 @@ from middleware.protect_endpoints import verify_authentication
 
 auth_router = APIRouter(
     prefix='/api/auth',
-    tags=['Authentication']
+    tags=['Authentication Routes']
 )
 
 

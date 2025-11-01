@@ -6,8 +6,8 @@ from database.db import connect_db
 
 
 profile_router = APIRouter(
-    prefix='/api/profiles',
-    tags=['Profiles']
+    prefix='/api/user-profile',
+    tags=['User Profile Routes']
 )
 
 
