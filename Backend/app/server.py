@@ -4,6 +4,9 @@ from sqlalchemy import text
 from router.auth_routes import auth_router
 from middleware.protect_endpoints import verify_authentication
 from fastapi.middleware.cors import CORSMiddleware
+from router.child_routes import child_router
+from router.profile_routes import profile_router
+
 
 
 app = FastAPI()
@@ -30,6 +33,8 @@ async def startup_event():
         
         
 app.include_router(auth_router)
+app.include_router(profile_router)
+app.include_router(child_router)
 
 
 @app.get('/api/')

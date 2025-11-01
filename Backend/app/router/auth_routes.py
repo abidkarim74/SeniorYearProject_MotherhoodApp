@@ -8,12 +8,13 @@ from middleware.protect_endpoints import verify_authentication
 
 auth_router = APIRouter(
     prefix='/api/auth',
-    tags=['Authentication']
+    tags=['Authentication Routes']
 )
 
 
 @auth_router.post('/signup', status_code=201)
 async def signup_route(res: Response, data: UserCreateSchema, db: AsyncSession = Depends(connect_db)):
+    print('Hello bdas')
     return await AuthController.signup_func(data, db, res)
     
 
