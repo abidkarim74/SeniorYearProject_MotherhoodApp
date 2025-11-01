@@ -5,11 +5,14 @@ from schemas.profile_schemas import MotherProfileUpdate
 from sqlalchemy.exc import SQLAlchemyError
 from models.user import User
 from sqlalchemy import select, inspect
+from uuid import UUID
+from typing import Dict, Any, Optional
+
 
 
 class ProfileController():
     @staticmethod
-    async def detail(id: str, db: AsyncSession):
+    async def detail(id: UUID, db: AsyncSession) -> Dict[str, Any]:
         try:
             columns = [column for column in inspect(User).c if column.name != "password"]
             statement = select(*columns).where(User.id==id)
@@ -49,13 +52,15 @@ class ProfileController():
             if not user:
                 raise HTTPException(status_code=404, detail='User not found!')
             
-            for key, value in data:
+            update_data = data.model_dump(exclude_unset=True)
+
+            for key, value in update_data.items():
                 if value != None:
                     setattr(user, key, value)
             
             await db.commit()
             await db.refresh(user)
-                            
+                           
             return user
         
         except SQLAlchemyError:
@@ -72,7 +77,6 @@ class ProfileController():
                 detail=error_dict.get('detail', 'Internal server error!')
             )
             
-    
     
     @staticmethod
     async def delete(auth_id: str, db: AsyncSession):
