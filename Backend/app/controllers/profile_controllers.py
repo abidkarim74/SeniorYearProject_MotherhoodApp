@@ -7,6 +7,7 @@ from models.user import User
 from sqlalchemy import select, inspect
 from uuid import UUID
 from typing import Dict, Any, Optional
+from models.child import Child
 
 
 
@@ -105,4 +106,35 @@ class ProfileController():
                 detail=error_dict.get('detail', 'Internal server error!')
             )
             
+    
+    @staticmethod
+    async def get_children(auth_id: UUID, db: AsyncSession):
+        try:
+            stmt = select(
+                Child.firstname,
+                Child.lastname,
+                Child.profile_pic,
+                Child.gender,
+                Child.date_of_birth
+                
+            ).where(Child.mother_id==auth_id)
+            
+            result = await db.execute(stmt)
+            children = result.all()
+            
+            return children
+        
+        except SQLAlchemyError:
+            await db.rollback()
+            
+            raise HTTPException(status_code=500, detail='Database error!')
+
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500),
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
         

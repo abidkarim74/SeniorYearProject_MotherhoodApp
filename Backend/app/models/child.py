@@ -31,7 +31,8 @@ class Child(Base):
         SAEnum(GenderEnum, name="gender_enum"),  
         nullable=True
     )    
-    date_of_birth: Mapped[datetime | None] = mapped_column(nullable=True)
+    date_of_birth: Mapped[datetime | None] = mapped_column(nullable=True, default=datetime.now)
+
     blood_type: Mapped[str | None] = mapped_column(String, nullable=True)
     pictures: Mapped[List[str] | None] = mapped_column(JSON, nullable=True)
 

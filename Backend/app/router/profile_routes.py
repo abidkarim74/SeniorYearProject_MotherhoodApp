@@ -4,12 +4,19 @@ from middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.db import connect_db
 from controllers.profile_controllers import ProfileController
+from schemas.child_schemas import ChildMiniResponseSchema
+from typing import List
 
 
 profile_router = APIRouter(
     prefix='/api/user-profile',
     tags=['User Profile Routes']
 )
+
+
+@profile_router.get('/get-children', response_model=List[ChildMiniResponseSchema])
+async def mother_children_route(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    return await ProfileController.get_children(payload['id'], db)
 
 
 @profile_router.get('/mother/{id}', response_model=MotherProfileResponse)

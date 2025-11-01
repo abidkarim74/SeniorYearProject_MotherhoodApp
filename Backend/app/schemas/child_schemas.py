@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from models.child import GenderEnum
 from uuid import UUID
-from datetime import date
+from datetime import date, datetime
 
 
 class ChildBaseSchema(BaseModel):
@@ -11,7 +11,7 @@ class ChildBaseSchema(BaseModel):
     lastname: str
     profile_pic: str
     gender: Optional[GenderEnum] = None
-    date_of_birth: str
+    date_of_birth: datetime | None
     
     
 class ChildBaseUpdateSchema(BaseModel):
@@ -19,13 +19,18 @@ class ChildBaseUpdateSchema(BaseModel):
     lastname: Optional[str] = None
     profile_pic: Optional[str] = None
     gender: Optional[GenderEnum] = None
-    date_of_birth: Optional[date] = None
+    date_of_birth: Optional[datetime] = None
 
 
 class ChildCreateSchema(ChildBaseSchema):
     pass
 
 
+class ChildMiniResponseSchema(ChildBaseSchema):
+    class Config():
+        orm_mode = True
+        
+    
 class ChildPhysicalInfoSchema(BaseModel):
     blood_type: Optional[str] = None
     height: Optional[float] = None

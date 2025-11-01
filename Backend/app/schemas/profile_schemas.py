@@ -6,7 +6,6 @@ from typing import List
 from models.child import GenderEnum
 
 
-
 class MotherProfileResponse(BaseModel):
     id: UUID = Field(default_factory=uuid4) 
     firstname: str
