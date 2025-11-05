@@ -111,6 +111,7 @@ class ProfileController():
     async def get_children(auth_id: UUID, db: AsyncSession):
         try:
             stmt = select(
+                Child.id,
                 Child.firstname,
                 Child.lastname,
                 Child.profile_pic,

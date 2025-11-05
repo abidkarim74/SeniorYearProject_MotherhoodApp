@@ -27,6 +27,7 @@ class ChildCreateSchema(ChildBaseSchema):
 
 
 class ChildMiniResponseSchema(ChildBaseSchema):
+    id: UUID
     class Config():
         orm_mode = True
         
@@ -47,6 +48,5 @@ class ChildPhysicalInfoUpdate(BaseModel):
 
 class ChildResponseSchema(ChildBaseSchema, ChildPhysicalInfoSchema):
     id: UUID
-
     class Config:
         orm_mode = True  

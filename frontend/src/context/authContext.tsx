@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchAuthenticatedUser = async (): Promise<AuthUser | null> => {
     try {
       const response = await getRequest("/auth/authenticated-user");
-      return response.data;
+      return response;
 
     } catch (error:any) {
       console.error("Failed to fetch authenticated user:", error);
