@@ -10,31 +10,94 @@ import MyChildren from "./pages/Children";
 import Vaccinations from "./pages/Vaccinations";
 import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
-
+import ChildDetail from "./pages/Childdetail"; // ✅ NEW IMPORT
 
 function App() {
   const { accessToken } = useAuth();
 
   return (
     <div className="">
-      {accessToken && <Header></Header>}
-      <Routes>
-        <Route path="/" element={<ProtectedRoutes><Home></Home></ProtectedRoutes>}></Route>
-        <Route path="/children" element={<ProtectedRoutes><MyChildren></MyChildren></ProtectedRoutes>}>
-        </Route>
-        <Route path="/add-child" element={<ProtectedRoutes><AddChild></AddChild></ProtectedRoutes>}></Route>
-        <Route path="/community" element={<ProtectedRoutes><Community></Community></ProtectedRoutes>}></Route>
-        <Route path="/vaccinations" element={<ProtectedRoutes><Vaccinations></Vaccinations></ProtectedRoutes>}>
-        
+      {/* Show Header only when logged in */}
+      {accessToken && <Header />}
 
-        </Route>
-        <Route path="/login" element={<GuestRoute><Login></Login></GuestRoute>}></Route>
-        <Route path="/signup" element={<GuestRoute><Signup></Signup></GuestRoute>}></Route>
-       
+      <Routes>
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoutes>
+              <Home />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/children"
+          element={
+            <ProtectedRoutes>
+              <MyChildren />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/add-child"
+          element={
+            <ProtectedRoutes>
+              <AddChild />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoutes>
+              <Community />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/vaccinations"
+          element={
+            <ProtectedRoutes>
+              <Vaccinations />
+            </ProtectedRoutes>
+          }
+        />
+
+        {/* ✅ New Child Detail Route */}
+        <Route
+          path="/childdetail/:id"
+          element={
+            <ProtectedRoutes>
+              <ChildDetail />
+            </ProtectedRoutes>
+          }
+        />
+
+        {/* Guest Routes */}
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <Login />
+            </GuestRoute>
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            <GuestRoute>
+              <Signup />
+            </GuestRoute>
+          }
+        />
       </Routes>
-      
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
