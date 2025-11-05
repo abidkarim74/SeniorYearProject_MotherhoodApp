@@ -1,262 +1,339 @@
-import { Link } from "react-router-dom";
-import { useAuth } from "../context/authContext";
-import { useState } from "react";
-import { Bell, Baby, Users, Calendar } from "lucide-react";
-import MainLoading from "./MainLoading";
 
+// import { Link } from "react-router-dom";
+// import { useState, useRef, useEffect } from "react";
+// import { Bell, Baby, ChevronDown, User, LogOut } from "lucide-react";
+
+// // Mock auth context for demo
+// const useAuth = () => ({
+//   logout: async () => console.log("Logging out..."),
+//   accessToken: "mock-token"
+// });
+
+// const Header = () => {
+//   const { logout, accessToken } = useAuth();
+//   const [dropdownOpen, setDropdownOpen] = useState(false);
+//   const dropdownRef = useRef<HTMLDivElement>(null);
+
+//   // Mock user data - in real app, fetch from API/context
+//   const userData = {
+//     name: "Sarah Johnson",
+//     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face&auto=format",
+//     notifications: 2
+//   };
+
+//   // Close dropdown on outside click
+//   useEffect(() => {
+//     const handleClickOutside = (event: MouseEvent) => {
+//       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+//         setDropdownOpen(false);
+//       }
+//     };
+
+//     if (dropdownOpen) {
+//       document.addEventListener("mousedown", handleClickOutside);
+//     }
+
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, [dropdownOpen]);
+
+//   // Close dropdown on Escape key
+//   useEffect(() => {
+//     const handleEscape = (event: KeyboardEvent) => {
+//       if (event.key === "Escape") {
+//         setDropdownOpen(false);
+//       }
+//     };
+
+//     if (dropdownOpen) {
+//       document.addEventListener("keydown", handleEscape);
+//     }
+
+//     return () => document.removeEventListener("keydown", handleEscape);
+//   }, [dropdownOpen]);
+
+//   const handleLogout = async () => {
+//     await logout();
+//     setDropdownOpen(false);
+//   };
+
+//   if (!accessToken) {
+//     return (
+//       <header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
+//         <div className="flex justify-between items-center h-16 px-6 ml-16">
+//           <div className="w-full max-w-md h-10 bg-gray-100 animate-pulse rounded-md" />
+//         </div>
+//       </header>
+//     );
+//   }
+
+//   return (
+//     <header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
+//       <div className="flex justify-between items-center h-16 px-6 ml-16 md:ml-16 ml-0">
+        
+//         {/* Search */}
+//         <div className="flex-1 max-w-md">
+//           <input 
+//             type="search"
+//             placeholder="Search children, vaccinations..."
+//             aria-label="Search"
+//             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+//           />
+//         </div>
+
+//         {/* Right side actions */}
+//         <div className="flex items-center space-x-3 ml-4">
+          
+//           {/* Add Child Button */}
+//           <Link 
+//             to="/add-child"
+//             className="bg-pink-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-pink-700 transition shadow-sm font-medium"
+//           >
+//             <Baby className="w-4 h-4 mr-2" /> 
+//             <span className="hidden sm:inline">Add Child</span>
+//             <span className="sm:hidden">Add</span>
+//           </Link>
+
+//           {/* Notifications */}
+//           <button 
+//             aria-label={`Notifications ${userData.notifications > 0 ? `(${userData.notifications} unread)` : ''}`}
+//             className="relative p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition"
+//           >
+//             <Bell className="w-5 h-5" />
+//             {userData.notifications > 0 && (
+//               <span className="absolute top-0 right-0 bg-pink-600 text-white text-xs font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+//                 {userData.notifications}
+//               </span>
+//             )}
+//           </button>
+
+//           {/* Profile Dropdown */}
+//           <div className="relative" ref={dropdownRef}>
+//             <button 
+//               onClick={() => setDropdownOpen(!dropdownOpen)}
+//               aria-expanded={dropdownOpen}
+//               aria-haspopup="true"
+//               aria-label="User menu"
+//               className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition"
+//             >
+//               <img 
+//                 src={userData.avatar} 
+//                 alt={userData.name}
+//                 className="w-8 h-8 rounded-full border-2 border-gray-200" 
+//               />
+//               <span className="hidden md:block text-sm font-medium text-gray-700">
+//                 {userData.name}
+//               </span>
+//               <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+//             </button>
+
+//             {/* Dropdown Menu */}
+//             {dropdownOpen && (
+//               <div 
+//                 className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50"
+//                 role="menu"
+//               >
+//                 {/* User Info */}
+//                 <div className="px-4 py-3 border-b border-gray-100">
+//                   <p className="text-sm font-medium text-gray-900">{userData.name}</p>
+//                   <p className="text-xs text-gray-500 mt-0.5">View Profile</p>
+//                 </div>
+
+//                 {/* Menu Items */}
+//                 <Link
+//                   to="/profile"
+//                   className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition"
+//                   role="menuitem"
+//                   onClick={() => setDropdownOpen(false)}
+//                 >
+//                   <User className="w-4 h-4 mr-3" />
+//                   My Profile
+//                 </Link>
+
+//                 <button
+//                   onClick={handleLogout}
+//                   className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition"
+//                   role="menuitem"
+//                 >
+//                   <LogOut className="w-4 h-4 mr-3" />
+//                   Logout
+//                 </button>
+//               </div>
+//             )}
+//           </div>
+
+//         </div>
+//       </div>
+//     </header>
+//   );
+// };
+
+// export default Header;
+
+
+import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Bell, Baby, ChevronDown, User, LogOut } from "lucide-react";
+
+// Mock auth context for demo
+const useAuth = () => ({
+  logout: async () => console.log("Logging out..."),
+  accessToken: "mock-token"
+});
 
 const Header = () => {
   const { logout, accessToken } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  if (!accessToken) {
-    return <MainLoading />;
-  }
-
-  // Default user data - replace with actual user data from context/API
+  // Mock user data - in real app, fetch from API/context
   const userData = {
-    name: "Mother Name",
-    email: "mother@example.com",
+    name: "Sarah Johnson",
     avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face&auto=format",
     notifications: 2
   };
 
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownOpen]);
+
+  // Close dropdown on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [dropdownOpen]);
 
   const handleLogout = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await logout();
-    } catch (err) {
-      setError("Failed to log out. Please try again.");
-      console.error("Logout error:", err);
-    } finally {
-      setLoading(false);
-    }
+    await logout();
+    setDropdownOpen(false);
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  if (!accessToken) {
+    return (
+      <header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
+        <div className="flex justify-between items-center h-16 px-6 ml-16">
+          <div className="w-full max-w-md h-10 bg-gray-100 animate-pulse rounded-md" />
+        </div>
+      </header>
+    );
+  }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link 
-              to="/" 
-              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent"
-            >
-              Nurtura
-            </Link>
-          </div>
+    <header className="fixed top-0 left-0 w-full bg-white shadow-sm border-b border-gray-200 z-50">
+      <div className="flex justify-between items-center h-16 px-6 ml-16 md:ml-16 ml-0">
+        
+        {/* Search */}
+        <div className="flex-1 max-w-md">
+          <input 
+            type="search"
+            placeholder="Search children, vaccinations..."
+            aria-label="Search"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+          />
+        </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link 
-              to="/" 
-              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-            >
-              <Baby className="w-4 h-4 mr-2" />
-              Dashboard
-            </Link>
-            <Link 
-              to="/children" 
-              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              My Children
-            </Link>
-            <Link 
-              to="/vaccinations" 
-              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Vaccinations
-            </Link>
-            <Link 
-              to="/community" 
-              className="flex items-center text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Community
-            </Link>
-            <Link 
-              to="/add-child" 
-              className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm flex items-center"
-            >
-              <Baby className="w-4 h-4 mr-2" />
-              Add Child
-            </Link>
-          </nav>
+        {/* Right side actions */}
+        <div className="flex items-center space-x-3 ml-4">
+          
+          {/* Add Child Button */}
+          <Link 
+            to="/add-child"
+            className="bg-pink-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-pink-700 transition shadow-sm font-medium"
+          >
+            <Baby className="w-4 h-4 mr-2" /> 
+            <span className="hidden sm:inline">Add Child</span>
+            <span className="sm:hidden">Add</span>
+          </Link>
 
-          {/* Profile Section */}
-          <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <div className="relative">
-              <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                <Bell className="w-5 h-5" />
-                {userData.notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {userData.notifications}
-                  </span>
-                )}
-              </button>
-            </div>
+          {/* Notifications */}
+          <button 
+            aria-label={`Notifications ${userData.notifications > 0 ? `(${userData.notifications} unread)` : ''}`}
+            className="relative p-2 text-gray-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition"
+          >
+            <Bell className="w-5 h-5" />
+            {userData.notifications > 0 && (
+              <span className="absolute top-0 right-0 bg-pink-600 text-white text-xs font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                {userData.notifications}
+              </span>
+            )}
+          </button>
 
-            {/* Profile */}
-            <div className="flex items-center space-x-3">
+          {/* Profile Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
+              aria-label="User menu"
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 transition"
+            >
               <img 
                 src={userData.avatar} 
                 alt={userData.name}
-                className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                className="w-8 h-8 rounded-full border-2 border-gray-200" 
               />
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                <p className="text-xs text-gray-500">Mother</p>
-              </div>
-            </div>
-
-            {/* Logout Button */}
-            <button 
-              onClick={handleLogout}
-              disabled={loading}
-              className="hidden sm:flex items-center justify-center text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 border border-gray-300 hover:border-red-300 disabled:opacity-50 disabled:cursor-not-allowed min-w-20"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Logging out...
-                </>
-              ) : (
-                "Logout"
-              )}
+              <span className="hidden md:block text-sm font-medium text-gray-700">
+                {userData.name}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Mobile menu button */}
-            <button 
-              onClick={toggleMobileMenu}
-              className="md:hidden p-2 text-gray-600 hover:text-blue-600"
-            >
-              {isMobileMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
+            {/* Dropdown Menu */}
+            {dropdownOpen && (
+              <div 
+                className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50"
+                role="menu"
+              >
+                {/* User Info */}
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">{userData.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">View Profile</p>
+                </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 pt-4 pb-3">
-            {/* Error Message */}
-            {error && (
-              <div className="mx-3 mb-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{error}</p>
+                {/* Menu Items */}
+                <Link
+                  to="/profile"
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition"
+                  role="menuitem"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <User className="w-4 h-4 mr-3" />
+                  My Profile
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition"
+                  role="menuitem"
+                >
+                  <LogOut className="w-4 h-4 mr-3" />
+                  Logout
+                </button>
               </div>
             )}
-            
-            {/* Profile Info */}
-            <div className="flex items-center px-2 mb-4">
-              <img 
-                src={userData.avatar} 
-                alt={userData.name}
-                className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 mr-3"
-              />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{userData.name}</p>
-                <p className="text-xs text-gray-500">Mother • {userData.email}</p>
-              </div>
-            </div>
-
-            {/* Mobile Navigation */}
-            <div className="space-y-1">
-              <Link 
-                to="/" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-              >
-                <Baby className="w-4 h-4 mr-3" />
-                Dashboard
-              </Link>
-              <Link 
-                to="/children" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-              >
-                <Users className="w-4 h-4 mr-3" />
-                My Children
-              </Link>
-              <Link 
-                to="/vaccinations" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-              >
-                <Calendar className="w-4 h-4 mr-3" />
-                Vaccinations
-              </Link>
-              <Link 
-                to="/community" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
-              >
-                <Users className="w-4 h-4 mr-3" />
-                Community
-              </Link>
-              <Link 
-                to="/add-child" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center px-3 py-2 text-base font-medium text-blue-600 bg-blue-50 rounded-md"
-              >
-                <Baby className="w-4 h-4 mr-3" />
-                Add Child
-              </Link>
-              <button 
-                onClick={handleLogout}
-                disabled={loading}
-                className="flex items-center justify-center w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Logging out...
-                  </>
-                ) : (
-                  "Logout"
-                )}
-              </button>
-            </div>
           </div>
-        )}
-      </div>
 
-      {/* Global Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg flex items-center space-x-3">
-            <svg className="animate-spin h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span className="text-gray-700">Logging out...</span>
-          </div>
         </div>
-      )}
+      </div>
     </header>
   );
 };
