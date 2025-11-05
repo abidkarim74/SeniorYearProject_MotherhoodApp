@@ -12,7 +12,7 @@ load_dotenv()
 database_url = os.getenv('POSTGRES_DATABASE_URL')
 
 if not database_url:
-    raise ValueError("POSTGRESQL_DATABASE_URL is not set in .env file")
+    raise ValueError("POSTGRES_DATABASE_URL is not set in .env file")
 
 engine = create_async_engine(database_url)
 
