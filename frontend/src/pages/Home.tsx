@@ -15,11 +15,11 @@ import {
 
 const Home = () => {
   const { accessToken, user } = useAuth();
+
   const [children, setChildren] = useState<any[]>([]);
   const [activeChild, setActiveChild] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Fetch children on mount
   useEffect(() => {
     const fetchChildren = async () => {
       try {
@@ -91,7 +91,7 @@ const Home = () => {
         <div className="mb-8 text-center sm:text-left">
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back,{" "}
-            <span className="text-[#e5989b]">{user.firstname}</span>!
+            <span className="text-[#e5989b]">{user?.firstname}</span>!
           </h1>
           <p className="text-gray-600 mt-2">
             Here’s your parenting dashboard for today.

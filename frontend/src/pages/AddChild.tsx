@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postRequest } from "../api/requests";
-import { useAuth } from "../context/authContext";
 import { Baby, Upload, X } from "lucide-react";
+
 
 const AddChild = () => {
   const navigate = useNavigate();
-  const { accessToken } = useAuth();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,9 +48,9 @@ const AddChild = () => {
     try {
       setLoading(true);
       const payload = { ...formData, profile_pic: avatarPreview || "" };
-      await postRequest("/child/create", payload, accessToken);
-      alert("Child created successfully!");
-      navigate("/children");
+      await postRequest("/child/create", payload);
+      
+      navigate("/");
     } catch (err) {
       console.error(err);
       alert("Failed to create child. Please try again.");
