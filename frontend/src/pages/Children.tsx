@@ -1,6 +1,7 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+import { getRequest } from "../api/requests";
 import { 
   Baby, 
   Plus, 
@@ -12,69 +13,31 @@ import {
   Weight,
   Ruler,
   Cake,
-  Syringe,  // Changed from Vaccines to Syringe
-  MoreVertical
+  Syringe,
+  MoreVertical,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 
 const Children = () => {
-  const [children, setChildren] = useState([
-    {
-      id: 1,
-      name: "Ali Ahmed",
-      age: "2 years, 3 months",
-      birthDate: "2021-09-15",
-      gender: "Male",
-      weight: "12.5 kg",
-      height: "88 cm",
-      lastCheckup: "2024-01-15",
-      nextVaccination: "2024-03-01",
-      growthStatus: "good",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face&auto=format",
-      milestones: {
-        achieved: 8,
-        total: 12
-      },
-      upcomingVaccines: 2
-    },
-    {
-      id: 2,
-      name: "Fatima Ahmed",
-      age: "6 months",
-      birthDate: "2023-08-10",
-      gender: "Female",
-      weight: "7.2 kg",
-      height: "65 cm",
-      lastCheckup: "2024-01-20",
-      nextVaccination: "2024-02-15",
-      growthStatus: "excellent",
-      avatar: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=150&h=150&fit=crop&crop=face&auto=format",
-      milestones: {
-        achieved: 5,
-        total: 8
-      },
-      upcomingVaccines: 1
-    },
-    {
-      id: 3,
-      name: "Omar Ahmed",
-      age: "4 years",
-      birthDate: "2020-02-20",
-      gender: "Male",
-      weight: "16.8 kg",
-      height: "102 cm",
-      lastCheckup: "2024-01-10",
-      nextVaccination: "2024-06-15",
-      growthStatus: "normal",
-      avatar: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=150&h=150&fit=crop&crop=face&auto=format",
-      milestones: {
-        achieved: 10,
-        total: 15
-      },
-      upcomingVaccines: 0
-    }
-  ]);
-
+  const { accessToken, user } = useAuth();
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchChildren = async () => {
+      try {
+        const response = await getRequest("/user-profile/get-children");
+        setChildren(response || []);
+      } catch (error) {
+        console.error("Error fetching children:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChildren();
+  }, [accessToken]);
 
   const handleDeleteChild = (childId: number) => {
     setChildren(children.filter(child => child.id !== childId));
@@ -85,12 +48,52 @@ const Children = () => {
     setActiveMenu(activeMenu === childId ? null : childId);
   };
 
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    trend,
+    change,
+  }: {
+    title: string;
+    value: string | number;
+    icon: any;
+    trend?: "up" | "down";
+    change?: number;
+  }) => (
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 transition hover:shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+          {trend && change !== undefined && (
+            <div
+              className={`flex items-center mt-2 text-sm ${
+                trend === "up" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {trend === "up" ? (
+                <ArrowUp className="w-4 h-4 mr-1" />
+              ) : (
+                <ArrowDown className="w-4 h-4 mr-1" />
+              )}
+              <span>{change}</span>
+            </div>
+          )}
+        </div>
+        <div className="p-3 rounded-full bg-[#fceaea]">
+          <Icon className="w-6 h-6 text-[#e5989b]" />
+        </div>
+      </div>
+    </div>
+  );
+
   const getGrowthStatusColor = (status: string) => {
     switch (status) {
       case "excellent":
         return "text-green-600 bg-green-50 border-green-200";
       case "good":
-        return "text-blue-600 bg-blue-50 border-blue-200";
+        return "text-[#e5989b] bg-[#fceaea] border-[#e5989b]/20";
       case "normal":
         return "text-yellow-600 bg-yellow-50 border-yellow-200";
       default:
@@ -99,19 +102,24 @@ const Children = () => {
   };
 
   const ChildCard = ({ child }: { child: any }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-4">
           <img
-            src={child.avatar}
-            alt={child.name}
-            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+            src={
+              child.profile_pic ||
+              "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            }
+            alt={`${child.firstname} ${child.lastname}`}
+            className="w-16 h-16 rounded-full object-cover border-2 border-[#e5989b]/20"
           />
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">{child.name}</h3>
-            <p className="text-gray-600">{child.age} • {child.gender}</p>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getGrowthStatusColor(child.growthStatus)}`}>
-              {child.growthStatus.charAt(0).toUpperCase() + child.growthStatus.slice(1)} Growth
+            <h3 className="text-xl font-semibold text-gray-900">
+              {child.firstname} {child.lastname}
+            </h3>
+            <p className="text-gray-600">{child.age || "N/A"} • {child.gender}</p>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getGrowthStatusColor(child.growthStatus || "normal")}`}>
+              {(child.growthStatus || "normal").charAt(0).toUpperCase() + (child.growthStatus || "normal").slice(1)} Growth
             </span>
           </div>
         </div>
@@ -149,37 +157,37 @@ const Children = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
-          <Weight className="w-5 h-5 text-blue-600" />
+        <div className="flex items-center space-x-2 p-3 bg-[#f0f7ff] rounded-lg border border-[#e5989b]/10">
+          <Weight className="w-5 h-5 text-[#e5989b]" />
           <div>
             <p className="text-sm text-gray-600">Weight</p>
-            <p className="font-semibold text-gray-900">{child.weight}</p>
+            <p className="font-semibold text-gray-900">{child.weight || "N/A"} kg</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 p-3 bg-green-50 rounded-lg">
-          <Ruler className="w-5 h-5 text-green-600" />
+        <div className="flex items-center space-x-2 p-3 bg-[#f0f8f4] rounded-lg border border-[#e5989b]/10">
+          <Ruler className="w-5 h-5 text-[#e5989b]" />
           <div>
             <p className="text-sm text-gray-600">Height</p>
-            <p className="font-semibold text-gray-900">{child.height}</p>
+            <p className="font-semibold text-gray-900">{child.height || "N/A"} cm</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg">
-          <Cake className="w-5 h-5 text-purple-600" />
+        <div className="flex items-center space-x-2 p-3 bg-[#f8f0fb] rounded-lg border border-[#e5989b]/10">
+          <Cake className="w-5 h-5 text-[#e5989b]" />
           <div>
             <p className="text-sm text-gray-600">Milestones</p>
             <p className="font-semibold text-gray-900">
-              {child.milestones.achieved}/{child.milestones.total}
+              {child.milestones?.achieved || 0}/{child.milestones?.total || 0}
             </p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2 p-3 bg-orange-50 rounded-lg">
-          <Syringe className="w-5 h-5 text-orange-600" /> {/* Changed to Syringe */}
+        <div className="flex items-center space-x-2 p-3 bg-[#fff4e6] rounded-lg border border-[#e5989b]/10">
+          <Syringe className="w-5 h-5 text-[#e5989b]" />
           <div>
             <p className="text-sm text-gray-600">Vaccines Due</p>
-            <p className="font-semibold text-gray-900">{child.upcomingVaccines}</p>
+            <p className="font-semibold text-gray-900">{child.upcomingVaccines || 0}</p>
           </div>
         </div>
       </div>
@@ -187,11 +195,15 @@ const Children = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div className="flex justify-between items-center p-2">
           <span className="text-gray-600">Birth Date:</span>
-          <span className="font-medium">{new Date(child.birthDate).toLocaleDateString()}</span>
+          <span className="font-medium">
+            {child.date_of_birth ? new Date(child.date_of_birth).toLocaleDateString() : "N/A"}
+          </span>
         </div>
         <div className="flex justify-between items-center p-2">
           <span className="text-gray-600">Last Checkup:</span>
-          <span className="font-medium">{new Date(child.lastCheckup).toLocaleDateString()}</span>
+          <span className="font-medium">
+            {child.lastCheckup ? new Date(child.lastCheckup).toLocaleDateString() : "N/A"}
+          </span>
         </div>
         <div className="flex justify-between items-center p-2">
           <span className="text-gray-600">Next Vaccination:</span>
@@ -201,26 +213,26 @@ const Children = () => {
         </div>
         <div className="flex justify-between items-center p-2">
           <span className="text-gray-600">Growth Percentile:</span>
-          <span className="font-medium">75th</span>
+          <span className="font-medium">{child.growthPercentile || "N/A"}</span>
         </div>
       </div>
 
       <div className="flex space-x-3 mt-6 pt-4 border-t border-gray-200">
         <Link
           to={`/child/${child.id}/growth`}
-          className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          className="flex-1 bg-[#e5989b] text-white text-center py-2 px-4 rounded-lg hover:bg-[#d88a8d] transition-colors text-sm font-medium"
         >
           View Growth
         </Link>
         <Link
           to={`/child/${child.id}/vaccinations`}
-          className="flex-1 bg-green-600 text-white text-center py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+          className="flex-1 bg-[#e5989b] text-white text-center py-2 px-4 rounded-lg hover:bg-[#d88a8d] transition-colors text-sm font-medium"
         >
           Vaccinations
         </Link>
         <Link
           to={`/child/${child.id}/milestones`}
-          className="flex-1 bg-purple-600 text-white text-center py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+          className="flex-1 bg-[#e5989b] text-white text-center py-2 px-4 rounded-lg hover:bg-[#d88a8d] transition-colors text-sm font-medium"
         >
           Milestones
         </Link>
@@ -228,10 +240,18 @@ const Children = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500 bg-[#fff6f6]">
+        Loading your children...
+      </div>
+    );
+  }
+
   const EmptyState = () => (
     <div className="text-center py-12">
-      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-        <Baby className="w-12 h-12 text-gray-400" />
+      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-[#fceaea] flex items-center justify-center">
+        <Baby className="w-12 h-12 text-[#e5989b]" />
       </div>
       <h3 className="text-lg font-medium text-gray-900 mb-2">No children added yet</h3>
       <p className="text-gray-600 mb-6 max-w-md mx-auto">
@@ -239,7 +259,7 @@ const Children = () => {
       </p>
       <Link
         to="/add-child"
-        className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        className="inline-flex items-center bg-[#e5989b] text-white px-6 py-3 rounded-lg hover:bg-[#d88a8d] transition-colors font-medium"
       >
         <Plus className="w-5 h-5 mr-2" />
         Add Your First Child
@@ -248,20 +268,22 @@ const Children = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#fff6f6] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Children</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                My Children, <span className="text-[#e5989b]">{user?.firstname}</span>
+              </h1>
               <p className="text-gray-600 mt-2">
                 Manage your children's profiles and track their development
               </p>
             </div>
             <Link
               to="/add-child"
-              className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="inline-flex items-center bg-[#e5989b] text-white px-6 py-3 rounded-lg hover:bg-[#d88a8d] transition-colors font-medium"
             >
               <Plus className="w-5 h-5 mr-2" />
               Add New Child
@@ -271,59 +293,26 @@ const Children = () => {
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Children</p>
-                <p className="text-2xl font-bold text-gray-900">{children.length}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-50">
-                <Baby className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Upcoming Vaccinations</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {children.reduce((acc, child) => acc + child.upcomingVaccines, 0)}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-green-50">
-                <Syringe className="w-6 h-6 text-green-600" /> {/* Changed to Syringe */}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Milestones Achieved</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {children.reduce((acc, child) => acc + child.milestones.achieved, 0)}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-purple-50">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Next Checkup</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {new Date().toLocaleDateString()}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-orange-50">
-                <Calendar className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
+          <StatCard 
+            title="Total Children" 
+            value={children.length} 
+            icon={Baby} 
+          />
+          <StatCard 
+            title="Upcoming Vaccinations" 
+            value={children.reduce((acc, child) => acc + (child.upcomingVaccines || 0), 0)} 
+            icon={Syringe} 
+          />
+          <StatCard 
+            title="Milestones Achieved" 
+            value={children.reduce((acc, child) => acc + (child.milestones?.achieved || 0), 0)} 
+            icon={TrendingUp} 
+          />
+          <StatCard 
+            title="Next Checkup" 
+            value={new Date().toLocaleDateString()} 
+            icon={Calendar} 
+          />
         </div>
 
         {/* Children List */}
@@ -340,15 +329,15 @@ const Children = () => {
         {/* Quick Actions */}
         {children.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
+            <h2 className="text-xl font-semibold text-[#e5989b] mb-6">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Link
                 to="/vaccinations"
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+                className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-full bg-green-50 group-hover:bg-green-100 transition-colors">
-                    <Syringe className="w-6 h-6 text-green-600" /> {/* Changed to Syringe */}
+                  <div className="p-3 rounded-full bg-[#fceaea] group-hover:bg-[#f8d8d8] transition-colors">
+                    <Syringe className="w-6 h-6 text-[#e5989b]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Vaccination Schedule</h3>
@@ -359,11 +348,11 @@ const Children = () => {
 
               <Link
                 to="/growth-tracking"
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+                className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 rounded-full bg-[#fceaea] group-hover:bg-[#f8d8d8] transition-colors">
+                    <TrendingUp className="w-6 h-6 text-[#e5989b]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Growth Tracking</h3>
@@ -374,11 +363,11 @@ const Children = () => {
 
               <Link
                 to="/milestones"
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+                className="bg-white rounded-xl shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all group"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-full bg-purple-50 group-hover:bg-purple-100 transition-colors">
-                    <Heart className="w-6 h-6 text-purple-600" />
+                  <div className="p-3 rounded-full bg-[#fceaea] group-hover:bg-[#f8d8d8] transition-colors">
+                    <Heart className="w-6 h-6 text-[#e5989b]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Development Milestones</h3>

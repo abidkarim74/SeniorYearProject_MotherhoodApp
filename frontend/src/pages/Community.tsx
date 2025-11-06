@@ -13,9 +13,15 @@ import {
   MessageSquare,
   Eye,
   Award,
-  Star
+  Star,
+  TrendingUp,
+  Calendar,
+  Clock,
+  Zap,
+  Users2,
+  MessageSquareText,
+  Sparkles
 } from "lucide-react";
-
 
 const Community = () => {
   const [activeFilter, setActiveFilter] = useState("all");
@@ -31,12 +37,12 @@ const Community = () => {
       activeDiscussions: 56
     },
     categories: [
-      { id: 1, name: "Newborn Care", color: "bg-blue-100 text-blue-800", posts: 234 },
-      { id: 2, name: "Breastfeeding", color: "bg-green-100 text-green-800", posts: 189 },
-      { id: 3, name: "Sleep Training", color: "bg-purple-100 text-purple-800", posts: 156 },
-      { id: 4, name: "Nutrition", color: "bg-orange-100 text-orange-800", posts: 142 },
-      { id: 5, name: "Development", color: "bg-pink-100 text-pink-800", posts: 128 },
-      { id: 6, name: "Health & Safety", color: "bg-red-100 text-red-800", posts: 115 }
+      { id: 1, name: "Newborn Care", color: "from-blue-100 to-blue-200", icon: "👶", posts: 234 },
+      { id: 2, name: "Breastfeeding", color: "from-green-100 to-green-200", icon: "🤱", posts: 189 },
+      { id: 3, name: "Sleep Training", color: "from-purple-100 to-purple-200", icon: "😴", posts: 156 },
+      { id: 4, name: "Nutrition", color: "from-orange-100 to-orange-200", icon: "🍎", posts: 142 },
+      { id: 5, name: "Development", color: "from-pink-100 to-pink-200", icon: "🌟", posts: 128 },
+      { id: 6, name: "Health & Safety", color: "from-red-100 to-red-200", icon: "🏥", posts: 115 }
     ],
     featuredMembers: [
       {
@@ -46,7 +52,8 @@ const Community = () => {
         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format",
         posts: 89,
         likes: 423,
-        isOnline: true
+        isOnline: true,
+        badge: "Expert"
       },
       {
         id: 2,
@@ -55,7 +62,8 @@ const Community = () => {
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face&auto=format",
         posts: 67,
         likes: 298,
-        isOnline: false
+        isOnline: false,
+        badge: "Nutritionist"
       },
       {
         id: 3,
@@ -64,7 +72,8 @@ const Community = () => {
         avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face&auto=format",
         posts: 54,
         likes: 356,
-        isOnline: true
+        isOnline: true,
+        badge: "Specialist"
       }
     ],
     posts: [
@@ -84,7 +93,8 @@ const Community = () => {
         views: 142,
         isLiked: false,
         isBookmarked: false,
-        tags: ["colic", "newborn", "crying"]
+        tags: ["colic", "newborn", "crying"],
+        isFeatured: true
       },
       {
         id: 2,
@@ -102,7 +112,8 @@ const Community = () => {
         views: 289,
         isLiked: true,
         isBookmarked: true,
-        tags: ["vaccinations", "health", "doctor"]
+        tags: ["vaccinations", "health", "doctor"],
+        isFeatured: false
       },
       {
         id: 3,
@@ -120,25 +131,8 @@ const Community = () => {
         views: 324,
         isLiked: false,
         isBookmarked: false,
-        tags: ["breastfeeding", "support", "success"]
-      },
-      {
-        id: 4,
-        author: {
-          name: "Amna Sheikh",
-          avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face&auto=format",
-          role: "Nutrition Expert"
-        },
-        category: "Nutrition",
-        title: "Homemade baby food recipes for 6+ months",
-        content: "Starting solids? Here are some easy, nutritious recipes that my babies loved. All ingredients are locally available and budget-friendly!",
-        timestamp: "2 days ago",
-        likes: 89,
-        comments: 34,
-        views: 567,
-        isLiked: true,
-        isBookmarked: true,
-        tags: ["nutrition", "babyfood", "recipes"]
+        tags: ["breastfeeding", "support", "success"],
+        isFeatured: true
       }
     ],
     recentActivities: [
@@ -148,7 +142,8 @@ const Community = () => {
         action: "commented on your post",
         target: "Sleep training tips",
         timestamp: "30 minutes ago",
-        avatar: "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=100&h=100&fit=crop&crop=face&auto=format"
+        avatar: "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=100&h=100&fit=crop&crop=face&auto=format",
+        type: "comment"
       },
       {
         id: 2,
@@ -156,7 +151,8 @@ const Community = () => {
         action: "You earned the",
         target: "Helper Badge",
         timestamp: "2 hours ago",
-        avatar: "https://images.unsplash.com/photo-1560250056-07ba64664864?w=100&h=100&fit=crop&crop=face&auto=format"
+        avatar: "https://images.unsplash.com/photo-1560250056-07ba64664864?w=100&h=100&fit=crop&crop=face&auto=format",
+        type: "badge"
       },
       {
         id: 3,
@@ -164,114 +160,143 @@ const Community = () => {
         action: "liked your comment on",
         target: "Vaccination schedule",
         timestamp: "4 hours ago",
-        avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop&crop=face&auto=format"
+        avatar: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop&crop=face&auto=format",
+        type: "like"
       }
     ]
   };
 
   const filters = [
-    { key: "all", label: "All Posts" },
-    { key: "popular", label: "Popular" },
-    { key: "recent", label: "Recent" },
-    { key: "following", label: "Following" }
+    { key: "all", label: "All Posts", icon: MessageSquareText },
+    { key: "popular", label: "Popular", icon: TrendingUp },
+    { key: "recent", label: "Recent", icon: Clock },
+    { key: "following", label: "Following", icon: Users2 }
   ];
 
   const handleLikePost = (postId: number) => {
-    // In a real app, this would update the backend
     console.log("Liked post:", postId);
   };
 
   const handleBookmarkPost = (postId: number) => {
-    // In a real app, this would update the backend
     console.log("Bookmarked post:", postId);
   };
 
   const handleCreatePost = () => {
     if (newPost.trim()) {
-      // In a real app, this would send to backend
       console.log("Creating post:", newPost);
       setNewPost("");
     }
   };
 
+  const StatCard = ({ title, value, icon: Icon, description, color }: any) => (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mb-2">{value}</p>
+          {description && (
+            <p className="text-xs text-gray-400">{description}</p>
+          )}
+        </div>
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${color} group-hover:scale-110 transition-transform duration-300`}>
+          <Icon className="w-6 h-6 text-gray-700" />
+        </div>
+      </div>
+    </div>
+  );
+
   const PostCard = ({ post }: { post: any }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl ${
+      post.isFeatured ? 'ring-2 ring-[#e5989b]/20' : ''
+    }`}>
+      {post.isFeatured && (
+        <div className="flex items-center gap-2 text-sm text-[#e5989b] font-medium mb-4">
+          <Sparkles className="w-4 h-4" />
+          Featured Post
+        </div>
+      )}
+      
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
-          <img
-            src={post.author.avatar}
-            alt={post.author.name}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <div className="relative">
+            <img
+              src={post.author.avatar}
+              alt={post.author.name}
+              className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+          </div>
           <div>
             <h4 className="font-semibold text-gray-900">{post.author.name}</h4>
             <p className="text-sm text-gray-600">{post.author.role}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-500">{post.timestamp}</span>
-          <button className="p-1 text-gray-400 hover:text-gray-600">
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{post.timestamp}</span>
+          <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
             <MoreVertical className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="mb-3">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          post.category === "Newborn Care" ? "bg-blue-100 text-blue-800" :
-          post.category === "Breastfeeding" ? "bg-green-100 text-green-800" :
-          post.category === "Health & Safety" ? "bg-red-100 text-red-800" :
-          post.category === "Nutrition" ? "bg-orange-100 text-orange-800" :
-          "bg-purple-100 text-purple-800"
+      <div className="mb-4">
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${
+          post.category === "Newborn Care" ? "from-blue-100 to-blue-200 text-blue-800" :
+          post.category === "Breastfeeding" ? "from-green-100 to-green-200 text-green-800" :
+          post.category === "Health & Safety" ? "from-red-100 to-red-200 text-red-800" :
+          post.category === "Nutrition" ? "from-orange-100 to-orange-200 text-orange-800" :
+          "from-purple-100 to-purple-200 text-purple-800"
         }`}>
           {post.category}
         </span>
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{post.title}</h3>
-      <p className="text-gray-600 mb-4">{post.content}</p>
+      <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">{post.title}</h3>
+      <p className="text-gray-600 mb-4 leading-relaxed">{post.content}</p>
 
       <div className="flex flex-wrap gap-2 mb-4">
         {post.tags.map((tag: string, index: number) => (
           <span
             key={index}
-            className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-medium"
           >
             #{tag}
           </span>
         ))}
       </div>
 
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+      <div className="flex justify-between items-center pt-4 border-t border-gray-100">
         <div className="flex items-center space-x-6 text-gray-500">
           <button 
             onClick={() => handleLikePost(post.id)}
-            className={`flex items-center space-x-1 transition-colors ${
-              post.isLiked ? "text-red-600" : "hover:text-red-600"
+            className={`flex items-center space-x-2 transition-all duration-200 ${
+              post.isLiked ? "text-red-600 scale-110" : "hover:text-red-600 hover:scale-110"
             }`}
           >
-            <ThumbsUp className="w-4 h-4" />
-            <span>{post.likes}</span>
+            <ThumbsUp className="w-5 h-5" />
+            <span className="font-medium">{post.likes}</span>
           </button>
-          <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
-            <MessageSquare className="w-4 h-4" />
-            <span>{post.comments}</span>
+          <button className="flex items-center space-x-2 hover:text-blue-600 hover:scale-110 transition-all duration-200">
+            <MessageSquare className="w-5 h-5" />
+            <span className="font-medium">{post.comments}</span>
           </button>
-          <button className="flex items-center space-x-1 hover:text-green-600 transition-colors">
-            <Share2 className="w-4 h-4" />
+          <button className="flex items-center space-x-2 hover:text-green-600 hover:scale-110 transition-all duration-200">
+            <Share2 className="w-5 h-5" />
           </button>
         </div>
         
-        <div className="flex items-center space-x-2 text-gray-500">
-          <Eye className="w-4 h-4" />
-          <span className="text-sm">{post.views}</span>
+        <div className="flex items-center space-x-4 text-gray-500">
+          <div className="flex items-center space-x-1 text-sm">
+            <Eye className="w-4 h-4" />
+            <span>{post.views}</span>
+          </div>
           <button 
             onClick={() => handleBookmarkPost(post.id)}
-            className={`p-1 transition-colors ${
-              post.isBookmarked ? "text-yellow-600" : "hover:text-yellow-600"
+            className={`p-2 transition-all duration-200 ${
+              post.isBookmarked ? "text-yellow-600 scale-110" : "hover:text-yellow-600 hover:scale-110"
             }`}
           >
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -279,16 +304,23 @@ const Community = () => {
   );
 
   const ActivityItem = ({ activity }: { activity: any }) => (
-    <div className="flex items-start space-x-3 py-3">
-      <img
-        src={activity.avatar}
-        alt={activity.user}
-        className="w-8 h-8 rounded-full object-cover"
-      />
+    <div className="flex items-start space-x-3 py-3 group hover:bg-gray-50 rounded-xl px-2 transition-colors duration-200">
+      <div className="relative">
+        <img
+          src={activity.avatar}
+          alt={activity.user}
+          className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm"
+        />
+        <div className={`absolute -bottom-1 -right-1 w-3 h-3 border-2 border-white rounded-full ${
+          activity.type === 'comment' ? 'bg-blue-400' :
+          activity.type === 'badge' ? 'bg-yellow-400' :
+          'bg-green-400'
+        }`}></div>
+      </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900">
-          <span className="font-medium">{activity.user}</span> {activity.action}{" "}
-          <span className="font-medium text-blue-600">{activity.target}</span>
+        <p className="text-sm text-gray-900 leading-relaxed">
+          <span className="font-semibold">{activity.user}</span> {activity.action}{" "}
+          <span className="font-semibold text-[#e5989b]">{activity.target}</span>
         </p>
         <p className="text-xs text-gray-400 mt-1">
           {activity.timestamp}
@@ -298,58 +330,79 @@ const Community = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] to-[#fceaea] py-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Community</h1>
-              <p className="text-gray-600 mt-2">
-                Connect with other mothers, share experiences, and get support
-              </p>
-            </div>
-            <button className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-              <Plus className="w-5 h-5 mr-2" />
-              New Post
-            </button>
+        {/* <div className="mb-12 text-center sm:text-left">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-[#e5989b]/20 shadow-sm mb-4">
+            <div className="w-2 h-2 bg-[#e5989b] rounded-full animate-pulse mr-2"></div>
+            <span className="text-sm text-gray-600">Parent Community</span>
           </div>
-        </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Community{" "}
+            <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
+              Support
+            </span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl">
+            Connect with other parents, share experiences, and get the support you need on your parenting journey.
+          </p>
+        </div> */}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Community Stats */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Stats</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-[#e5989b]" />
+                Community Stats
+              </h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Members</span>
-                  <span className="font-semibold">{communityData.stats.totalMembers.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Online Now</span>
-                  <span className="font-semibold text-green-600">{communityData.stats.onlineMembers}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Posts Today</span>
-                  <span className="font-semibold">{communityData.stats.postsToday}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Active Discussions</span>
-                  <span className="font-semibold">{communityData.stats.activeDiscussions}</span>
-                </div>
+                <StatCard 
+                  title="Total Members" 
+                  value={communityData.stats.totalMembers.toLocaleString()} 
+                  icon={Users}
+                  color="from-blue-100 to-blue-200"
+                />
+                <StatCard 
+                  title="Online Now" 
+                  value={communityData.stats.onlineMembers} 
+                  icon={Zap}
+                  color="from-green-100 to-green-200"
+                  description="Active members"
+                />
+                <StatCard 
+                  title="Posts Today" 
+                  value={communityData.stats.postsToday} 
+                  icon={MessageCircle}
+                  color="from-purple-100 to-purple-200"
+                />
+                <StatCard 
+                  title="Active Discussions" 
+                  value={communityData.stats.activeDiscussions} 
+                  icon={Users2}
+                  color="from-orange-100 to-orange-200"
+                />
               </div>
             </div>
 
             {/* Categories */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Award className="w-5 h-5 text-[#e5989b]" />
+                Categories
+              </h3>
               <div className="space-y-3">
                 {communityData.categories.map((category) => (
-                  <div key={category.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                    <span className="text-gray-700">{category.name}</span>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  <div key={category.id} className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 transition-all duration-200 cursor-pointer group">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-lg">{category.icon}</span>
+                      <span className="font-medium text-gray-900 group-hover:text-[#e5989b] transition-colors">
+                        {category.name}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded-full font-medium">
                       {category.posts}
                     </span>
                   </div>
@@ -358,29 +411,41 @@ const Community = () => {
             </div>
 
             {/* Featured Members */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Featured Members</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Star className="w-5 h-5 text-[#e5989b]" />
+                Featured Members
+              </h3>
               <div className="space-y-4">
                 {communityData.featuredMembers.map((member) => (
-                  <div key={member.id} className="flex items-center space-x-3">
+                  <div key={member.id} className="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200 transition-all duration-200">
                     <div className="relative">
                       <img
                         src={member.avatar}
                         alt={member.name}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
                       />
                       {member.isOnline && (
                         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 text-sm">{member.name}</p>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-gray-900 text-sm">{member.name}</p>
+                        <span className="text-xs bg-[#e5989b] text-white px-2 py-0.5 rounded-full">
+                          {member.badge}
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-500">{member.role}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center space-x-1 text-yellow-500">
-                        <Star className="w-3 h-3 fill-current" />
-                        <span className="text-xs font-medium">{member.posts}</span>
+                      <div className="flex items-center gap-4 mt-1">
+                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <MessageSquare className="w-3 h-3" />
+                          <span>{member.posts}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <ThumbsUp className="w-3 h-3" />
+                          <span>{member.likes}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -392,75 +457,79 @@ const Community = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Create Post */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center space-x-3 mb-4">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <div className="flex items-center space-x-4 mb-4">
                 <img
                   src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format"
                   alt="Your avatar"
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
                 />
                 <input
                   type="text"
                   placeholder="Share your experience or ask a question..."
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 border border-gray-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] transition-all duration-200"
                 />
               </div>
               <div className="flex justify-between items-center">
-                <div className="flex space-x-4 text-gray-500">
-                  <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
-                    <MessageCircle className="w-4 h-4" />
-                    <span className="text-sm">Discussion</span>
+                <div className="flex space-x-4">
+                  <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-xl hover:bg-blue-50">
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Discussion</span>
                   </button>
-                  <button className="flex items-center space-x-1 hover:text-green-600 transition-colors">
-                    <Heart className="w-4 h-4" />
-                    <span className="text-sm">Support</span>
+                  <button className="flex items-center space-x-2 text-gray-500 hover:text-green-600 transition-colors duration-200 p-2 rounded-xl hover:bg-green-50">
+                    <Heart className="w-5 h-5" />
+                    <span className="text-sm font-medium">Support</span>
                   </button>
-                  <button className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
-                    <Award className="w-4 h-4" />
-                    <span className="text-sm">Advice</span>
+                  <button className="flex items-center space-x-2 text-gray-500 hover:text-purple-600 transition-colors duration-200 p-2 rounded-xl hover:bg-purple-50">
+                    <Award className="w-5 h-5" />
+                    <span className="text-sm font-medium">Advice</span>
                   </button>
                 </div>
                 <button
                   onClick={handleCreatePost}
                   disabled={!newPost.trim()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white px-6 py-3 rounded-2xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-medium"
                 >
-                  Post
+                  Create Post
                 </button>
               </div>
             </div>
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                 {/* Filter Tabs */}
-                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                  {filters.map((filter) => (
-                    <button
-                      key={filter.key}
-                      onClick={() => setActiveFilter(filter.key)}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeFilter === filter.key
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
+                <div className="flex space-x-1 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl p-1">
+                  {filters.map((filter) => {
+                    const Icon = filter.icon;
+                    return (
+                      <button
+                        key={filter.key}
+                        onClick={() => setActiveFilter(filter.key)}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                          activeFilter === filter.key
+                            ? "bg-white text-[#e5989b] shadow-lg"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{filter.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Search */}
                 <div className="relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search community..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-64"
+                    className="pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] w-full md:w-80 transition-all duration-200"
                   />
                 </div>
               </div>
@@ -477,8 +546,11 @@ const Community = () => {
           {/* Right Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Recent Activity */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Activity</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#e5989b]" />
+                Your Activity
+              </h3>
               <div className="space-y-1">
                 {communityData.recentActivities.map((activity) => (
                   <ActivityItem key={activity.id} activity={activity} />
@@ -487,40 +559,46 @@ const Community = () => {
             </div>
 
             {/* Community Guidelines */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-blue-900 mb-3">Community Guidelines</h3>
-              <ul className="space-y-2 text-sm text-blue-800">
-                <li className="flex items-start space-x-2">
-                  <Heart className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span>Be kind and supportive to other mothers</span>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                Community Guidelines
+              </h3>
+              <ul className="space-y-3 text-sm text-blue-800">
+                <li className="flex items-start space-x-3 p-2 rounded-xl bg-white/50">
+                  <Heart className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600" />
+                  <span>Be kind and supportive to other parents</span>
                 </li>
-                <li className="flex items-start space-x-2">
-                  <MessageCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <li className="flex items-start space-x-3 p-2 rounded-xl bg-white/50">
+                  <MessageCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600" />
                   <span>Share experiences, not medical advice</span>
                 </li>
-                <li className="flex items-start space-x-2">
-                  <Users className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <li className="flex items-start space-x-3 p-2 rounded-xl bg-white/50">
+                  <Users className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600" />
                   <span>Respect different parenting choices</span>
                 </li>
-                <li className="flex items-start space-x-2">
-                  <Award className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <li className="flex items-start space-x-3 p-2 rounded-xl bg-white/50">
+                  <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-600" />
                   <span>Celebrate each other's successes</span>
                 </li>
               </ul>
             </div>
 
             {/* Quick Resources */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Resources</h3>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Resources</h3>
               <div className="space-y-3">
-                <Link to="/emergency-contacts" className="block p-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors">
-                  Emergency Contacts
+                <Link to="/emergency-contacts" className="flex items-center space-x-3 p-3 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-all duration-200 group">
+                  <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Emergency Contacts</span>
                 </Link>
-                <Link to="/local-support" className="block p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
-                  Local Support Groups
+                <Link to="/local-support" className="flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-all duration-200 group">
+                  <Users2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Local Support Groups</span>
                 </Link>
-                <Link to="/expert-advice" className="block p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
-                  Expert Q&A Sessions
+                <Link to="/expert-advice" className="flex items-center space-x-3 p-3 bg-purple-50 text-purple-700 rounded-xl hover:bg-purple-100 transition-all duration-200 group">
+                  <Award className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Expert Q&A Sessions</span>
                 </Link>
               </div>
             </div>

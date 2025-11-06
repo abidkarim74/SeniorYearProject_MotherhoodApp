@@ -162,8 +162,16 @@ class AuthController():
             row = result.first()
         
             if row:
-                email, user_id, username, firstname, lastname, profile_pic = row  
-                return {"email": email, "id": user_id, "firstname": firstname, "lastname": lastname, "username": username, "profile_pic": profile_pic }
+                email, user_id, firstname, lastname, username, profile_pic = row  
+                
+                return {
+                    "email": email, 
+                    "id": user_id, 
+                    "firstname": firstname, 
+                    "lastname": lastname, 
+                    "username": username, 
+                    "profile_pic": profile_pic 
+                }
             
             raise HTTPException(status_code=404, detail='User not found!')
             

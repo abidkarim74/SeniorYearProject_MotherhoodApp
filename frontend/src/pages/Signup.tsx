@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import MotherBaby from '../assets/motherbaby.jpg';
 import { type SignupFormData, type SignupErrors } from '../interfaces/AuthInterfaces';
+import { Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -24,6 +25,8 @@ const Signup = () => {
   const [errors, setErrors] = useState<SignupErrors>({});
   const [isSuccess, setIsSuccess] = useState(false);
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validatePassword = (password: string): string | null => {
     if (password.length < 6) return 'Password must be at least 6 characters';
@@ -33,7 +36,7 @@ const Signup = () => {
     return null;
   };
 
-  const validateField = (name: string, value: string | boolean): string | null => {
+  const validateField = (name: keyof SignupFormData, value: string | boolean): string | null => {
     switch (name) {
       case 'firstname':
         if (!value.toString().trim()) return 'First name is required';
@@ -72,7 +75,9 @@ const Signup = () => {
     (Object.keys(formData) as Array<keyof SignupFormData>).forEach((key) => {
       const val = formData[key];
       const err = validateField(key, val as string | boolean);
-      if (err) newErrors[key] = err;
+      if (err) {
+        newErrors[key] = err;
+      }
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -80,26 +85,68 @@ const Signup = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    const fieldName = name as keyof SignupFormData;
+    
+    setFormData((prev) => ({ 
+      ...prev, 
+      [fieldName]: type === 'checkbox' ? checked : value 
+    }));
+    
     if (error) setError(null);
+    
+    // Real-time validation for touched fields
+    if (touched[fieldName]) {
+      const fieldValue = type === 'checkbox' ? checked : value;
+      const fieldError = validateField(fieldName, fieldValue);
+      
+      if (fieldError) {
+        setErrors((prev) => ({ ...prev, [fieldName]: fieldError }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      }
+    }
   };
 
   const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-    setTouched((prev) => ({ ...prev, [name]: true }));
-    const fieldError = validateField(name, val);
-    if (fieldError) setErrors((prev) => ({ ...prev, [name]: fieldError }));
+    const fieldName = name as keyof SignupFormData;
+    const fieldValue = type === 'checkbox' ? checked : value;
+    
+    setTouched((prev) => ({ ...prev, [fieldName]: true }));
+    const fieldError = validateField(fieldName, fieldValue);
+    
+    if (fieldError) {
+      setErrors((prev) => ({ ...prev, [fieldName]: fieldError }));
+    } else {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setTouched(Object.keys(formData).reduce((a, k) => ({ ...a, [k]: true }), {}));
+    const allTouched = (Object.keys(formData) as Array<keyof SignupFormData>).reduce((acc, key) => ({ 
+      ...acc, 
+      [key]: true 
+    }), {});
+    
+    setTouched(allTouched);
+    
     if (!validateForm()) {
       setError('Please fix the errors above');
       return;
     }
+    
     setLoading(true);
+    setError(null);
+    
     try {
       const { confirmPassword, agreeToTerms, ...submitData } = formData;
       const response = await postRequest('/auth/signup', submitData);
@@ -113,23 +160,49 @@ const Signup = () => {
     }
   };
 
+  const getPasswordRequirements = () => {
+    const password = formData.password;
+    return [
+      { text: 'At least 6 characters', met: password.length >= 6 },
+      { text: 'One lowercase letter', met: /(?=.*[a-z])/.test(password) },
+      { text: 'One uppercase letter', met: /(?=.*[A-Z])/.test(password) },
+      { text: 'One number', met: /(?=.*\d)/.test(password) },
+    ];
+  };
+
+  // Helper function to safely access errors
+  const getError = (fieldName: keyof SignupFormData): string | undefined => {
+    return errors[fieldName];
+  };
+
+  // Helper function to safely check if field is touched
+  const isTouched = (fieldName: keyof SignupFormData): boolean => {
+    return touched[fieldName] || false;
+  };
+
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fdf6ec] to-[#f8cdda] px-4 py-8">
-        <div className="bg-[#fffaf5] rounded-2xl shadow-xl w-full max-w-md p-8 text-center border border-[#f5d6cb]">
-          <h2 className="text-2xl font-bold text-[#4b2e2b] mb-2">Account Created Successfully!</h2>
-          <p className="text-[#7a5d55] mb-6">Redirecting you to the home page...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea] px-4 py-8">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center border border-[#e5989b]/20">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created Successfully!</h2>
+          <p className="text-gray-600 mb-6">Welcome to Nurtura! Redirecting you to the home page...</p>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-[#e5989b] h-2 rounded-full animate-pulse"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fdf6ec] to-[#f8cdda] px-4 py-8">
-      <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl md:gap-[3cm] gap-8">
-        {/* Left circular image (responsive) */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea] px-4 py-8">
+      <div className="flex flex-col lg:flex-row items-center justify-center w-full max-w-6xl gap-8 lg:gap-16">
+        {/* Left Image Section */}
         <div className="flex-shrink-0 flex items-center justify-center">
-          <div className="w-[220px] h-[220px] sm:w-[280px] sm:h-[280px] md:w-[350px] md:h-[350px] rounded-full overflow-hidden shadow-lg border-4 border-[#f8cdda]">
+          <div className="w-64 h-64 lg:w-80 lg:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-[#e5989b]/30">
             <img
               src={MotherBaby}
               alt="Mother and baby illustration"
@@ -138,41 +211,46 @@ const Signup = () => {
           </div>
         </div>
 
-        {/* Signup box */}
-        <div className="bg-[#fdf6ec] rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 border border-[#f5d6cb]">
+        {/* Signup Form Section */}
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 border border-[#e5989b]/20">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-[#4b2e2b]">Create Account</h2>
-            <p className="text-[#7a5d55] mt-2">Join us by filling in your details below</p>
+            <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-600 mt-2">Join Nurtura and start tracking your child's journey</p>
           </div>
 
           {error && (
-            <div className="bg-[#fde2e4] border border-[#fbcfe8] text-[#a4161a] px-4 py-3 rounded-xl mb-6 shadow-sm">
-              {error}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+              <XCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* First + Last name */}
+            {/* Name Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {['firstname', 'lastname'].map((field) => (
+              {(['firstname', 'lastname'] as Array<keyof SignupFormData>).map((field) => (
                 <div key={field}>
-                  <label className="block text-sm font-medium text-[#5a3e36] mb-2">
-                    {field === 'firstname' ? 'First Name' : 'Last Name'}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {field === 'firstname' ? 'First Name' : 'Last Name'} *
                   </label>
                   <input
                     type="text"
                     name={field}
-                    value={formData[field as keyof SignupFormData] as string}
+                    value={formData[field] as string}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     placeholder={field === 'firstname' ? 'John' : 'Doe'}
-                    className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] ${
-                      errors[field] && touched[field] ? 'border-red-300' : 'border-[#d8b4a0]'
+                    className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      getError(field) && isTouched(field) 
+                        ? 'border-red-300 focus:ring-red-200' 
+                        : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
                     }`}
                   />
-                  {errors[field] && touched[field] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[field]}</p>
+                  {getError(field) && isTouched(field) && (
+                    <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" />
+                      {getError(field)}
+                    </p>
                   )}
                 </div>
               ))}
@@ -180,7 +258,7 @@ const Signup = () => {
 
             {/* Username */}
             <div>
-              <label className="block text-sm font-medium text-[#5a3e36] mb-2">Username</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Username *</label>
               <input
                 type="text"
                 name="username"
@@ -188,15 +266,23 @@ const Signup = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="jane123"
-                className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] ${
-                  errors.username && touched.username ? 'border-red-300' : 'border-[#d8b4a0]'
+                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  getError('username') && isTouched('username') 
+                    ? 'border-red-300 focus:ring-red-200' 
+                    : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
                 }`}
               />
+              {getError('username') && isTouched('username') && (
+                <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {getError('username')}
+                </p>
+              )}
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-[#5a3e36] mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
               <input
                 type="email"
                 name="email"
@@ -204,33 +290,111 @@ const Signup = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="your@email.com"
-                className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] ${
-                  errors.email && touched.email ? 'border-red-300' : 'border-[#d8b4a0]'
+                className={`w-full px-4 py-3 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  getError('email') && isTouched('email') 
+                    ? 'border-red-300 focus:ring-red-200' 
+                    : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
                 }`}
               />
+              {getError('email') && isTouched('email') && (
+                <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {getError('email')}
+                </p>
+              )}
             </div>
 
-            {/* Password + Confirm Password */}
-            {['password', 'confirmPassword'].map((field) => (
-              <div key={field}>
-                <label className="block text-sm font-medium text-[#5a3e36] mb-2">
-                  {field === 'password' ? 'Password' : 'Confirm Password'}
-                </label>
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+              <div className="relative">
                 <input
-                  type="password"
-                  name={field}
-                  value={formData[field as keyof SignupFormData] as string}
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder={field === 'password' ? 'Enter your password' : 'Confirm password'}
-                  className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] ${
-                    errors[field] && touched[field] ? 'border-red-300' : 'border-[#d8b4a0]'
+                  placeholder="Enter your password"
+                  className={`w-full px-4 py-3 pr-12 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    getError('password') && isTouched('password') 
+                      ? 'border-red-300 focus:ring-red-200' 
+                      : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
                   }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-            ))}
+              {formData.password && (
+                <div className="mt-3 space-y-2">
+                  {getPasswordRequirements().map((req, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      {req.met ? (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-gray-300" />
+                      )}
+                      <span className={req.met ? 'text-green-600' : 'text-gray-500'}>
+                        {req.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {getError('password') && isTouched('password') && (
+                <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {getError('password')}
+                </p>
+              )}
+            </div>
 
-            {/* Terms */}
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Confirm your password"
+                  className={`w-full px-4 py-3 pr-12 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 ${
+                    getError('confirmPassword') && isTouched('confirmPassword') 
+                      ? 'border-red-300 focus:ring-red-200' 
+                      : formData.confirmPassword && formData.confirmPassword === formData.password
+                      ? 'border-green-300 focus:ring-green-200'
+                      : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {getError('confirmPassword') && isTouched('confirmPassword') && (
+                <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {getError('confirmPassword')}
+                </p>
+              )}
+              {formData.confirmPassword && formData.confirmPassword === formData.password && (
+                <p className="text-green-600 text-xs mt-2 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Passwords match
+                </p>
+              )}
+            </div>
+
+            {/* Terms and Conditions */}
             <div className="flex items-start space-x-3">
               <input
                 type="checkbox"
@@ -238,34 +402,51 @@ const Signup = () => {
                 checked={formData.agreeToTerms}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className="w-5 h-5 rounded border-[#f5d6cb] accent-[#f8cdda]"
+                className={`w-5 h-5 rounded border-2 mt-0.5 focus:ring-2 focus:ring-[#e5989b]/20 ${
+                  getError('agreeToTerms') && isTouched('agreeToTerms') 
+                    ? 'border-red-300 text-red-600' 
+                    : 'border-gray-300 text-[#e5989b]'
+                }`}
               />
-              <span className="text-sm text-[#5a3e36]">
+              <span className="text-sm text-gray-600">
                 I agree to the{' '}
-                <a href="#" className="text-[#e5989b] hover:text-[#c85c5c] underline">
-                  Terms
+                <a href="#" className="text-[#e5989b] hover:text-[#d88a8d] font-medium underline">
+                  Terms and Conditions
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-[#e5989b] hover:text-[#c85c5c] underline">
+                <a href="#" className="text-[#e5989b] hover:text-[#d88a8d] font-medium underline">
                   Privacy Policy
                 </a>
               </span>
             </div>
+            {getError('agreeToTerms') && isTouched('agreeToTerms') && (
+              <p className="text-red-500 text-xs flex items-center gap-1">
+                <XCircle className="w-3 h-3" />
+                {getError('agreeToTerms')}
+              </p>
+            )}
 
-            {/* Button */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#f8cdda] to-[#fbcfe8] text-[#4b2e2b] py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#fbcfe8] focus:ring-offset-2"
+              className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Creating Account...
+                </div>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#7a5d55] mt-6">
+          <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{' '}
-            <a href="/login" className="text-[#e5989b] hover:text-[#c85c5c] font-medium">
-              Sign in
+            <a href="/login" className="text-[#e5989b] hover:text-[#d88a8d] font-medium">
+              Sign in here
             </a>
           </p>
         </div>

@@ -11,7 +11,12 @@ import {
   Bell,
   Plus,
   Baby,
-  Search
+  Search,
+  TrendingUp,
+  Users,
+  FileText,
+  Shield,
+  Zap
 } from "lucide-react";
 
 const Vaccinations = () => {
@@ -48,7 +53,8 @@ const Vaccinations = () => {
         description: "Protects against pneumococcal diseases including pneumonia, meningitis, and bloodstream infections",
         administeredDate: null,
         doctor: "Dr. Sarah Khan",
-        location: "City Children's Hospital"
+        location: "City Children's Hospital",
+        importance: "high"
       },
       {
         id: 2,
@@ -63,7 +69,8 @@ const Vaccinations = () => {
         description: "Protects against measles, mumps, and rubella viruses",
         administeredDate: null,
         doctor: "Dr. Ahmed Raza",
-        location: "Community Health Center"
+        location: "Community Health Center",
+        importance: "high"
       },
       {
         id: 3,
@@ -78,7 +85,8 @@ const Vaccinations = () => {
         description: "Protects against rotavirus gastroenteritis",
         administeredDate: "2024-01-10",
         doctor: "Dr. Sarah Khan",
-        location: "City Children's Hospital"
+        location: "City Children's Hospital",
+        importance: "medium"
       },
       {
         id: 4,
@@ -93,7 +101,8 @@ const Vaccinations = () => {
         description: "Protects against hepatitis A virus",
         administeredDate: "2023-12-15",
         doctor: "Dr. Ahmed Raza",
-        location: "Community Health Center"
+        location: "Community Health Center",
+        importance: "medium"
       },
       {
         id: 5,
@@ -108,7 +117,8 @@ const Vaccinations = () => {
         description: "Annual flu vaccine to protect against seasonal influenza",
         administeredDate: null,
         doctor: "Dr. Sarah Khan",
-        location: "City Children's Hospital"
+        location: "City Children's Hospital",
+        importance: "medium"
       },
       {
         id: 6,
@@ -123,7 +133,8 @@ const Vaccinations = () => {
         description: "Protects against typhoid fever",
         administeredDate: "2023-11-20",
         doctor: "Dr. Ahmed Raza",
-        location: "Community Health Center"
+        location: "Community Health Center",
+        importance: "low"
       }
     ],
     stats: {
@@ -135,24 +146,24 @@ const Vaccinations = () => {
   };
 
   const filters = [
-    { key: "all", label: "All Vaccinations", count: vaccinationData.stats.total },
-    { key: "upcoming", label: "Upcoming", count: vaccinationData.stats.upcoming },
-    { key: "completed", label: "Completed", count: vaccinationData.stats.completed },
-    { key: "overdue", label: "Overdue", count: vaccinationData.stats.overdue }
+    { key: "all", label: "All Vaccinations", count: vaccinationData.stats.total, icon: Syringe },
+    { key: "upcoming", label: "Upcoming", count: vaccinationData.stats.upcoming, icon: Clock },
+    { key: "completed", label: "Completed", count: vaccinationData.stats.completed, icon: CheckCircle },
+    { key: "overdue", label: "Overdue", count: vaccinationData.stats.overdue, icon: AlertTriangle }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "text-green-600 bg-green-50 border-green-200";
+        return "from-green-100 to-green-200 text-green-800 border-green-200";
       case "upcoming":
-        return "text-blue-600 bg-blue-50 border-blue-200";
+        return "from-blue-100 to-blue-200 text-blue-800 border-blue-200";
       case "scheduled":
-        return "text-purple-600 bg-purple-50 border-purple-200";
+        return "from-purple-100 to-purple-200 text-purple-800 border-purple-200";
       case "overdue":
-        return "text-red-600 bg-red-50 border-red-200";
+        return "from-red-100 to-red-200 text-red-800 border-red-200";
       default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
+        return "from-gray-100 to-gray-200 text-gray-800 border-gray-200";
     }
   };
 
@@ -174,13 +185,26 @@ const Vaccinations = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "routine":
-        return "bg-blue-100 text-blue-800";
+        return "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800";
       case "seasonal":
-        return "bg-green-100 text-green-800";
+        return "bg-gradient-to-r from-green-100 to-green-200 text-green-800";
       case "recommended":
-        return "bg-purple-100 text-purple-800";
+        return "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800";
+    }
+  };
+
+  const getImportanceBadge = (importance: string) => {
+    switch (importance) {
+      case "high":
+        return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-medium">High Priority</span>;
+      case "medium":
+        return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-medium">Medium Priority</span>;
+      case "low":
+        return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">Low Priority</span>;
+      default:
+        return null;
     }
   };
 
@@ -191,21 +215,43 @@ const Vaccinations = () => {
     return matchesFilter && matchesSearch;
   });
 
+  const StatCard = ({ title, value, icon: Icon, description, color }: any) => (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mb-2">{value}</p>
+          {description && (
+            <p className="text-xs text-gray-400">{description}</p>
+          )}
+        </div>
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${color} group-hover:scale-110 transition-transform duration-300`}>
+          <Icon className="w-7 h-7 text-gray-700" />
+        </div>
+      </div>
+    </div>
+  );
+
   const VaccinationCard = ({ vaccine }: { vaccine: any }) => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-300 hover:shadow-xl group">
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-full ${getStatusColor(vaccine.status).split(' ')[1]}`}>
+        <div className="flex items-center space-x-4">
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${getStatusColor(vaccine.status).split(' ')[0]} ${getStatusColor(vaccine.status).split(' ')[1]}`}>
             {getStatusIcon(vaccine.status)}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{vaccine.vaccine}</h3>
-            <div className="flex items-center space-x-4 mt-1">
-              <div className="flex items-center space-x-1">
-                <Baby className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{vaccine.childName}</span>
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-xl font-bold text-gray-900 group-hover:text-[#e5989b] transition-colors">
+                {vaccine.vaccine}
+              </h3>
+              {getImportanceBadge(vaccine.importance)}
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <Baby className="w-4 h-4" />
+                <span className="text-sm font-medium">{vaccine.childName}</span>
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(vaccine.category)}`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(vaccine.category)}`}>
                 {vaccine.category.charAt(0).toUpperCase() + vaccine.category.slice(1)}
               </span>
             </div>
@@ -213,57 +259,58 @@ const Vaccinations = () => {
         </div>
         
         <div className="text-right">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(vaccine.status)}`}>
-            {vaccine.status.charAt(0).toUpperCase() + vaccine.status.slice(1)}
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getStatusColor(vaccine.status)}`}>
+            {getStatusIcon(vaccine.status)}
+            <span className="ml-1">{vaccine.status.charAt(0).toUpperCase() + vaccine.status.slice(1)}</span>
           </span>
           {vaccine.status === "upcoming" && (
-            <p className="text-sm text-gray-600 mt-1">{vaccine.daysLeft} days left</p>
+            <p className="text-sm text-blue-600 font-medium mt-2">{vaccine.daysLeft} days left</p>
           )}
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-4">{vaccine.description}</p>
+      <p className="text-gray-600 mb-4 leading-relaxed">{vaccine.description}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
-        <div className="flex justify-between">
-          <span className="text-gray-600">Due Date:</span>
-          <span className="font-medium">{new Date(vaccine.dueDate).toLocaleDateString()}</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl">
+        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+          <span className="text-gray-600 font-medium">Due Date:</span>
+          <span className="font-semibold text-gray-900">{new Date(vaccine.dueDate).toLocaleDateString()}</span>
         </div>
         {vaccine.administeredDate && (
-          <div className="flex justify-between">
-            <span className="text-gray-600">Administered:</span>
-            <span className="font-medium">{new Date(vaccine.administeredDate).toLocaleDateString()}</span>
+          <div className="flex justify-between items-center py-2 border-b border-gray-200">
+            <span className="text-gray-600 font-medium">Administered:</span>
+            <span className="font-semibold text-green-600">{new Date(vaccine.administeredDate).toLocaleDateString()}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span className="text-gray-600">Doctor:</span>
-          <span className="font-medium">{vaccine.doctor}</span>
+        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+          <span className="text-gray-600 font-medium">Doctor:</span>
+          <span className="font-semibold text-gray-900">{vaccine.doctor}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600">Location:</span>
-          <span className="font-medium">{vaccine.location}</span>
+        <div className="flex justify-between items-center py-2 border-b border-gray-200">
+          <span className="text-gray-600 font-medium">Location:</span>
+          <span className="font-semibold text-gray-900">{vaccine.location}</span>
         </div>
       </div>
 
-      <div className="flex space-x-3 pt-4 border-t border-gray-200">
+      <div className="flex space-x-3 pt-4 border-t border-gray-100">
         {vaccine.status === "upcoming" && (
           <>
-            <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center">
-              <Bell className="w-4 h-4 mr-2" />
+            <button className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium flex items-center justify-center">
+              <Bell className="w-5 h-5 mr-2" />
               Set Reminder
             </button>
-            <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+            <button className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
               Mark Completed
             </button>
           </>
         )}
         {vaccine.status === "completed" && (
-          <button className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center">
-            <Download className="w-4 h-4 mr-2" />
+          <button className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 px-4 rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium flex items-center justify-center">
+            <Download className="w-5 h-5 mr-2" />
             Download Certificate
           </button>
         )}
-        <button className="px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors text-sm font-medium">
+        <button className="px-6 py-3 text-gray-600 hover:text-[#e5989b] transition-colors font-medium border border-gray-300 hover:border-[#e5989b] rounded-xl">
           Reschedule
         </button>
       </div>
@@ -271,104 +318,93 @@ const Vaccinations = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] to-[#fceaea] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Vaccinations</h1>
-              <p className="text-gray-600 mt-2">
-                Manage and track your children's vaccination schedules
-              </p>
-            </div>
-            <button className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-              <Plus className="w-5 h-5 mr-2" />
-              Add Vaccination
-            </button>
+        <div className="mb-12 text-center sm:text-left">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-[#e5989b]/20 shadow-sm mb-4">
+            <div className="w-2 h-2 bg-[#e5989b] rounded-full animate-pulse mr-2"></div>
+            <span className="text-sm text-gray-600">Vaccination Tracker</span>
           </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Vaccination{" "}
+            <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
+              Schedule
+            </span>
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl">
+            Track and manage your children's immunization schedule to keep them protected and healthy.
+          </p>
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Vaccinations</p>
-                <p className="text-2xl font-bold text-gray-900">{vaccinationData.stats.total}</p>
-              </div>
-              <div className="p-3 rounded-full bg-blue-50">
-                <Syringe className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Upcoming</p>
-                <p className="text-2xl font-bold text-gray-900">{vaccinationData.stats.upcoming}</p>
-              </div>
-              <div className="p-3 rounded-full bg-yellow-50">
-                <Clock className="w-6 h-6 text-yellow-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{vaccinationData.stats.completed}</p>
-              </div>
-              <div className="p-3 rounded-full bg-green-50">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-gray-900">{vaccinationData.stats.overdue}</p>
-              </div>
-              <div className="p-3 rounded-full bg-red-50">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <StatCard 
+            title="Total Vaccinations" 
+            value={vaccinationData.stats.total} 
+            icon={Syringe}
+            color="from-blue-100 to-blue-200"
+            description="All immunizations"
+          />
+          <StatCard 
+            title="Upcoming" 
+            value={vaccinationData.stats.upcoming} 
+            icon={Clock}
+            color="from-yellow-100 to-yellow-200"
+            description="Next 30 days"
+          />
+          <StatCard 
+            title="Completed" 
+            value={vaccinationData.stats.completed} 
+            icon={CheckCircle}
+            color="from-green-100 to-green-200"
+            description="Fully immunized"
+          />
+          <StatCard 
+            title="Overdue" 
+            value={vaccinationData.stats.overdue} 
+            icon={AlertTriangle}
+            color="from-red-100 to-red-200"
+            description="Require attention"
+          />
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             {/* Filter Tabs */}
-            <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-              {filters.map((filter) => (
-                <button
-                  key={filter.key}
-                  onClick={() => setActiveFilter(filter.key)}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeFilter === filter.key
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {filter.label} ({filter.count})
-                </button>
-              ))}
+            <div className="flex space-x-1 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl p-1">
+              {filters.map((filter) => {
+                const Icon = filter.icon;
+                return (
+                  <button
+                    key={filter.key}
+                    onClick={() => setActiveFilter(filter.key)}
+                    className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      activeFilter === filter.key
+                        ? "bg-white text-[#e5989b] shadow-lg"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{filter.label}</span>
+                    <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                      {filter.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Search */}
             <div className="relative">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search vaccinations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-64"
+                className="pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] w-full md:w-80 transition-all duration-200"
               />
             </div>
           </div>
@@ -381,67 +417,67 @@ const Vaccinations = () => {
               <VaccinationCard key={vaccine.id} vaccine={vaccine} />
             ))
           ) : (
-            <div className="text-center py-12">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <div className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-100">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                 <Syringe className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No vaccinations found</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No vaccinations found</h3>
+              <p className="text-gray-600 mb-8 text-lg">
                 {searchTerm ? "Try adjusting your search terms" : "No vaccinations match the selected filter"}
               </p>
-              <button className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                <Plus className="w-5 h-5 mr-2" />
+              <button className="inline-flex items-center bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white px-8 py-4 rounded-2xl hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 font-medium text-lg">
+                <Plus className="w-6 h-6 mr-3" />
                 Add New Vaccination
               </button>
             </div>
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="mt-12">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Vaccination Resources</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Quick Resources */}
+        <div className="mt-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Vaccination Resources</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Link
               to="/vaccination-schedule"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 group-hover:from-blue-200 group-hover:to-blue-300 transition-colors">
+                  <Calendar className="w-7 h-7 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Vaccination Schedule</h3>
-                  <p className="text-sm text-gray-600 mt-1">View complete immunization timeline</p>
+                  <h3 className="font-bold text-gray-900 text-lg">Vaccination Schedule</h3>
+                  <p className="text-gray-600 mt-2">View complete immunization timeline for all ages</p>
                 </div>
               </div>
             </Link>
 
             <Link
               to="/vaccine-info"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-green-50 group-hover:bg-green-100 transition-colors">
-                  <Syringe className="w-6 h-6 text-green-600" />
+                <div className="p-3 rounded-xl bg-gradient-to-br from-green-100 to-green-200 group-hover:from-green-200 group-hover:to-green-300 transition-colors">
+                  <Shield className="w-7 h-7 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Vaccine Information</h3>
-                  <p className="text-sm text-gray-600 mt-1">Learn about each vaccine and its importance</p>
+                  <h3 className="font-bold text-gray-900 text-lg">Vaccine Information</h3>
+                  <p className="text-gray-600 mt-2">Learn about each vaccine and its importance</p>
                 </div>
               </div>
             </Link>
 
             <Link
               to="/reminders"
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow group"
+              className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
             >
               <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-full bg-purple-50 group-hover:bg-purple-100 transition-colors">
-                  <Bell className="w-6 h-6 text-purple-600" />
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 group-hover:from-purple-200 group-hover:to-purple-300 transition-colors">
+                  <Bell className="w-7 h-7 text-purple-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Reminder Settings</h3>
-                  <p className="text-sm text-gray-600 mt-1">Configure vaccination reminders</p>
+                  <h3 className="font-bold text-gray-900 text-lg">Reminder Settings</h3>
+                  <p className="text-gray-600 mt-2">Configure vaccination reminders and alerts</p>
                 </div>
               </div>
             </Link>
