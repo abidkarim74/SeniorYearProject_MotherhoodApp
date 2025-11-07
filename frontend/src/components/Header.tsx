@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useState } from "react";
-import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut, MessageCircle } from "lucide-react";
 import MainLoading from "./MainLoading";
 
 const Header = () => {
@@ -124,6 +124,18 @@ const Header = () => {
               </button>
             </div>
 
+            {/* Messenger */}
+            <div className="relative">
+              <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
+                <MessageCircle className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
+                  3
+                </span>
+                {/* Messenger pulse effect */}
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-blue-400 rounded-full animate-ping opacity-75"></span>
+              </button>
+            </div>
+
             {/* Notifications */}
             <div className="relative">
               <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
@@ -152,7 +164,6 @@ const Header = () => {
                 </div>
                 <div className="hidden sm:block text-right">
                   <div className="flex items-center space-x-1">
-                    
                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
@@ -256,5 +267,5 @@ const Header = () => {
     </header>
   );
 };
-
+ 
 export default Header;
