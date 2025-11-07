@@ -10,23 +10,56 @@ import MyChildren from "./pages/Children";
 import Vaccinations from "./pages/Vaccinations";
 import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
-import ChildDetail from "./pages/Childdetail"; // ✅ NEW IMPORT
+import ChildDetail from "./pages/Childdetail"; 
+import LeftBar from "./components/LeftBar";
+import BottomBar from "./components/BottomBar";
+
+// Layout component for protected routes
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="flex flex-col h-screen bg-[#fff6f6]">
+      {/* Fixed Header - Full width top */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Header />
+      </div>
+      
+      {/* Main Content Area below header */}
+      <div className="flex flex-1 pt-16"> {/* Changed mt-16 to pt-16 */}
+        <div className="fixed left-0 top-16 bottom-0 z-40 hidden lg:block w-64">
+          <LeftBar />
+        </div>
+        
+        {/* Main Content - Adjusts for sidebar on desktop */}
+        <div className="flex-1 lg:ml-20 transition-all duration-300 min-w-0">
+          {/* Scrollable Main Content */}
+          <main className="h-full overflow-auto pb-20 lg:pb-6 p-8">
+            {children}
+          </main>
+
+          {/* Fixed Bottom Bar - Mobile only */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+            <BottomBar />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function App() {
   const { accessToken } = useAuth();
 
   return (
-    <div className="">
-      {/* Show Header only when logged in */}
-      {accessToken && <Header />}
-
+    <div className="App">
       <Routes>
-        {/* Protected Routes */}
+        {/* Protected Routes with Layout */}
         <Route
           path="/"
           element={
             <ProtectedRoutes>
-              <Home />
+              <DashboardLayout>
+                <Home />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
@@ -35,7 +68,9 @@ function App() {
           path="/children"
           element={
             <ProtectedRoutes>
-              <MyChildren />
+              <DashboardLayout>
+                <MyChildren />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
@@ -44,7 +79,9 @@ function App() {
           path="/add-child"
           element={
             <ProtectedRoutes>
-              <AddChild />
+              <DashboardLayout>
+                <AddChild />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
@@ -53,7 +90,9 @@ function App() {
           path="/community"
           element={
             <ProtectedRoutes>
-              <Community />
+              <DashboardLayout>
+                <Community />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
@@ -62,22 +101,26 @@ function App() {
           path="/vaccinations"
           element={
             <ProtectedRoutes>
-              <Vaccinations />
+              <DashboardLayout>
+                <Vaccinations />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
 
-        {/* ✅ New Child Detail Route */}
+        {/* Child Detail Route */}
         <Route
           path="/childdetail/:id"
           element={
             <ProtectedRoutes>
-              <ChildDetail />
+              <DashboardLayout>
+                <ChildDetail />
+              </DashboardLayout>
             </ProtectedRoutes>
           }
         />
 
-        {/* Guest Routes */}
+        {/* Guest Routes (without layout) */}
         <Route
           path="/login"
           element={

@@ -1,8 +1,10 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { postRequest } from '../api/requests';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/authContext';
-import MotherBaby from '../assets/motherbaby.jpg';
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import { postRequest } from "../api/requests";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
+import MotherBaby from "../assets/motherbaby.jpg";
+import Family from "../assets/fam.jpg";
+import { Eye, EyeOff, Heart } from "lucide-react";
 
 interface LoginFormData {
   email: string;
@@ -21,8 +23,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     rememberMe: false,
   });
 
@@ -30,17 +32,22 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [showPassword, setShowPassword] = useState(false);
 
-  const validateField = (name: string, value: string | boolean): string | null => {
+  const validateField = (
+    name: string,
+    value: string | boolean
+  ): string | null => {
     switch (name) {
-      case 'email':
-        if (!value.toString().trim()) return 'Email is required';
+      case "email":
+        if (!value.toString().trim()) return "Email is required";
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.toString()))
-          return 'Please enter a valid email address';
+          return "Please enter a valid email address";
         return null;
-      case 'password':
-        if (!value.toString().trim()) return 'Password is required';
-        if (value.toString().length < 6) return 'Password must be at least 6 characters';
+      case "password":
+        if (!value.toString().trim()) return "Password is required";
+        if (value.toString().length < 6)
+          return "Password must be at least 6 characters";
         return null;
       default:
         return null;
@@ -50,7 +57,7 @@ const Login = () => {
   const validateForm = (): boolean => {
     const newErrors: LoginErrors = {};
     (Object.keys(formData) as Array<keyof LoginFormData>).forEach((key) => {
-      if (key !== 'rememberMe') {
+      if (key !== "rememberMe") {
         const value = formData[key];
         const error = validateField(key, value);
         if (error) newErrors[key] = error;
@@ -62,15 +69,16 @@ const Login = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    const fieldValue = type === 'checkbox' ? checked : value;
+    const fieldValue = type === "checkbox" ? checked : value;
     setFormData((prev) => ({ ...prev, [name]: fieldValue }));
-    if (errors[name as keyof LoginErrors]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (errors[name as keyof LoginErrors])
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     if (error) setError(null);
   };
 
   const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    const fieldValue = type === 'checkbox' ? checked : value;
+    const fieldValue = type === "checkbox" ? checked : value;
     setTouched((prev) => ({ ...prev, [name]: true }));
     const fieldError = validateField(name, fieldValue);
     if (fieldError) setErrors((prev) => ({ ...prev, [name]: fieldError }));
@@ -81,7 +89,7 @@ const Login = () => {
     const allTouched = { email: true, password: true, rememberMe: true };
     setTouched(allTouched);
     if (!validateForm()) {
-      setError('Please fix the errors above');
+      setError("Please fix the errors above");
       return;
     }
 
@@ -89,13 +97,19 @@ const Login = () => {
     setError(null);
 
     try {
-      const response = await postRequest('/auth/login', formData);
-      if (formData.rememberMe) localStorage.setItem('rememberMe', 'true');
+      const response = await postRequest("/auth/login", formData);
+      if (formData.rememberMe) localStorage.setItem("rememberMe", "true");
       setAccessToken(response);
-      navigate('/');
+
+      window.location.assign("/");
+
+      
+      navigate("/");
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || err.message || 'Login failed. Please try again.';
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again.";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -103,31 +117,52 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fdf6ec] to-[#f8cdda] px-4 py-8">
-      <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-6xl gap-8 md:gap-[3cm]">
-        {/* Left Image */}
-        <div className="flex-shrink-0 flex items-center justify-center mb-8 md:mb-0">
-          <div className="w-[250px] h-[250px] md:w-[350px] md:h-[350px] rounded-full overflow-hidden shadow-lg border-4 border-[#f8cdda]">
-            <img
-              src={MotherBaby}
-              alt="Mother and baby illustration"
-              className="w-full h-full object-cover"
-            />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea] px-4 py-8">
+      <div className="flex flex-col lg:flex-row items-center justify-center w-full max-w-7xl gap-8 lg:gap-16">
+        {/* Left Side - Family Image - Hidden on mobile */}
+        <div className="hidden md:flex flex-1 items-center justify-center">
+          <div className="relative w-full max-w-2xl">
+            <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+              <img
+                src={Family}
+                alt="Happy family"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#e5989b] rounded-full opacity-20 animate-pulse"></div>
+            <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-[#e5989b] rounded-full opacity-15 animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 -right-6 w-6 h-6 bg-[#e5989b] rounded-full opacity-25 animate-pulse delay-500"></div>
           </div>
         </div>
 
-        {/* Right Login Box */}
-        <div className="bg-[#fdf6ec] rounded-2xl shadow-2xl w-full max-w-md p-6 md:p-8 border border-[#f5d6cb]">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#4b2e2b]">Welcome Back</h2>
-            <p className="text-[#7a5d55] mt-2 text-sm md:text-base">Please sign in to your account</p>
-          </div>
+        <div className="flex-1 max-w-sm w-full md:mr-10">
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 relative">
+            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+              <div className="w-14 h-14 rounded-xl overflow-hidden border-3 border-white shadow-md">
+                <img
+                  src={MotherBaby}
+                  alt="Mother and baby"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
 
-          {error && (
-            <div className="bg-[#fde2e4] border border-[#fbcfe8] text-[#a4161a] px-4 py-3 rounded-xl mb-6 shadow-sm">
-              <div className="flex items-center text-sm md:text-base">
+            <div className="text-center mb-6 pt-3">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Welcome to{" "}
+                <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
+                  Nurtura
+                </span>
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Sign in to continue your parenting journey
+              </p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 flex items-center gap-2 text-sm">
                 <svg
-                  className="w-5 h-5 mr-2"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -139,134 +174,186 @@ const Login = () => {
                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                {error}
+                <span>{error}</span>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#5a3e36] mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter your email"
-                required
-                className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] focus:border-transparent transition-all duration-200 text-sm md:text-base ${
-                  errors.email && touched.email ? 'border-red-300' : 'border-[#d8b4a0]'
-                }`}
-              />
-              {errors.email && touched.email && (
-                <p className="text-red-500 text-xs mt-1 flex items-center">
-                  <svg
-                    className="w-3 h-3 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[#5a3e36] mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                placeholder="Enter your password"
-                required
-                className={`w-full px-4 py-3 border rounded-xl bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#f8cdda] focus:border-transparent transition-all duration-200 text-sm md:text-base ${
-                  errors.password && touched.password ? 'border-red-300' : 'border-[#d8b4a0]'
-                }`}
-              />
-            </div>
-
-            {/* Remember Me + Forgot */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="hidden"
-                />
-                <div
-                  className={`w-5 h-5 border-2 rounded-md mr-3 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
-                    formData.rememberMe ? 'bg-[#f8cdda] border-[#f8cdda]' : 'border-[#d8b4a0]'
-                  }`}
+            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+              {/* Email Field */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  {formData.rememberMe && (
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter your email"
+                  required
+                  className={`w-full px-3 py-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
+                    errors.email && touched.email
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]"
+                  }`}
+                />
+                {errors.email && touched.email && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                     <svg
-                      className="w-3 h-3 text-white"
+                      className="w-3 h-3"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
-                  )}
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Enter your password"
+                    required
+                    className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
+                      errors.password && touched.password
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
-                <span className="text-[#5a3e36] text-sm">Remember me</span>
-              </label>
-              <a
-                href="/forgot-password"
-                className="text-[#e5989b] hover:text-[#c85c5c] text-sm font-medium transition-colors duration-200"
+                {errors.password && touched.password && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    {errors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    name="rememberMe"
+                    checked={formData.rememberMe}
+                    onChange={handleChange}
+                    className="hidden"
+                  />
+                  <div
+                    className={`w-4 h-4 border-2 rounded mr-2 flex items-center justify-center transition-all duration-200 ${
+                      formData.rememberMe
+                        ? "bg-[#e5989b] border-[#e5989b]"
+                        : "border-gray-300 group-hover:border-[#e5989b]"
+                    }`}
+                  >
+                    {formData.rememberMe && (
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="3"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
+                    Remember me
+                  </span>
+                </label>
+                <a
+                  href="/forgot-password"
+                  className="text-[#e5989b] hover:text-[#d88a8d] font-medium transition-colors duration-200"
+                >
+                  Forgot password?
+                </a>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                Forgot password?
-              </a>
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Signing In...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
+              </button>
+            </form>
+
+            {/* Sign Up Link */}
+            <div className="text-center mt-6 pt-4 border-t border-gray-200">
+              <p className="text-gray-600 text-sm">
+                Don't have an account?{" "}
+                <a
+                  href="/signup"
+                  className="text-[#e5989b] hover:text-[#d88a8d] font-semibold transition-colors duration-200"
+                >
+                  Create one here
+                </a>
+              </p>
             </div>
 
-            {/* Button */}
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-[#f8cdda] to-[#fbcfe8] text-[#4b2e2b] py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#fbcfe8] focus:ring-offset-2 disabled:opacity-50 text-sm md:text-base"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-t-2 border-[#4b2e2b] rounded-full animate-spin mr-2"></div>
-                  Signing In...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-
-          <div className="text-center mt-6">
-            <p className="text-[#7a5d55] text-sm md:text-base">
-              Don't have an account?{' '}
-              <a
-                href="/signup"
-                className="text-[#e5989b] hover:text-[#c85c5c] font-medium transition-colors duration-200"
-              >
-                Sign up
-              </a>
-            </p>
+            
           </div>
         </div>
       </div>
