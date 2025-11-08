@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useState } from "react";
-import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut, MessageCircle } from "lucide-react";
+import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut, MessageCircle, Heart, Sparkles } from "lucide-react";
 import MainLoading from "./MainLoading";
 
 const Header = () => {
@@ -70,7 +70,6 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Epic Search Bar - Always visible on desktop */}
           <div className="flex-1 max-w-2xl mx-6 hidden lg:block">
             <form onSubmit={handleSearch} className="relative">
               <div className="relative group">
@@ -114,41 +113,61 @@ const Header = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Search Icon - Mobile only */}
             <div className="lg:hidden">
               <button 
                 onClick={toggleSearch}
-                className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm"
+                className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group"
               >
-                {isSearchOpen ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+                <Search className="w-5 h-5" />
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Search
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                </div>
               </button>
             </div>
 
-            {/* Messenger */}
+            {/* AI Assistant Icon */}
+            <div className="relative">
+              <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
+                <Sparkles className="w-5 h-5" />
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  AI Assistant
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                </div>
+              </button>
+            </div>
+
+            {/* Messages Icon */}
             <div className="relative">
               <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
                 <MessageCircle className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
                   3
                 </span>
-                {/* Messenger pulse effect */}
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-blue-400 rounded-full animate-ping opacity-75"></span>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Messages
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                </div>
               </button>
             </div>
 
-            {/* Notifications */}
+            {/* Notifications Icon */}
             <div className="relative">
               <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
                   2
                 </span>
-                {/* Notification pulse effect */}
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-400 rounded-full animate-ping opacity-75"></span>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Notifications
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                </div>
               </button>
             </div>
 
-            {/* Profile with Dropdown */}
+            {/* Profile Menu */}
             <div className="relative">
               <button 
                 onClick={toggleProfileMenu}
@@ -167,9 +186,12 @@ const Header = () => {
                     <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                   </div>
                 </div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Profile Menu
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                </div>
               </button>
 
-              {/* Profile Dropdown Menu */}
               {isProfileMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in slide-in-from-top-5 duration-200">
                   <div className="px-4 py-3 border-b border-gray-100">
@@ -179,7 +201,7 @@ const Header = () => {
                   
                   <div className="py-1">
                     <Link 
-                      to="/profile" 
+                      to={`/mother/${user?.id}`}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-[#fceaea] hover:text-[#e5989b] transition-colors duration-200"
                       onClick={() => setIsProfileMenuOpen(false)}
                     >
@@ -212,7 +234,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Search Bar - Appears when search is open */}
         {isSearchOpen && (
           <div className="lg:hidden pb-4 animate-in slide-in-from-top duration-300">
             <form onSubmit={handleSearch} className="relative">
@@ -233,9 +254,13 @@ const Header = () => {
                   <button
                     type="button"
                     onClick={toggleSearch}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 relative group"
                   >
                     <X className="w-4 h-4" />
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      Close Search
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                    </div>
                   </button>
                 </div>
               </div>
@@ -244,7 +269,6 @@ const Header = () => {
         )}
       </div>
 
-      {/* Global Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-2xl flex items-center space-x-3 border border-gray-100">
@@ -257,7 +281,6 @@ const Header = () => {
         </div>
       )}
 
-      {/* Close dropdown when clicking outside */}
       {isProfileMenuOpen && (
         <div 
           className="fixed inset-0 z-40" 
@@ -267,5 +290,5 @@ const Header = () => {
     </header>
   );
 };
- 
+
 export default Header;
