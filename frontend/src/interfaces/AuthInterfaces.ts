@@ -20,7 +20,6 @@ export interface SignupFormData {
 }
 
 
-// In your AuthInterfaces.ts
 export interface SignupErrors {
   firstname?: string;
   lastname?: string;

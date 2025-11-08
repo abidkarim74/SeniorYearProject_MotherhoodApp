@@ -10,9 +10,11 @@ import MyChildren from "./pages/Children";
 import Vaccinations from "./pages/Vaccinations";
 import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
-import ChildDetail from "./pages/Childdetail"; 
+import UserProfile from "./pages/UserProfile";
 import LeftBar from "./components/LeftBar";
 import BottomBar from "./components/BottomBar";
+import ChildDetail from "./pages/ChildDetail";
+
 
 // Layout component for protected routes
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -65,6 +67,17 @@ function App() {
         />
 
         <Route
+          path="/mother/:id"
+          element={
+            <ProtectedRoutes>
+              <DashboardLayout>
+                <UserProfile />
+              </DashboardLayout>
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
           path="/children"
           element={
             <ProtectedRoutes>
@@ -110,7 +123,7 @@ function App() {
 
         {/* Child Detail Route */}
         <Route
-          path="/childdetail/:id"
+          path="/child-detail/:id"
           element={
             <ProtectedRoutes>
               <DashboardLayout>

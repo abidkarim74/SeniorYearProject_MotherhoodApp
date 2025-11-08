@@ -9,7 +9,6 @@ import {
   Bell,
   ArrowUp,
   ArrowDown,
-  Clock,
   MessageCircle,
   Plus,
   Heart,
@@ -121,7 +120,6 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <StatCard 
             title="My Children" 
@@ -172,14 +170,12 @@ const Home = () => {
               </div>
               
               <div className="p-6">
-                {/* Children Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   {children.map((child, index) => (
-                    <Link
+                    <div
                       key={child.id}
-                      to={`/childdetail/${child.id}`}
                       onClick={() => setActiveChild(index)}
-                      className={`bg-gradient-to-br rounded-2xl p-4 border-2 transition-all duration-300 hover:shadow-lg group ${
+                      className={`bg-gradient-to-br rounded-2xl p-4 border-2 transition-all duration-300 hover:shadow-lg group cursor-pointer ${
                         activeChild === index
                           ? "from-[#fff1f1] to-[#fceaea] border-[#e5989b] shadow-md"
                           : "from-white to-gray-50 border-gray-200 hover:border-[#e5989b]/40"
@@ -213,7 +209,7 @@ const Home = () => {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   ))}
                   
                   {/* Add Child Card */}
@@ -232,36 +228,99 @@ const Home = () => {
 
                 {/* Active Child Details */}
                 {children.length > 0 && currentChild && (
-                  <div className="bg-gradient-to-br from-[#fff6f6] to-[#fceaea] rounded-2xl p-6 border border-[#e5989b]/20">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                      <Heart className="w-5 h-5 text-[#e5989b]" />
-                      {currentChild.firstname} {currentChild.lastname}'s Profile
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
-                          <span className="text-gray-600 font-medium">Gender</span>
-                          <span className="text-gray-900 font-semibold">{currentChild.gender}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
-                          <span className="text-gray-600 font-medium">Date of Birth</span>
-                          <span className="text-gray-900 font-semibold">
-                            {new Date(currentChild.date_of_birth).toLocaleDateString()}
-                          </span>
+                  <div className="bg-gradient-to-br from-[#fff6f6] to-[#fceaea] rounded-2xl p-6 border border-[#e5989b]/20 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-[#e5989b]" />
+                        {currentChild.firstname} {currentChild.lastname}'s Profile
+                      </h3>
+                      <Link 
+                        to={`/child-detail/${currentChild.id}`}
+                        className="text-sm text-[#e5989b] font-medium hover:text-[#d88a8d] transition-colors"
+                      >
+                        View Full Profile →
+                      </Link>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Profile Picture Section */}
+                      <div className="flex flex-col items-center space-y-4">
+                        
+                          <img
+                            src={
+                              currentChild.profile_pic ||
+                              "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                            }
+                            alt={`${currentChild.firstname} ${currentChild.lastname}`}
+                            className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-lg group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white rounded-full"></div>
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-2xl transition-all duration-300 flex items-center justify-center">
+                            <span className="text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              View Profile
+                            </span>
+                          </div>
+                        <div className="text-center">
+                          <h4 className="font-bold text-gray-900 text-lg">
+                            {currentChild.firstname} {currentChild.lastname}
+                          </h4>
+                          <p className="text-sm text-gray-600 capitalize">{currentChild.gender}</p>
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
-                          <span className="text-gray-600 font-medium">Age</span>
-                          <span className="text-gray-900 font-semibold">
-                            {Math.floor((new Date().getTime() - new Date(currentChild.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years
-                          </span>
+
+                      {/* Details Section */}
+                      <div className="md:col-span-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
+                              <span className="text-gray-600 font-medium">Date of Birth</span>
+                              <span className="text-gray-900 font-semibold text-sm">
+                                {new Date(currentChild.date_of_birth).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
+                              <span className="text-gray-600 font-medium">Age</span>
+                              <span className="text-gray-900 font-semibold text-sm">
+                                {Math.floor((new Date().getTime() - new Date(currentChild.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
+                              <span className="text-gray-600 font-medium">Status</span>
+                              <span className="text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full text-xs">
+                                Active
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
+                              <span className="text-gray-600 font-medium">Last Updated</span>
+                              <span className="text-gray-900 font-semibold text-sm">
+                                Today
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center py-2 border-b border-[#e5989b]/10">
-                          <span className="text-gray-600 font-medium">Status</span>
-                          <span className="text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full text-xs">
-                            Active
-                          </span>
+                        
+                        {/* Quick Actions */}
+                        <div className="mt-4 flex gap-2">
+                          <Link
+                            to={`/childdetail/${currentChild.id}/growth`}
+                            className="flex-1 text-center bg-white border border-[#e5989b]/20 rounded-xl py-2 px-3 text-xs font-medium text-[#e5989b] hover:bg-[#e5989b] hover:text-white transition-all duration-300"
+                          >
+                            Growth
+                          </Link>
+                          <Link
+                            to={`/childdetail/${currentChild.id}/vaccinations`}
+                            className="flex-1 text-center bg-white border border-[#e5989b]/20 rounded-xl py-2 px-3 text-xs font-medium text-[#e5989b] hover:bg-[#e5989b] hover:text-white transition-all duration-300"
+                          >
+                            Vaccinations
+                          </Link>
+                          <Link
+                            to={`/childdetail/${currentChild.id}/milestones`}
+                            className="flex-1 text-center bg-white border border-[#e5989b]/20 rounded-xl py-2 px-3 text-xs font-medium text-[#e5989b] hover:bg-[#e5989b] hover:text-white transition-all duration-300"
+                          >
+                            Milestones
+                          </Link>
                         </div>
                       </div>
                     </div>

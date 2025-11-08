@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, constr, Field
 from typing import Optional
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, date
 from typing import List
 from models.child import GenderEnum
 
@@ -22,8 +22,6 @@ class MotherProfileResponse(BaseModel):
     
     number_of_children: int = 0
     blood_type: str | None = None
-    notification_enabled: bool = True
-    preferred_language: str | None
     account_created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config():
@@ -36,7 +34,7 @@ class MotherProfileUpdate(BaseModel):
     address: str | None = Field(default=None, max_length=255)
     city: str | None = Field(default=None, max_length=100)
     country: str | None = Field(default=None, max_length=100)
-    date_of_birth: datetime | None = None
+    date_of_birth: date | None = None
     blood_type: str | None = Field(default=None, pattern=r'^(A|B|AB|O)[+-]$')  
 
 
