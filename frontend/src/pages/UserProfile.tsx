@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import type { MotherProfile } from "../interfaces/ProfileInterfaces";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
-import { getRequest } from "../api/requests";
+import { getRequest, putRequest } from "../api/requests";
 import { 
   User, 
   Mail, 
@@ -19,6 +19,8 @@ import {
   Eye
 } from "lucide-react";
 import MotherProfileUpdate from "../components/MotherProfileUpdate";
+import useFileHandler from "../hooks/useFileHandler";
+import useImageUpload from "../hooks/useImageUpload";
 
 
 const UserProfile = () => {
@@ -28,11 +30,41 @@ const UserProfile = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [mother, setMother] = useState<MotherProfile | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const { selectedFile, previewUrl, handleFileChange } = useFileHandler();
+  const { imageUrl, isLoading: uploading, uploadImage, progress, error: uploadError } = useImageUpload();
+
+
+  const handleProfilePicChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileChange(e);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const uploadedUrl = await uploadImage(file);
+    if (!uploadedUrl) return;
+
+    setMother(prev => prev ? { ...prev, profile_pic: uploadedUrl } : prev);
+
+    try {
+      await putRequest(`/user-profile/update`, {
+        id: user?.id,
+        profile_pic: uploadedUrl,
+      });
+
+      console.log("Profile picture updated successfully");
+      fetch_mother_data(); // refresh profile data
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+    }
+  };
+
+
+
 
   const fetch_mother_data = async () => {
     setLoading(true);
     try {
       const response = await getRequest('/user-profile/mother/' + params.id);
+      console.log("Fetched mother:", response);
       setMother(response);
     } catch (err: any) {
       console.log(err.message);
@@ -181,20 +213,25 @@ const UserProfile = () => {
                 }`}>
                   <div className="relative inline-block">
                     <img
-                      src={mother.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                      src={previewUrl || mother.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                       alt={`${mother.firstname} ${mother.lastname}`}
                       className="w-28 h-28 rounded-xl object-cover border-4 border-white/20 shadow-lg mx-auto"
                     />
-                    <div className={`absolute -bottom-1 -right-1 w-6 h-6 border-2 border-white rounded-full flex items-center justify-center ${
-                      isOwnProfile ? "bg-green-400" : "bg-blue-400"
-                    }`}>
-                      {isOwnProfile ? (
-                        <User className="w-2 h-2 text-white" />
-                      ) : (
-                        <Eye className="w-2 h-2 text-white" />
-                      )}
-                    </div>
+
+
+                    {isOwnProfile && (
+                      <label className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-green-400 flex items-center justify-center cursor-pointer border-2 border-white">
+                        <input 
+                          type="file" 
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleProfilePicChange}
+                        />
+                        <Edit className="w-4 h-4 text-white" />
+                      </label>
+                    )}
                   </div>
+
                   
                   <h2 className="text-xl font-bold mt-3 mb-1">
                     {mother.firstname} {mother.lastname}
