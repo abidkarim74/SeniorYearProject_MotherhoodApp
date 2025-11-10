@@ -36,6 +36,6 @@ class MotherProfileUpdate(BaseModel):
     country: str | None = Field(default=None, max_length=100)
     date_of_birth: date | None = None
     blood_type: str | None = Field(default=None, pattern=r'^(A|B|AB|O)[+-]$')  
-
+    profile_pic: str | None = None
 
 
