@@ -12,8 +12,9 @@ import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
 import UserProfile from "./pages/UserProfile";
 import LeftBar from "./components/LeftBar";
+import AIChatBot from "./pages/AIChatbot";
 import BottomBar from "./components/BottomBar";
-import ChildDetail from "./pages/ChildDetail";
+import ChildDetail from "./pages/Childdetail";
 
 
 // Layout component for protected routes
@@ -61,6 +62,17 @@ function App() {
             <ProtectedRoutes>
               <DashboardLayout>
                 <Home />
+              </DashboardLayout>
+            </ProtectedRoutes>
+          }
+        />
+
+         <Route
+          path="/ai-assistant"
+          element={
+            <ProtectedRoutes>
+              <DashboardLayout>
+                <AIChatBot />
               </DashboardLayout>
             </ProtectedRoutes>
           }
