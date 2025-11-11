@@ -128,13 +128,13 @@ const Header = () => {
 
             {/* AI Assistant Icon */}
             <div className="relative">
-              <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
+              <Link to='/ai-assistant' className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
                 <Sparkles className="w-5 h-5" />
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                   AI Assistant
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
                 </div>
-              </button>
+              </Link>
             </div>
 
             {/* Messages Icon */}
