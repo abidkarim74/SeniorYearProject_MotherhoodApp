@@ -8,7 +8,8 @@ from alembic import context # type: ignore
 from database.db import Base
 from models.user import User
 from models.ai import AIChatbot
-from models.child import Child, Vaccination, Milestone, FeedingPreference
+from models.child import Child
+from models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
 
 
 # this is the Alembic Config object, which provides
