@@ -56,32 +56,4 @@ class Child(Base):
     """
 
 
-class Milestone(Base):
-    __tablename__ = 'milestones'
-    
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    child_id: Mapped[UUID] = mapped_column(ForeignKey("children.id"), nullable=False)
-    
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
-
-class Vaccination(Base):
-    __tablename__ = "vaccinations"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    child_id: Mapped[UUID] = mapped_column(ForeignKey("children.id"), nullable=False)
-    vaccine_name: Mapped[str] = mapped_column(String, nullable=False)
-    date_given: Mapped[datetime | None] = mapped_column(Date, nullable=True)
-
-
-class FeedingPreference(Base):
-    __tablename__ = "feeding_preferences"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    child_id: Mapped[UUID] = mapped_column(ForeignKey("children.id"), nullable=False)
-    feeding_type: Mapped[str] = mapped_column(String, nullable=False) 
-    start_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
-    end_date: Mapped[datetime | None] = mapped_column(Date, nullable=True)
-    notes: Mapped[str | None] = mapped_column(String, nullable=True)
 
