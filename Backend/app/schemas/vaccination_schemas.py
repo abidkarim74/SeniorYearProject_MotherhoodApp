@@ -56,6 +56,11 @@ class VaccinationRecordCreate(VaccinationRecordBase):
     pass
 
 
+class VaccinationRecordUpdate(BaseModel):
+    date_given: date | None = None
+    status: VaccinationStatus = VaccinationStatus.PENDING
+
+
 class VaccinationRecordResponse(VaccinationRecordBase):
     id: UUID
     
