@@ -1,4 +1,4 @@
-from schemas.auth_schemas import UserCreateSchema, UserLoginSchema
+from schemas.auth_schemas import UserCreateSchema, UserLoginSchema, ForgotPasswordSchema, ResetPasswordSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Response
@@ -14,7 +14,9 @@ from jose.exceptions import JWTError, ExpiredSignatureError
 
 from itsdangerous import URLSafeTimedSerializer
 from utils.hash_services import hash_password_func
-from utils.email_service import send_password_reset_email
+from utils.email_service import send_email_background
+
+
 
 
 serializer = URLSafeTimedSerializer(os.getenv("SIGNER_KEY"))
@@ -208,7 +210,7 @@ class AuthController():
             token = serializer.dumps({"id": str(user.id)})
 
             # Send email
-            send_password_reset_email(user.email, token)
+            send_email_background(user.email, token)
 
             return {"message": "Password reset email sent"}
         

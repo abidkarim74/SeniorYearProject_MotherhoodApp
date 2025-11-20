@@ -3,7 +3,7 @@ from sqlalchemy import select, update
 from models.user import User
 from fastapi import HTTPException, status
 from utils.password_reset_token_service import generate_password_reset_token, verify_password_reset_token
-from utils.email_service import send_password_reset_email
+from utils.email_service import send_email_background
 from utils.hash_services import hash_password_func
 from typing import Dict
 from uuid import UUID as UUID_type

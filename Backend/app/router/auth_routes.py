@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, Response, Cookie
 from database.db import connect_db
-from schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLoginSchema
+from schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLoginSchema, ForgotPasswordSchema, ResetPasswordSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 from controllers.auth_controllers import AuthController
 from middleware.protect_endpoints import verify_authentication
-from schemas.auth_schemas import ForgotPasswordSchema, ResetPasswordSchema
+
 
 auth_router = APIRouter(
     prefix='/api/auth',
