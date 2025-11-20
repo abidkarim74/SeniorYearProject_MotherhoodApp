@@ -28,3 +28,12 @@ class UserResponseSchema(UserBaseSchema):
 
 class TokenPayload(BaseModel):
     id: str
+
+
+class ForgotPasswordSchema(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordSchema(BaseModel):
+    token: str
+    new_password: str

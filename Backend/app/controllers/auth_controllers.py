@@ -12,6 +12,13 @@ import os
 from utils.token_services import verify_token
 from jose.exceptions import JWTError, ExpiredSignatureError
 
+from itsdangerous import URLSafeTimedSerializer
+from utils.hash_services import hash_password_func
+from utils.email_service import send_password_reset_email
+
+
+serializer = URLSafeTimedSerializer(os.getenv("SIGNER_KEY"))
+
 
 class AuthController():
     signer = Signer(os.getenv('SIGNER_KEY'))
@@ -186,3 +193,54 @@ class AuthController():
                 status_code=error_dict.get('status_code', 500),
                 detail=error_dict.get('detail', 'Internal server error!')
             )
+        
+    @staticmethod
+    async def forgot_password_func(data: ForgotPasswordSchema, db: AsyncSession):
+        try:
+            statement = select(User).where(User.email == data.email)
+            result = await db.execute(statement)
+            user = result.scalar_one_or_none()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            # Create token valid for 30 mins
+            token = serializer.dumps({"id": str(user.id)})
+
+            # Send email
+            send_password_reset_email(user.email, token)
+
+            return {"message": "Password reset email sent"}
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Error sending reset email")
+
+
+    @staticmethod
+    async def reset_password_func(data: ResetPasswordSchema, db: AsyncSession):
+        try:
+            # Decode token
+            try:
+                payload = serializer.loads(data.token, max_age=1800)  # 30 minutes
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+            user_id = payload["id"]
+
+            # Fetch user
+            statement = select(User).where(User.id == user_id)
+            result = await db.execute(statement)
+            user = result.scalar_one_or_none()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="Invalid user")
+
+            # Update password
+            user.password = hash_password_func(data.new_password)
+            await db.commit()
+
+            return {"message": "Password updated successfully"}
+
+        except Exception as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail="Could not reset password")

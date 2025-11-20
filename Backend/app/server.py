@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from router.child_routes import child_router
 from router.profile_routes import profile_router
 from router.ai_chatbot_routes import ai_chatbot_router
+from router.password_reset_routes import password_router
+
 
 
 
@@ -37,6 +39,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(child_router)
 app.include_router(ai_chatbot_router)
+app.include_router(password_router)
 
 
 @app.get('/api/')

@@ -4,7 +4,7 @@ from schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLogin
 from sqlalchemy.ext.asyncio import AsyncSession
 from controllers.auth_controllers import AuthController
 from middleware.protect_endpoints import verify_authentication
-
+from schemas.auth_schemas import ForgotPasswordSchema, ResetPasswordSchema
 
 auth_router = APIRouter(
     prefix='/api/auth',
@@ -38,3 +38,14 @@ async def logout_route(res: Response, payload = Depends(verify_authentication)):
 async def authenticated_user_route(db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
     id = payload['id']
     return await AuthController.authenticated_user_func(id, db)
+
+
+
+@auth_router.post("/forgot-password")
+async def forgot_password_route(data: ForgotPasswordSchema, db: AsyncSession = Depends(connect_db)):
+    return await AuthController.forgot_password_func(data, db)
+
+
+@auth_router.post("/reset-password")
+async def reset_password_route(data: ResetPasswordSchema, db: AsyncSession = Depends(connect_db)):
+    return await AuthController.reset_password_func(data, db)
