@@ -15,6 +15,8 @@ import LeftBar from "./components/LeftBar";
 import AIChatBot from "./pages/AIChatbot";
 import BottomBar from "./components/BottomBar";
 import ChildDetail from "./pages/Childdetail";
+import AddVaccination from "./pages/AddVaccination";
+import Settings from "./pages/Settings";
 
 
 // Layout component for protected routes
@@ -132,6 +134,29 @@ function App() {
             </ProtectedRoutes>
           }
         />
+
+        <Route
+          path="/add-vaccination"
+          element={
+            <ProtectedRoutes>
+              <DashboardLayout>
+                <AddVaccination />
+              </DashboardLayout>
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoutes>
+              <DashboardLayout>
+                <Settings />
+              </DashboardLayout>
+            </ProtectedRoutes>
+          }
+        />
+
 
         {/* Child Detail Route */}
         <Route

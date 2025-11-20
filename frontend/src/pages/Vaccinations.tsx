@@ -326,16 +326,29 @@ const Vaccinations = () => {
             <div className="w-2 h-2 bg-[#e5989b] rounded-full animate-pulse mr-2"></div>
             <span className="text-sm text-gray-600">Vaccination Tracker</span>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Vaccination{" "}
-            <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
-              Schedule
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl">
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3 sm:mb-0">
+              Vaccination{" "}
+              <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
+                Schedule
+              </span>
+            </h1>
+
+            <Link
+              to="/add-vaccination"
+              className="inline-flex items-center bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white px-5 py-3 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all font-medium"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add Vaccination
+            </Link>
+          </div>
+
+          <p className="text-xl text-gray-600 max-w-2xl mt-4">
             Track and manage your children's immunization schedule to keep them protected and healthy.
           </p>
         </div>
+
 
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
