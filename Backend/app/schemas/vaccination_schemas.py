@@ -5,9 +5,9 @@ from datetime import date
 
 
 class VaccinationStatus(str, Enum):
-    PENDING = "Pending"
-    GIVEN = "Given"
-    MISSED = "Missed"
+    PENDING = "PENDING"
+    GIVEN = "GIVEN"
+    MISSED = "MISSED"
 
 
 class VaccinationOptionBase(BaseModel):

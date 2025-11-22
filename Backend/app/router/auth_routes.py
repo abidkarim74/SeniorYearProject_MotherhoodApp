@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Response, Cookie
-from database.db import connect_db
+from database.postgres import connect_db
 from schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLoginSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 from controllers.auth_controllers import AuthController

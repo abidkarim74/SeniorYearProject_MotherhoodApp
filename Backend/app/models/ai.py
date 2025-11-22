@@ -1,8 +1,25 @@
-from database.db import Base
+from database.postgres import Base
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import mapped_column, Mapped
 from uuid import UUID as u, uuid4
 from sqlalchemy import ForeignKey
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy import String
+from sqlalchemy import Enum
+from typing import List
+from enum import Enum as PyEnum
+
+
+class AiConversation(Base):
+    __tablename__ = "ai_conversations"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    topic: Mapped[str] = mapped_column(String, nullable=False)
+
+    last_messages: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
+
+    summary: Mapped[str] = mapped_column(String, nullable=True)
 
 
 class AIChatbot(Base):
@@ -10,4 +27,5 @@ class AIChatbot(Base):
     
     id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
-    
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=True)
