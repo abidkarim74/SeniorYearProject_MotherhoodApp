@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from database.db import SessionLocal
+from database.postgres import SessionLocal
 from sqlalchemy import text
 from router.auth_routes import auth_router
 from middleware.protect_endpoints import verify_authentication
