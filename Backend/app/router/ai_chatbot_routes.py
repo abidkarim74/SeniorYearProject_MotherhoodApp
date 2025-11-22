@@ -2,15 +2,32 @@ from fastapi import APIRouter, HTTPException, Depends
 import aiohttp # type: ignore
 import time
 import os
+from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
 from llm_core.gemini_client import AdvancedGeminiClient
 from llm_core.utils.gemini_utils import get_gemini_client
 from schemas.ai_schemas import ChatMessage, ChatResponse
+from middleware.protect_endpoints import verify_authentication
+from database.postgres import connect_db
+from schemas.ai_bot_schemas import AIBotCreate, AIBotResponse
+from controllers.llm_controllers import LLMController
 
 
 ai_chatbot_router = APIRouter(
     prefix='/api/ai-chatbot',
     tags=['AI Chatbot Routes']
 )
+
+
+@ai_chatbot_router.post('/create-bot', status_code=201)
+async def create_ai_chatbot(data: AIBotCreate, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    return await LLMController.create_ai_chatbot(data, payload['id'], db)
+    
+
+@ai_chatbot_router.get('/{bot_id}', response_model=AIBotResponse)
+async def create_ai_chatbot(bot_id: UUID,  db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    return await LLMController.get_ai_chatbot(bot_id, db)
+
 
 @ai_chatbot_router.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(

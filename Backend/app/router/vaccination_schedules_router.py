@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from middleware.protect_endpoints import verify_authentication
-from database.db import connect_db
+from database.postgres import connect_db
 from controllers.vaccination_schedule_controller import VaccinationScheduleController
 from schemas.vaccination_schemas import (
     VaccinationScheduleCreate,

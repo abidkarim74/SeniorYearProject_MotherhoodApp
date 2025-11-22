@@ -6,7 +6,7 @@ from uuid import UUID
 
 from models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
 from models.child import Child
-from schemas.vaccination_schemas import VaccinationRecordCreate, VaccinationRecordUpdate
+from schemas.vaccination_schemas import VaccinationRecordCreate, VaccinationRecordUpdate, VaccinationRecordResponse
 from datetime import date
 
 
@@ -39,72 +39,73 @@ class VaccinationRecordController:
     @staticmethod
     async def get_child_records(auth_id: UUID, child_id: UUID, db: AsyncSession):
         try:
-            # ownership check
             await VaccinationRecordController._ensure_child_belongs_to_mother(auth_id, child_id, db)
-
-            stmt = select(
-                VaccinationRecord
-            ).where(VaccinationRecord.child_id == child_id)
-
+            
+            stmt = select(VaccinationRecord).where(VaccinationRecord.child_id == child_id)
             result = await db.execute(stmt)
             records = result.scalars().all()
-            return records
+            
+            response_records = []
+            for record in records:
+                status_value = record.status.value if hasattr(record.status, 'value') else str(record.status)
+                
+                response_records.append(VaccinationRecordResponse(
+                    id=record.id,
+                    child_id=record.child_id,
+                    vaccine_id=record.vaccine_id,
+                    schedule_id=record.schedule_id,
+                    dose_num=record.dose_num,
+                    date_given=record.date_given,
+                    status=status_value.upper()
+                ))
+            return response_records
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             await db.rollback()
             raise HTTPException(status_code=500, detail='Database error!')
-
-        except HTTPException:
-            raise
-
+        
         except Exception as e:
             await db.rollback()
-            error_dict = e.__dict__
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500),
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
+            raise HTTPException(status_code=500, detail='Internal server error!')
 
     @staticmethod
     async def create(auth_id: UUID, data: VaccinationRecordCreate, db: AsyncSession):
         try:
-            # ownership & existence checks
             await VaccinationRecordController._ensure_child_belongs_to_mother(auth_id, data.child_id, db)
             await VaccinationRecordController._ensure_vaccine_exists(data.vaccine_id, db)
             await VaccinationRecordController._ensure_schedule_exists(data.schedule_id, db)
 
-            # validate date is not in future
             if data.date_given is not None and data.date_given > date.today():
                 raise HTTPException(status_code=400, detail='date_given cannot be in the future')
-
+            
             new_record = VaccinationRecord(
-                child_id = data.child_id,
-                vaccine_id = data.vaccine_id,
-                schedule_id = data.schedule_id,
-                dose_num = data.dose_num,
-                date_given = data.date_given,
-                status = data.status
+                child_id=data.child_id,
+                vaccine_id=data.vaccine_id,
+                schedule_id=data.schedule_id,
+                dose_num=data.dose_num,
+                date_given=data.date_given,
+                status=data.status.value.upper(), 
             )
 
             db.add(new_record)
             await db.commit()
-            await db.refresh(new_record)
-            return new_record
+            
+            return VaccinationRecordResponse(
+                id=new_record.id,
+                child_id=new_record.child_id,
+                vaccine_id=new_record.vaccine_id,
+                schedule_id=new_record.schedule_id,
+                dose_num=new_record.dose_num,
+                date_given=new_record.date_given,
+                status=new_record.status
+            )
 
         except SQLAlchemyError:
             await db.rollback()
             raise HTTPException(status_code=500, detail='Database error!')
-
-        except HTTPException:
-            raise
-
         except Exception as e:
             await db.rollback()
-            error_dict = e.__dict__
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500),
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
+            raise HTTPException(status_code=500, detail='Internal server error!')
 
     @staticmethod
     async def update(auth_id: UUID, record_id: UUID, data: VaccinationRecordUpdate, db: AsyncSession):
@@ -113,38 +114,45 @@ class VaccinationRecordController:
             if not record:
                 raise HTTPException(status_code=404, detail='Vaccination record not found!')
 
-            # ownership check using child
             await VaccinationRecordController._ensure_child_belongs_to_mother(auth_id, record.child_id, db)
 
             update_data = data.model_dump(exclude_unset=True)
-
-            # validate date if provided
+            
             if 'date_given' in update_data and update_data['date_given'] is not None:
                 if update_data['date_given'] > date.today():
                     raise HTTPException(status_code=400, detail='date_given cannot be in the future')
+
+            if 'status' in update_data and update_data['status'] is not None:
+                status_value = update_data['status']
+                if hasattr(status_value, 'value'):
+                    update_data['status'] = status_value.value.upper()
+                else:
+                    update_data['status'] = str(status_value).upper()
 
             for key, value in update_data.items():
                 if value is not None:
                     setattr(record, key, value)
 
             await db.commit()
-            await db.refresh(record)
-            return record
+
+            return VaccinationRecordResponse(
+                id=record.id,
+                child_id=record.child_id,
+                vaccine_id=record.vaccine_id,
+                schedule_id=record.schedule_id,
+                dose_num=record.dose_num,
+                date_given=record.date_given,
+                status=record.status
+            )
 
         except SQLAlchemyError:
             await db.rollback()
             raise HTTPException(status_code=500, detail='Database error!')
-
         except HTTPException:
             raise
-
         except Exception as e:
             await db.rollback()
-            error_dict = e.__dict__
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500),
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
+            raise HTTPException(status_code=500, detail='Internal server error!')
 
     @staticmethod
     async def delete(auth_id: UUID, record_id: UUID, db: AsyncSession):
@@ -153,7 +161,6 @@ class VaccinationRecordController:
             if not record:
                 raise HTTPException(status_code=404, detail='Vaccination record not found!')
 
-            # ownership check
             await VaccinationRecordController._ensure_child_belongs_to_mother(auth_id, record.child_id, db)
 
             await db.delete(record)
@@ -163,14 +170,8 @@ class VaccinationRecordController:
         except SQLAlchemyError:
             await db.rollback()
             raise HTTPException(status_code=500, detail='Database error!')
-
         except HTTPException:
             raise
-
         except Exception as e:
             await db.rollback()
-            error_dict = e.__dict__
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500),
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
+            raise HTTPException(status_code=500, detail='Internal server error!')

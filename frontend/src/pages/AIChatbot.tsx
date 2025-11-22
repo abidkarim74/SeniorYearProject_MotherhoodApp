@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { 
   Send, 
   Bot, 
-  User, 
-  X, 
+  User,  
   ArrowLeft,
   Sparkles,
   Trash2,
@@ -16,6 +15,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { postRequest } from "../api/requests";
+import { useAuth } from "../context/authContext";
+
 
 interface Message {
   id: string;
@@ -34,7 +35,14 @@ const AIChatBot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Generate a unique conversation ID when component mounts
+  useEffect(() => {
+    const create_chatbot = async () => {
+
+      
+    }
+
+  }, []);
+
   useEffect(() => {
     setConversationId(`conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   }, []);

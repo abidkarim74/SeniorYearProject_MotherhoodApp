@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from middleware.protect_endpoints import verify_authentication
-from database.db import connect_db
+from database.postgres import connect_db
 from controllers.vaccination_record_controller import VaccinationRecordController
 from schemas.vaccination_schemas import (
     VaccinationRecordCreate,
@@ -17,12 +17,12 @@ vaccination_records_router = APIRouter(
 )
 
 
-@vaccination_records_router.get('/child/{child_id}', response_model=List[VaccinationRecordResponse])
+@vaccination_records_router.get('/child/{child_id}')
 async def get_child_records(child_id: str, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
     return await VaccinationRecordController.get_child_records(payload['id'], child_id, db)
 
 
-@vaccination_records_router.post('/create', response_model=VaccinationRecordResponse)
+@vaccination_records_router.post('/create')
 async def create_record(data: VaccinationRecordCreate, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
     return await VaccinationRecordController.create(payload['id'], data, db)
 
