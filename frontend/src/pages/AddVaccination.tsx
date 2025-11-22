@@ -1,36 +1,143 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Baby, Syringe, MapPin, User } from "lucide-react";
+import { Calendar, Baby, Syringe } from "lucide-react";
+import { getRequest, postRequest } from "../api/requests";
 
 const AddVaccination = () => {
   const navigate = useNavigate();
+  const [children, setChildren] = useState<any[]>([]);
+  const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    childName: "",
-    vaccine: "",
-    description: "",
-    dueDate: "",
-    administeredDate: "",
-    doctor: "",
-    location: "",
-    category: "",
-    importance: "",
-    status: "",
+    childId: "",
+    vaccineId: "",
+    scheduleId: "",
+    doseNum: "",
+    dateGiven: "",
+    status: "PENDING",
   });
+
+  // Fetch children and vaccine options when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [childrenData, vaccineOptionsData] = await Promise.all([
+          getRequest("/user-profile/get-children"),
+          getRequest("/vaccination-options/all")
+        ]);
+        
+        setChildren(childrenData || []);
+        setVaccineOptions(vaccineOptionsData || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Fetch schedules when vaccine is selected
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      if (form.vaccineId) {
+        try {
+          const schedulesData = await getRequest(`/vaccination-schedule/vaccine/${form.vaccineId}`);
+          setSchedules(schedulesData || []);
+          
+          // Reset schedule and dose if vaccine changes
+          setForm(prev => ({ ...prev, scheduleId: "", doseNum: "" }));
+        } catch (error) {
+          console.error("Error fetching schedules:", error);
+          setSchedules([]);
+        }
+      } else {
+        setSchedules([]);
+      }
+    };
+
+    fetchSchedules();
+  }, [form.vaccineId]);
+
+  // Auto-select schedule when dose number is selected
+  useEffect(() => {
+    if (form.vaccineId && form.doseNum && schedules.length > 0) {
+      const matchingSchedule = schedules.find(
+        s => s.vaccine_id === form.vaccineId && s.dose_num === parseInt(form.doseNum)
+      );
+      if (matchingSchedule) {
+        setForm(prev => ({ ...prev, scheduleId: matchingSchedule.id }));
+      }
+    }
+  }, [form.doseNum, form.vaccineId, schedules]);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e: any) => {
+  const handleSave = async (e: any) => {
     e.preventDefault();
 
-    const existing = JSON.parse(localStorage.getItem("vaccinations") || "[]");
-    const updated = [...existing, { id: Date.now(), ...form }];
-    localStorage.setItem("vaccinations", JSON.stringify(updated));
+    try {
+      // Prepare data according to API schema
+      const vaccinationData = {
+        child_id: form.childId,
+        vaccine_id: form.vaccineId,
+        schedule_id: form.scheduleId,
+        dose_num: parseInt(form.doseNum) || 0,
+        date_given: form.dateGiven,
+        status: form.status,
+      };
 
-    navigate("/vaccinations");
+      console.log("Sending data:", JSON.stringify(vaccinationData, null, 2));
+
+      // Call the POST API
+      const response = await postRequest("/vaccination-records/create", vaccinationData);
+      console.log("Response:", response);
+
+      // Navigate back to vaccinations page
+      navigate("/vaccinations");
+    } catch (error: any) {
+      console.error("Error saving vaccination:", error);
+      console.error("Error response:", error.response?.data);
+      
+      // Handle error message
+      const errorDetail = error.response?.data?.detail;
+      if (typeof errorDetail === 'string') {
+        alert(`Failed to save vaccination: ${errorDetail}`);
+      } else if (Array.isArray(errorDetail)) {
+        const errorMessages = errorDetail.map((err: any) => 
+          `${err.loc?.join(' -> ')}: ${err.msg}`
+        ).join('\n');
+        alert(`Validation failed:\n${errorMessages}`);
+      } else {
+        alert(`Failed to save vaccination: ${error.message}`);
+      }
+    }
   };
+
+  const getAvailableDoses = () => {
+    if (!form.vaccineId || schedules.length === 0) return [];
+    
+    // Get unique dose numbers for the selected vaccine
+    const doses = schedules
+      .filter(s => s.vaccine_id === form.vaccineId)
+      .map(s => s.dose_num)
+      .sort((a, b) => a - b);
+    
+    return [...new Set(doses)];
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500 bg-gradient-to-br from-[#fff6f6] to-[#fceaea]">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] to-[#fceaea] py-10 px-6">
@@ -40,155 +147,128 @@ const AddVaccination = () => {
         </h2>
 
         <form onSubmit={handleSave} className="space-y-6">
-          {/* Child Name */}
+          {/* Child Selection */}
           <div>
-            <label className="font-medium text-gray-700">Child Name</label>
+            <label className="font-medium text-gray-700">Select Child *</label>
             <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
               <Baby className="w-5 h-5 text-gray-500 mr-2" />
-              <input
-                type="text"
-                name="childName"
+              <select
+                name="childId"
                 onChange={handleChange}
+                value={form.childId}
                 className="w-full py-3 bg-transparent outline-none"
-                placeholder="Enter child's full name"
                 required
-              />
+              >
+                <option value="">Select a child</option>
+                {children.map((child) => (
+                  <option key={child.id} value={child.id}>
+                    {child.firstname} {child.lastname}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
-          {/* Vaccine Name */}
+          {/* Vaccine Selection */}
           <div>
-            <label className="font-medium text-gray-700">Vaccine</label>
+            <label className="font-medium text-gray-700">Select Vaccine *</label>
             <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
               <Syringe className="w-5 h-5 text-gray-500 mr-2" />
+              <select
+                name="vaccineId"
+                onChange={handleChange}
+                value={form.vaccineId}
+                className="w-full py-3 bg-transparent outline-none"
+                required
+              >
+                <option value="">Select a vaccine</option>
+                {vaccineOptions.map((vaccine) => (
+                  <option key={vaccine.id} value={vaccine.id}>
+                    {vaccine.vaccine_name} - {vaccine.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {vaccineOptions.length === 0 && (
+              <p className="text-sm text-red-500 mt-1">
+                No vaccine options available. Please contact your administrator.
+              </p>
+            )}
+          </div>
+
+          {/* Dose Number Selection */}
+          <div>
+            <label className="font-medium text-gray-700">Dose Number *</label>
+            <select
+              name="doseNum"
+              value={form.doseNum}
+              onChange={handleChange}
+              className="w-full mt-2 bg-gray-100 rounded-xl px-4 py-3 outline-none"
+              required
+              disabled={!form.vaccineId || schedules.length === 0}
+            >
+              <option value="">Select dose number</option>
+              {getAvailableDoses().map((dose) => (
+                <option key={dose} value={dose}>
+                  Dose {dose}
+                </option>
+              ))}
+            </select>
+            {form.vaccineId && schedules.length === 0 && (
+              <p className="text-sm text-red-500 mt-1">
+                No schedules available for this vaccine.
+              </p>
+            )}
+          </div>
+
+          {/* Schedule ID (Auto-selected, read-only) */}
+          {form.scheduleId && (
+            <div>
+              <label className="font-medium text-gray-700">Schedule ID (Auto-selected)</label>
+              <div className="flex items-center mt-2 bg-gray-200 rounded-xl px-4">
+                <Calendar className="w-5 h-5 text-gray-500 mr-2" />
+                <input
+                  type="text"
+                  value={form.scheduleId}
+                  className="w-full py-3 bg-transparent outline-none text-gray-600"
+                  readOnly
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Automatically selected based on vaccine and dose
+              </p>
+            </div>
+          )}
+
+          {/* Date Given */}
+          <div>
+            <label className="font-medium text-gray-700">Date Given *</label>
+            <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
+              <Calendar className="w-5 h-5 text-gray-500 mr-2" />
               <input
-                type="text"
-                name="vaccine"
+                type="date"
+                name="dateGiven"
+                value={form.dateGiven}
                 onChange={handleChange}
                 className="w-full py-3 bg-transparent outline-none"
-                placeholder="Enter vaccine name"
                 required
               />
             </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="font-medium text-gray-700">Description</label>
-            <textarea
-              name="description"
-              onChange={handleChange}
-              className="w-full mt-2 bg-gray-100 rounded-xl px-4 py-3 outline-none"
-              placeholder="Short description of vaccine"
-              rows={3}
-            />
-          </div>
-
-          {/* Dates Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Due Date */}
-            <div>
-                <label className="font-medium text-gray-700">Due Date</label>
-                <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
-                <Calendar className="w-5 h-5 text-gray-500 mr-2" />
-                <input
-                    type="date"
-                    name="dueDate"
-                    onChange={handleChange}
-                    className="w-full py-3 bg-transparent outline-none"
-                />
-                </div>
-            </div>
-
-            {/* Administered Date */}
-            <div>
-                <label className="font-medium text-gray-700">Administered Date</label>
-                <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
-                <Calendar className="w-5 h-5 text-gray-500 mr-2" />
-                <input
-                    type="date"
-                    name="administeredDate"
-                    onChange={handleChange}
-                    className="w-full py-3 bg-transparent outline-none"
-                />
-                </div>
-            </div>
-            </div>
-
-
-          {/* Doctor */}
-          <div>
-            <label className="font-medium text-gray-700">Doctor</label>
-            <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
-              <User className="w-5 h-5 text-gray-500 mr-2" />
-              <input
-                type="text"
-                name="doctor"
-                onChange={handleChange}
-                className="w-full py-3 bg-transparent outline-none"
-                placeholder="Doctor's name"
-              />
-            </div>
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="font-medium text-gray-700">Location</label>
-            <div className="flex items-center mt-2 bg-gray-100 rounded-xl px-4">
-              <MapPin className="w-5 h-5 text-gray-500 mr-2" />
-              <input
-                type="text"
-                name="location"
-                onChange={handleChange}
-                className="w-full py-3 bg-transparent outline-none"
-                placeholder="Hospital / Clinic"
-              />
-            </div>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="font-medium text-gray-700">Category</label>
-            <select
-              name="category"
-              onChange={handleChange}
-              className="w-full mt-2 bg-gray-100 rounded-xl px-4 py-3 outline-none"
-            >
-              <option value="">Select category</option>
-              <option value="routine">Routine</option>
-              <option value="seasonal">Seasonal</option>
-              <option value="recommended">Recommended</option>
-            </select>
-          </div>
-
-          {/* Importance */}
-          <div>
-            <label className="font-medium text-gray-700">Importance</label>
-            <select
-              name="importance"
-              onChange={handleChange}
-              className="w-full mt-2 bg-gray-100 rounded-xl px-4 py-3 outline-none"
-            >
-              <option value="">Select importance</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
           </div>
 
           {/* Status */}
           <div>
-            <label className="font-medium text-gray-700">Status</label>
+            <label className="font-medium text-gray-700">Status *</label>
             <select
               name="status"
+              value={form.status}
               onChange={handleChange}
               className="w-full mt-2 bg-gray-100 rounded-xl px-4 py-3 outline-none"
+              required
             >
-              <option value="">Select status</option>
-              <option value="upcoming">Upcoming</option>
-              <option value="completed">Completed</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="overdue">Overdue</option>
+              <option value="Pending">Pending</option>
+              <option value="Given">Given</option>
+              <option value="Missed">Missed</option>
             </select>
           </div>
 

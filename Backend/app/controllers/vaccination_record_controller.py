@@ -77,19 +77,20 @@ class VaccinationRecordController:
             if data.date_given is not None and data.date_given > date.today():
                 raise HTTPException(status_code=400, detail='date_given cannot be in the future')
 
-            new_record = VaccinationRecord(
-                child_id = data.child_id,
-                vaccine_id = data.vaccine_id,
-                schedule_id = data.schedule_id,
-                dose_num = data.dose_num,
-                date_given = data.date_given,
-                status = data.status
-            )
+            # new_record = VaccinationRecord(
+            #     child_id = data.child_id,
+            #     vaccine_id = data.vaccine_id,
+            #     schedule_id = data.schedule_id,
+            #     dose_num = data.dose_num,
+            #     date_given = data.date_given,
+            #     status = data.status
+            # )
 
-            db.add(new_record)
-            await db.commit()
-            await db.refresh(new_record)
-            return new_record
+            # db.add(new_record)
+            # await db.commit()
+            # await db.refresh(new_record)
+            # return new_record
+            return None
 
         except SQLAlchemyError:
             await db.rollback()
