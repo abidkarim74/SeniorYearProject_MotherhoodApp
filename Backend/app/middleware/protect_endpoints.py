@@ -7,6 +7,7 @@ from jose.exceptions import JWTError, ExpiredSignatureError
 async def verify_authentication(token: str = Depends(OAuth2PasswordBearer(tokenUrl="login"))):
     try:
         payload = verify_token(token, 'access')
+        # print(payload)
         
         if payload == None:
             raise HTTPException(
