@@ -225,7 +225,7 @@ const Children = () => {
           View Growth
         </Link>
         <Link
-          to={`/child/${child.id}/vaccinations`}
+          to="/vaccinations"
           className="flex-1 bg-[#e5989b] text-white text-center py-2 px-4 rounded-lg hover:bg-[#d88a8d] transition-colors text-sm font-medium"
         >
           Vaccinations

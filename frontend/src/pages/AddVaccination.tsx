@@ -101,6 +101,8 @@ const AddVaccination = () => {
       console.log("Response:", response);
 
       // Navigate back to vaccinations page
+      navigate("/vaccinations");
+
     } catch (error: any) {
       console.error("Error saving vaccination:", error);
       console.error("Error response:", error.response?.data);
