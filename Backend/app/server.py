@@ -11,6 +11,7 @@ from router.ai_chatbot_routes import ai_chatbot_router
 from router.vaccination_options_router import vaccination_options_router
 from router.vaccination_schedules_router import vaccination_schedules_router
 from router.vaccination_records_router import vaccination_records_router
+from router.vaccination_reminder_routes import vaccination_reminder_router
 
 app = FastAPI()
 
@@ -42,6 +43,8 @@ app.include_router(ai_chatbot_router)
 app.include_router(vaccination_options_router)
 app.include_router(vaccination_schedules_router)
 app.include_router(vaccination_records_router)
+app.include_router(vaccination_reminder_router)
+
 
 @app.get('/api/')
 def index(payload = Depends(verify_authentication)):

@@ -65,3 +65,19 @@ class VaccinationRecordResponse(VaccinationRecordBase):
     id: UUID
     
     model_config = ConfigDict(from_attributes=True)
+
+
+
+# These are the vaccination reminder schemas
+class VaccinationReminderBase(BaseModel):    
+    child_id: UUID
+    vaccine_id: UUID
+    reminder: str
+    
+    
+class VaccinationReminderCreate(VaccinationReminderBase):    
+    pass
+   
+   
+class VaccinationReminderResponse(VaccinationReminderBase):    
+    id: UUID
