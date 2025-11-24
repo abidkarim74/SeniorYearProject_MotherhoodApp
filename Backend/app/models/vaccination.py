@@ -54,3 +54,12 @@ class VaccinationRecord(Base):
     )
 
 
+class VaccinationReminder(Base):
+    __tablename__ = 'vaccination_reminders'
+    
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    child_id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    vaccine_id: Mapped[UUID] = mapped_column(ForeignKey("vaccination_options.id", ondelete="CASCADE"), nullable=False)
+    
+    reminder: Mapped[str] = mapped_column(String, nullable=False)
+    
