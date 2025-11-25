@@ -1,29 +1,66 @@
-# class VaccinationReminderController():
-#     pass
-
-# 3 static functions:
-# getDetail
-# getList: use authenticated id, return all the vacc reminders containing this authenticated user
-
-# getDetail: user id, vacc reminders id, child id, 
-
-# controllers/vaccination_reminder_controller.py
-
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.vaccination import VaccinationReminder, VaccinationOption
 from models.child import Child
+from schemas.vaccination_schemas import VaccinationReminderCreate
 
 
 class VaccinationReminderController:
+
+    @staticmethod
+    async def create_reminder(data: VaccinationReminderCreate, user_id: str, db: AsyncSession):
+        """
+        Create a new vaccination reminder for a child
+        Only if the child belongs to the authenticated user
+        """
+        # Verify the child belongs to the user
+        stmt_child = select(Child).where(
+            (Child.id == data.child_id) & (Child.mother_id == user_id)
+        )
+        result_child = await db.execute(stmt_child)
+        child = result_child.scalar_one_or_none()
+
+        if not child:
+            raise HTTPException(status_code=403, detail="You do not own this child.")
+
+        # Verify the vaccine exists
+        stmt_vaccine = select(VaccinationOption).where(VaccinationOption.id == data.vaccine_id)
+        result_vaccine = await db.execute(stmt_vaccine)
+        vaccine = result_vaccine.scalar_one_or_none()
+
+        if not vaccine:
+            raise HTTPException(status_code=404, detail="Vaccine not found.")
+
+        # Check if reminder already exists for this child and vaccine
+        stmt_existing = select(VaccinationReminder).where(
+            (VaccinationReminder.child_id == data.child_id) &
+            (VaccinationReminder.vaccine_id == data.vaccine_id)
+        )
+        result_existing = await db.execute(stmt_existing)
+        existing_reminder = result_existing.scalar_one_or_none()
+
+        if existing_reminder:
+            raise HTTPException(status_code=400, detail="Reminder already exists for this child and vaccine.")
+
+        # Create new reminder
+        new_reminder = VaccinationReminder(
+            child_id=data.child_id,
+            vaccine_id=data.vaccine_id,
+            reminder=data.reminder
+        )
+
+        db.add(new_reminder)
+        await db.commit()
+        await db.refresh(new_reminder)
+
+        return new_reminder
 
     @staticmethod
     async def getList(user_id: str, db: AsyncSession):
         """
         Return all vaccination reminders for all children owned by this authenticated user.
         """
-    
         stmt_children = select(Child.id).where(Child.mother_id == user_id)
         result_children = await db.execute(stmt_children)
         child_ids = [row[0] for row in result_children.fetchall()]
@@ -57,7 +94,6 @@ class VaccinationReminderController:
             for r in reminders
         ]
 
-
     @staticmethod
     async def getDetail(user_id: str, reminder_id: str, child_id: str, db: AsyncSession):
         """
@@ -65,7 +101,6 @@ class VaccinationReminderController:
         - child belongs to authenticated user
         - reminder matches reminder_id AND child_id
         """
-
         stmt_child = select(Child).where(
             (Child.id == child_id) & (Child.mother_id == user_id)
         )

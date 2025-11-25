@@ -13,7 +13,9 @@ import {
   Plus,
   Heart,
   Syringe,
-  Users
+  Users,
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 
 const Home = () => {
@@ -22,24 +24,129 @@ const Home = () => {
   console.log("User: ", user);
 
   const [children, setChildren] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
   const [activeChild, setActiveChild] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [remindersLoading, setRemindersLoading] = useState(true);
 
   useEffect(() => {
-    const fetchChildren = async () => {
+    const fetchData = async () => {
       try {
-        const response = await getRequest("/user-profile/get-children");
-        setChildren(response || []);
+        const [childrenData, remindersData, vaccineOptionsData] = await Promise.all([
+          getRequest("/user-profile/get-children"),
+          getRequest("/vaccination-reminders/"),
+          getRequest("/vaccination-options/all")
+        ]);
+        
+        setChildren(childrenData || []);
+        setReminders(remindersData || []);
+        setVaccineOptions(vaccineOptionsData || []);
       } catch (error) {
-        console.error("Error fetching children:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
+        setRemindersLoading(false);
       }
     };
-    fetchChildren();
+
+    fetchData();
   }, [accessToken]);
 
   const currentChild = children[activeChild];
+
+  // Get vaccine name by ID
+  const getVaccineName = (vaccineId: string) => {
+    const vaccine = vaccineOptions.find(v => v.id === vaccineId);
+    return vaccine?.vaccine_name || "Vaccination";
+  };
+
+  // Get child name by ID
+  const getChildName = (childId: string) => {
+    const child = children.find(c => c.id === childId);
+    return child ? `${child.firstname} ${child.lastname}` : "Your child";
+  };
+
+  // Format date for display
+  const formatReminderDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Tomorrow";
+    if (diffDays < 0) return `${Math.abs(diffDays)} days ago`;
+    return `In ${diffDays} days`;
+  };
+
+  // Get reminder status (upcoming, overdue, today)
+  const getReminderStatus = (reminderDate: string) => {
+    const date = new Date(reminderDate);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const reminderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const diffTime = reminderDay.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "today";
+    if (diffDays < 0) return "overdue";
+    return "upcoming";
+  };
+
+  // Sort reminders by date (overdue first, then today, then upcoming)
+  const sortedReminders = [...reminders].sort((a, b) => {
+    const statusA = getReminderStatus(a.reminder);
+    const statusB = getReminderStatus(b.reminder);
+    
+    const priority = { overdue: 0, today: 1, upcoming: 2 };
+    if (priority[statusA] !== priority[statusB]) {
+      return priority[statusA] - priority[statusB];
+    }
+    
+    return new Date(a.reminder).getTime() - new Date(b.reminder).getTime();
+  });
+
+  // Get notification icon and color based on reminder status
+  const getNotificationStyle = (reminderDate: string) => {
+    const status = getReminderStatus(reminderDate);
+    
+    switch (status) {
+      case "overdue":
+        return {
+          icon: AlertTriangle,
+          bgColor: "bg-red-50 border-red-200",
+          iconColor: "text-red-600",
+          iconBg: "bg-red-100",
+          timeColor: "text-red-600"
+        };
+      case "today":
+        return {
+          icon: Clock,
+          bgColor: "bg-orange-50 border-orange-200",
+          iconColor: "text-orange-600",
+          iconBg: "bg-orange-100",
+          timeColor: "text-orange-600"
+        };
+      case "upcoming":
+        return {
+          icon: Calendar,
+          bgColor: "bg-blue-50 border-blue-200",
+          iconColor: "text-blue-600",
+          iconBg: "bg-blue-100",
+          timeColor: "text-blue-600"
+        };
+      default:
+        return {
+          icon: Bell,
+          bgColor: "bg-gray-50 border-gray-200",
+          iconColor: "text-gray-600",
+          iconBg: "bg-gray-100",
+          timeColor: "text-gray-600"
+        };
+    }
+  };
 
   const StatCard = ({
     title,
@@ -129,12 +236,12 @@ const Home = () => {
             description="Total registered"
           />
           <StatCard 
-            title="Upcoming Vaccinations" 
-            value={3} 
-            icon={Syringe}
-            description="Next 30 days"
-            trend="up"
-            change={12}
+            title="Vaccination Reminders" 
+            value={reminders.length || 0} 
+            icon={Bell}
+            description="Active reminders"
+            trend={reminders.length > 0 ? "up" : "down"}
+            change={reminders.length > 0 ? 100 : 0}
           />
           <StatCard 
             title="Community Messages" 
@@ -334,48 +441,69 @@ const Home = () => {
               <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-[#fceaea] to-[#f8d8d8] border-b border-[#e5989b]/20">
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-[#e5989b]" />
-                  Recent Notifications
+                  Vaccination Reminders
                 </h3>
               </div>
               <div className="p-4 sm:p-5">
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-2 p-2 rounded-lg bg-blue-50 border border-blue-200">
-                    <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Syringe className="w-3 h-3 text-blue-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">Vaccination Reminder</p>
-                      <p className="text-xs text-gray-600 mt-0.5">Upcoming vaccination in 2 days</p>
-                      <p className="text-xs text-blue-600 mt-0.5">Due: Mar 15, 2024</p>
-                    </div>
+                {remindersLoading ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#e5989b] mx-auto"></div>
+                    <p className="text-xs text-gray-500 mt-2">Loading reminders...</p>
                   </div>
-                  
-                  <div className="flex items-start space-x-2 p-2 rounded-lg bg-green-50 border border-green-200">
-                    <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <TrendingUp className="w-3 h-3 text-green-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">Growth Update</p>
-                      <p className="text-xs text-gray-600 mt-0.5">Growth chart has been updated</p>
-                      <p className="text-xs text-green-600 mt-0.5">New measurements recorded</p>
-                    </div>
+                ) : sortedReminders.length > 0 ? (
+                  <div className="space-y-3">
+                    {sortedReminders.slice(0, 5).map((reminder) => {
+                      const styles = getNotificationStyle(reminder.reminder);
+                      const IconComponent = styles.icon;
+                      const vaccineName = getVaccineName(reminder.vaccine_id);
+                      const childName = getChildName(reminder.child_id);
+                      const formattedDate = new Date(reminder.reminder).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      });
+
+                      return (
+                        <div
+                          key={reminder.id}
+                          className={`flex items-start space-x-2 p-2 rounded-lg ${styles.bgColor} border transition-all duration-300 hover:shadow-sm`}
+                        >
+                          <div className={`w-6 h-6 ${styles.iconBg} rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                            <IconComponent className="w-3 h-3 ${styles.iconColor}" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {vaccineName}
+                            </p>
+                            <p className="text-xs text-gray-600 mt-0.5 truncate">
+                              For {childName}
+                            </p>
+                            <p className={`text-xs ${styles.timeColor} mt-0.5 font-medium`}>
+                              {formatReminderDate(reminder.reminder)} • {formattedDate}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  
-                  <div className="flex items-start space-x-2 p-2 rounded-lg bg-purple-50 border border-purple-200">
-                    <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Calendar className="w-3 h-3 text-purple-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">Checkup Scheduled</p>
-                      <p className="text-xs text-gray-600 mt-0.5">Next checkup in 1 week</p>
-                      <p className="text-xs text-purple-600 mt-0.5">Mar 20, 2024 at 2:00 PM</p>
-                    </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">No vaccination reminders</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Set reminders for pending vaccinations
+                    </p>
                   </div>
-                </div>
+                )}
                 
-                <button className="w-full mt-3 text-center text-xs text-[#e5989b] font-medium hover:text-[#d88a8d] transition-colors py-1.5">
-                  View All Notifications
-                </button>
+                {sortedReminders.length > 5 && (
+                  <Link
+                    to="/vaccinations"
+                    className="w-full mt-3 text-center text-xs text-[#e5989b] font-medium hover:text-[#d88a8d] transition-colors py-1.5 block"
+                  >
+                    View All Reminders ({sortedReminders.length})
+                  </Link>
+                )}
               </div>
             </div>
 

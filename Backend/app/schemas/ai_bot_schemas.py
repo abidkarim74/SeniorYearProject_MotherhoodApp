@@ -5,6 +5,14 @@ from datetime import datetime
 from enum import Enum
 
 
+class ChatMessage(BaseModel):
+    message: str
+    conversation_id: UUID
+
+class ChatResponse(BaseModel):
+    response: str
+    
+    
 class MessageType(str, Enum):
     HUMAN = "human"
     AI = "ai"
