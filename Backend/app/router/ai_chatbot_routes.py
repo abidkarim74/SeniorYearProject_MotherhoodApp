@@ -32,6 +32,15 @@ async def create_ai_chatbot(
     return await LLMController.create_ai_chatbot(data, payload['id'], db)
 
 
+@ai_chatbot_router.post('/get-user-bot', response_model=AIBotResponse)
+async def create_ai_chatbot(
+    data: AIBotCreate, 
+    db: AsyncSession = Depends(connect_db), 
+    payload = Depends(verify_authentication)
+):
+    return await LLMController.get_ai_chatbot(payload['id'], db)
+
+
 @ai_chatbot_router.post('/conversations', response_model=AiConversationResponse)
 async def create_conversation(
     data: AiConversationCreate,
