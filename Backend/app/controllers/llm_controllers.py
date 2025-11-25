@@ -46,9 +46,11 @@ class LLMController():
          
          
     @staticmethod   
-    async def get_ai_chatbot(bot_id: UUID, db: AsyncSession):
+    async def get_ai_chatbot(auth_id: UUID, db: AsyncSession):
         try:
-            bot = await db.get(AIChatbot, bot_id)
+            stmt = select(AIChatbot).where(AIChatbot.user_id == auth_id)
+            result = await db.execute(stmt)
+            bot = result.scalar_one_or_none()
             
             if not bot:
                 raise HTTPException(status_code=404, detail='AI Chatbot not found')
@@ -66,7 +68,7 @@ class LLMController():
             raise HTTPException(
                 status_code=error_dict.get('status_code', 500),
                 detail=error_dict.get('detail', 'Internal server error!')
-            ) 
+            )
 
 
     @staticmethod
