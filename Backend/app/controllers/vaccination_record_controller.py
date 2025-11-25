@@ -74,10 +74,12 @@ class VaccinationRecordController:
             await VaccinationRecordController._ensure_child_belongs_to_mother(auth_id, data.child_id, db)
             await VaccinationRecordController._ensure_vaccine_exists(data.vaccine_id, db)
             await VaccinationRecordController._ensure_schedule_exists(data.schedule_id, db)
-
+            print("Dasdada")
             if data.date_given is not None and data.date_given > date.today():
                 raise HTTPException(status_code=400, detail='date_given cannot be in the future')
             
+            print("Here")
+
             new_record = VaccinationRecord(
                 child_id=data.child_id,
                 vaccine_id=data.vaccine_id,
@@ -89,6 +91,8 @@ class VaccinationRecordController:
 
             db.add(new_record)
             await db.commit()
+            
+            print("Here")
             
             return VaccinationRecordResponse(
                 id=new_record.id,
