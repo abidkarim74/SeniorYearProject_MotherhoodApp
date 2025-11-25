@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import { getRequest, deleteRequest, putRequest } from "../api/requests";
+import { getRequest, deleteRequest, putRequest, postRequest } from "../api/requests";
 import { 
   Syringe, 
   Calendar, 
@@ -13,7 +13,9 @@ import {
   Trash2,
   Edit2,
   X,
-  Save
+  Save,
+  Bell,
+  BellOff
 } from "lucide-react";
 
 const Vaccinations = () => {
@@ -21,22 +23,28 @@ const Vaccinations = () => {
   const [children, setChildren] = useState<any[]>([]);
   const [vaccinations, setVaccinations] = useState<any[]>([]);
   const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ date_given: "", status: "" });
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [selectedVaccine, setSelectedVaccine] = useState<any>(null);
+  const [reminderForm, setReminderForm] = useState({ reminder_date: "" });
 
   // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [childrenData, vaccineOptionsData] = await Promise.all([
+        const [childrenData, vaccineOptionsData, remindersData] = await Promise.all([
           getRequest("/user-profile/get-children"),
-          getRequest("/vaccination-options/all")
+          getRequest("/vaccination-options/all"),
+          getRequest("/vaccination-reminders/") // Fetch existing reminders
         ]);
         
         setChildren(childrenData || []);
         setVaccineOptions(vaccineOptionsData || []);
+        setReminders(remindersData || []);
 
         // Fetch vaccinations for each child
         const vaccinationPromises = (childrenData || []).map(async (child: any) => {
@@ -44,7 +52,8 @@ const Vaccinations = () => {
             const records = await getRequest(`/vaccination-records/child/${child.id}`);
             return records.map((record: any) => ({
               ...record,
-              childName: `${child.firstname} ${child.lastname}`
+              childName: `${child.firstname} ${child.lastname}`,
+              child
             }));
           } catch (error) {
             console.error(`Error fetching vaccinations for child ${child.id}:`, error);
@@ -84,6 +93,13 @@ const Vaccinations = () => {
     return statusUpper === "GIVEN" ? "Given" : 
            statusUpper === "PENDING" ? "Pending" : 
            statusUpper === "MISSED" ? "Missed" : status;
+  };
+
+  // Check if a vaccine has an existing reminder
+  const hasReminder = (vaccineId: string, childId: string) => {
+    return reminders.some(reminder => 
+      reminder.vaccine_id === vaccineId && reminder.child_id === childId
+    );
   };
 
   const handleDelete = async (recordId: string, vaccineName: string) => {
@@ -142,6 +158,68 @@ const Vaccinations = () => {
     }
   };
 
+  // Open reminder modal
+  const openReminderModal = (vaccine: any) => {
+    setSelectedVaccine(vaccine);
+    // Set default reminder date to 1 week from now
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 7);
+    setReminderForm({
+      reminder_date: defaultDate.toISOString().split('T')[0]
+    });
+    setShowReminderModal(true);
+  };
+
+  // Close reminder modal
+  const closeReminderModal = () => {
+    setShowReminderModal(false);
+    setSelectedVaccine(null);
+    setReminderForm({ reminder_date: "" });
+  };
+
+  // Create reminder
+  const createReminder = async () => {
+    if (!selectedVaccine) return;
+
+    try {
+      const reminderData = {
+        child_id: selectedVaccine.child_id,
+        vaccine_id: selectedVaccine.vaccine_id,
+        reminder: reminderForm.reminder_date
+      };
+
+      const newReminder = await postRequest("/vaccination-reminders/", reminderData);
+      
+      // Add to local reminders state
+      setReminders(prev => [...prev, newReminder]);
+      
+      alert("Reminder created successfully!");
+      closeReminderModal();
+    } catch (error: any) {
+      console.error("Error creating reminder:", error);
+      alert(`Failed to create reminder: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
+  // Delete reminder
+  const deleteReminder = async (vaccineId: string, childId: string) => {
+    try {
+      // Find the reminder to get its ID
+      const reminder = reminders.find(r => 
+        r.vaccine_id === vaccineId && r.child_id === childId
+      );
+      
+      if (reminder) {
+        await deleteRequest(`/vaccination-reminders/${reminder.id}`);
+        setReminders(prev => prev.filter(r => r.id !== reminder.id));
+        alert("Reminder deleted successfully!");
+      }
+    } catch (error: any) {
+      console.error("Error deleting reminder:", error);
+      alert(`Failed to delete reminder: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+
   const filteredVaccinations = vaccinations.filter(vaccine => {
     const vaccineName = getVaccineName(vaccine.vaccine_id).toLowerCase();
     const childName = vaccine.childName?.toLowerCase() || '';
@@ -167,6 +245,8 @@ const Vaccinations = () => {
   const VaccinationCard = ({ vaccine }: { vaccine: any }) => {
     const vaccineName = getVaccineName(vaccine.vaccine_id);
     const isEditing = editingId === vaccine.id;
+    const isPending = vaccine.status?.toUpperCase() === "PENDING";
+    const hasExistingReminder = hasReminder(vaccine.vaccine_id, vaccine.child_id);
     
     return (
       <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
@@ -242,6 +322,24 @@ const Vaccinations = () => {
               </span>
               
               <div className="flex gap-2">
+                {/* Reminder Button - Only show for pending vaccines */}
+                {isPending && (
+                  <button
+                    onClick={() => hasExistingReminder 
+                      ? deleteReminder(vaccine.vaccine_id, vaccine.child_id)
+                      : openReminderModal(vaccine)
+                    }
+                    className={`p-2 rounded-lg transition-colors ${
+                      hasExistingReminder 
+                        ? "text-green-500 hover:bg-green-50" 
+                        : "text-orange-500 hover:bg-orange-50"
+                    }`}
+                    title={hasExistingReminder ? "Remove reminder" : "Set reminder"}
+                  >
+                    {hasExistingReminder ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+                  </button>
+                )}
+                
                 <button
                   onClick={() => startEdit(vaccine)}
                   className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
@@ -260,6 +358,61 @@ const Vaccinations = () => {
             </div>
           </>
         )}
+      </div>
+    );
+  };
+
+  // Reminder Modal
+  const ReminderModal = () => {
+    if (!showReminderModal || !selectedVaccine) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Bell className="w-6 h-6 text-orange-500" />
+            <h3 className="text-lg font-semibold text-gray-900">Set Vaccination Reminder</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-2">
+                Set a reminder for <strong>{getVaccineName(selectedVaccine.vaccine_id)}</strong> for{" "}
+                <strong>{selectedVaccine.childName}</strong>
+              </p>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1">
+                Reminder Date
+              </label>
+              <input
+                type="date"
+                value={reminderForm.reminder_date}
+                onChange={(e) => setReminderForm({ reminder_date: e.target.value })}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] outline-none"
+              />
+            </div>
+            
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={createReminder}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#e5989b] text-white px-4 py-2 rounded-lg hover:bg-[#d88a8d] transition-colors"
+              >
+                <Bell className="w-4 h-4" />
+                Set Reminder
+              </button>
+              <button
+                onClick={closeReminderModal}
+                className="flex-1 flex items-center justify-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -317,6 +470,19 @@ const Vaccinations = () => {
           />
         </div>
 
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by vaccine or child name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] outline-none bg-white"
+            />
+          </div>
+        </div>
 
         {/* Vaccination Grid - 2 columns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -332,6 +498,9 @@ const Vaccinations = () => {
             </div>
           )}
         </div>
+
+        {/* Reminder Modal */}
+        <ReminderModal />
       </div>
     </div>
   );
