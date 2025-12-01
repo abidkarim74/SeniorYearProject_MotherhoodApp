@@ -5,9 +5,10 @@ from uuid import UUID as u, uuid4
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy import String
-from sqlalchemy import Enum
+from sqlalchemy import Enum, DateTime
 from typing import List
 from enum import Enum as PyEnum
+from datetime import datetime
 
 
 class AiConversation(Base):
@@ -32,17 +33,7 @@ class AIChatbot(Base):
     
     
 
-from database.postgres import Base
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import mapped_column, Mapped
-from uuid import UUID as u, uuid4
-from sqlalchemy import ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from sqlalchemy import String, DateTime
-from sqlalchemy import Enum
-from typing import List
-from enum import Enum as PyEnum
-from datetime import datetime
+
 
 
 class MessageType(PyEnum):
