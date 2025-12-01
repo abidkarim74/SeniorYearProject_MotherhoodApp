@@ -11,6 +11,7 @@ from models.ai import AIChatbot
 from models.child import Child
 from models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
 from models.ai import AIChatbot, AiConversation
+from models.community import Post, PostLike
 
 
 # this is the Alembic Config object, which provides

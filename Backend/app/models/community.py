@@ -1,0 +1,79 @@
+from database.postgres import Base
+from uuid import UUID as u, uuid4
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy import ForeignKey, text
+from datetime import datetime
+from sqlalchemy import DateTime, String, Boolean, Enum as E
+from typing import List
+from enum import Enum
+
+
+class PostType(Enum):
+    ADVICE = "Advice"
+    DISCUSSION = "Discussion" 
+    SUPPORT = "Support"
+
+
+class Post(Base):
+    __tablename__ = 'posts'
+    
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+    user_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow, 
+        server_default=text('now()'), 
+        nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow, 
+        onupdate=datetime.utcnow,
+        server_default=text('now()'),  
+        nullable=False
+    )
+    post_category: Mapped[str] = mapped_column(String, nullable=True)
+    title: Mapped[str] = mapped_column(String)
+    description: Mapped[str] = mapped_column(String)
+    tags: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
+    images: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
+    visible: Mapped[bool] = mapped_column(Boolean, default=True)
+    post_type: Mapped[PostType] = mapped_column(
+        E(PostType, name="post_type_enum"), 
+        nullable=True
+    )
+
+
+class PostLike(Base):
+    __tablename__ = 'post_likes'
+    
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+    user_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    post_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("posts.id"),  
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False
+    )
