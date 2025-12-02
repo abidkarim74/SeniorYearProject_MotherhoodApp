@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; 
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/authContext"; 
+import { getRequest, postRequest } from "../api/requests";
+import type { MotherProfile } from "../interfaces/ProfileInterfaces"; 
 import { 
   Users, 
   MessageCircle, 
@@ -20,13 +23,65 @@ import {
   Zap,
   Users2,
   MessageSquareText,
-  Sparkles
+  Sparkles,
+  Loader2 
 } from "lucide-react";
 
+
 const Community = () => {
+  const { accessToken, user } = useAuth(); 
   const [activeFilter, setActiveFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [newPost, setNewPost] = useState("");
+  // --- ADDED: State to track the selected post type ---
+  const [selectedPostType, setSelectedPostType] = useState<"Discussion" | "Support" | "Advice" | null>(null);
+
+  const [feedPosts, setFeedPosts] = useState<any[]>([]);
+  const [loadingFeed, setLoadingFeed] = useState<boolean>(true);
+  
+  const [currentUserProfile, setCurrentUserProfile] = useState<MotherProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState<boolean>(true);
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+  const fetchCurrentUserProfile = async () => {
+    if (!user?.id) {
+      setLoadingProfile(false);
+      return; 
+    }
+
+    setLoadingProfile(true);
+    try {
+      const response = await getRequest(`/user-profile/mother/${user.id}`);
+      setCurrentUserProfile(response);
+    } catch (err) {
+      console.error("Error fetching current user profile:", err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const fetchFeedPosts = async () => {
+    setLoadingFeed(true);
+    try {
+      const postsData = await getRequest("/community/feed");
+      setFeedPosts(postsData || []);
+    } catch (err) {
+      console.error("Error fetching community feed:", err);
+    } finally {
+      setLoadingFeed(false);
+    }
+  };
+
+  // --- New useEffect Hook to Trigger Fetch ---
+  useEffect(() => {
+    if (accessToken && user?.id) {
+      fetchCurrentUserProfile();
+      fetchFeedPosts(); // <-- ADDED: Fetch the community feed data
+    } else {
+      setLoadingProfile(false);
+      setLoadingFeed(false); // <-- ADDED: Also stop loading the feed if unauthenticated
+    }
+  }, [accessToken, user?.id]);
 
   // Mock data for community
   const communityData = {
@@ -169,8 +224,7 @@ const Community = () => {
   const filters = [
     { key: "all", label: "All Posts", icon: MessageSquareText },
     { key: "popular", label: "Popular", icon: TrendingUp },
-    { key: "recent", label: "Recent", icon: Clock },
-    { key: "following", label: "Following", icon: Users2 }
+    { key: "recent", label: "Recent", icon: Clock }
   ];
 
   const handleLikePost = (postId: number) => {
@@ -180,11 +234,41 @@ const Community = () => {
   const handleBookmarkPost = (postId: number) => {
     console.log("Bookmarked post:", postId);
   };
+  
+  const handleSelectPostType = (type: "Discussion" | "Support" | "Advice") => {
+    setSelectedPostType(type);
+  };
 
-  const handleCreatePost = () => {
-    if (newPost.trim()) {
-      console.log("Creating post:", newPost);
-      setNewPost("");
+  const handleCreatePost = async () => {
+    if (!newPost.trim() || !user?.id || !selectedPostType) {
+      if (!selectedPostType) {
+        alert("Please select a post type (Discussion, Support, or Advice) before posting.");
+      }
+      return; 
+    }
+
+    const postData = {
+      user_id: user.id, 
+      title: newPost.trim().substring(0, 50), 
+      tags: ["general", selectedPostType.toLowerCase()], 
+      images: [],
+      description: newPost.trim(),
+      post_type: selectedPostType 
+    };
+
+    try {
+      // API: POST /api/community/create-post
+      const createdPost = await postRequest("/community/create-post", postData);
+      
+      
+      // alert("Post created successfully!");
+      setNewPost(""); // Clear the input field
+      setSelectedPostType(null); 
+      fetchFeedPosts(); // Refresh the feed to show the new post
+      
+    } catch (error: any) {
+      console.error("Error creating post:", error);
+      alert(`Failed to create post: ${error.response?.data?.detail?.[0]?.msg || error.message}`);
     }
   };
 
@@ -220,8 +304,8 @@ const Community = () => {
         <div className="flex items-center space-x-3">
           <div className="relative">
             <img
-              src={post.author.avatar}
-              alt={post.author.name}
+              src={post.user?.profile_pic || defaultAvatar} 
+              alt={post.user?.firstname || "User"}
               className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
             />
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
@@ -454,16 +538,24 @@ const Community = () => {
             </div>
           </div>
 
-          {/* Main Content */}
+{/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Create Post */}
+            {/* Create Post - MODIFIED SECTION */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
               <div className="flex items-center space-x-4 mb-4">
-                <img
-                  src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face&auto=format"
-                  alt="Your avatar"
-                  className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
-                />
+                {loadingProfile ? (
+                  <div className="w-12 h-12 rounded-2xl bg-gray-200 flex items-center justify-center animate-pulse">
+                    <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                  </div>
+                ) : (
+                  <img
+                    // **Dynamically display the fetched profile picture**
+                    src={currentUserProfile?.profile_pic || defaultAvatar}
+                    alt={currentUserProfile ? `${currentUserProfile.firstname} avatar` : "Your avatar"}
+                    className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-sm"
+                  />
+                )}
+
                 <input
                   type="text"
                   placeholder="Share your experience or ask a question..."
@@ -474,22 +566,43 @@ const Community = () => {
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex space-x-4">
-                  <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-xl hover:bg-blue-50">
+                  {/* Discussion Button - MODIFIED */}
+                  <button 
+                    onClick={() => handleSelectPostType("Discussion")}
+                    className={`flex items-center space-x-2 transition-colors duration-200 p-2 rounded-xl 
+                      ${selectedPostType === "Discussion" 
+                        ? "bg-blue-100 text-blue-700 font-semibold ring-2 ring-blue-300" 
+                        : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"}`}
+                  >
                     <MessageCircle className="w-5 h-5" />
                     <span className="text-sm font-medium">Discussion</span>
                   </button>
-                  <button className="flex items-center space-x-2 text-gray-500 hover:text-green-600 transition-colors duration-200 p-2 rounded-xl hover:bg-green-50">
+                  {/* Support Button - MODIFIED */}
+                  <button 
+                    onClick={() => handleSelectPostType("Support")}
+                    className={`flex items-center space-x-2 transition-colors duration-200 p-2 rounded-xl 
+                      ${selectedPostType === "Support" 
+                        ? "bg-green-100 text-green-700 font-semibold ring-2 ring-green-300" 
+                        : "text-gray-500 hover:text-green-600 hover:bg-green-50"}`}
+                  >
                     <Heart className="w-5 h-5" />
                     <span className="text-sm font-medium">Support</span>
                   </button>
-                  <button className="flex items-center space-x-2 text-gray-500 hover:text-purple-600 transition-colors duration-200 p-2 rounded-xl hover:bg-purple-50">
+                  {/* Advice Button - MODIFIED */}
+                  <button 
+                    onClick={() => handleSelectPostType("Advice")}
+                    className={`flex items-center space-x-2 transition-colors duration-200 p-2 rounded-xl 
+                      ${selectedPostType === "Advice" 
+                        ? "bg-purple-100 text-purple-700 font-semibold ring-2 ring-purple-300" 
+                        : "text-gray-500 hover:text-purple-600 hover:bg-purple-50"}`}
+                  >
                     <Award className="w-5 h-5" />
                     <span className="text-sm font-medium">Advice</span>
                   </button>
                 </div>
                 <button
                   onClick={handleCreatePost}
-                  disabled={!newPost.trim()}
+                  disabled={!newPost.trim() || loadingProfile || !selectedPostType} 
                   className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white px-6 py-3 rounded-2xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-medium"
                 >
                   Create Post
@@ -498,42 +611,45 @@ const Community = () => {
             </div>
 
             {/* Filters and Search */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                {/* Filter Tabs */}
-                <div className="flex space-x-1 bg-gradient-to-r from-gray-100 to-gray-200 rounded-2xl p-1">
+            {/* <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6"> */}
+              <div className="flex items-center gap-2 flex-nowrap overflow-hidden bg-white rounded-2xl shadow-md border border-gray-100 p-3 mb-6">
+
+                {/* Filters */}
+                <div className="flex items-center gap-2 flex-nowrap">
                   {filters.map((filter) => {
                     const Icon = filter.icon;
                     return (
                       <button
                         key={filter.key}
+                        className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium transition-all whitespace-nowrap
+                          ${activeFilter === filter.key
+                            ? "bg-[#e5989b] text-white shadow"
+                            : "text-gray-600 hover:bg-gray-100"
+                          }`}
                         onClick={() => setActiveFilter(filter.key)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                          activeFilter === filter.key
-                            ? "bg-white text-[#e5989b] shadow-lg"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
-                        }`}
                       >
-                        <Icon className="w-4 h-4" />
-                        <span>{filter.label}</span>
+                        <Icon className="w-3.5 h-3.5" />
+                        {filter.label}
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Search */}
-                <div className="relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+                {/* Search bar */}
+                <div className="flex items-center bg-gray-100 px-2 py-1.5 rounded-lg ml-auto w-48">
+                  <Search className="w-3.5 h-3.5 text-gray-500" />
                   <input
                     type="text"
-                    placeholder="Search community..."
+                    placeholder="Search..."
+                    className="bg-transparent ml-2 text-xs w-full focus:outline-none"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 pr-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] w-full md:w-80 transition-all duration-200"
                   />
                 </div>
+
               </div>
-            </div>
+            {/* </div> */}
+
 
             {/* Posts List */}
             <div className="space-y-6">
