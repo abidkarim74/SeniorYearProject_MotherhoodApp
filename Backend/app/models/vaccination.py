@@ -44,14 +44,8 @@ class VaccinationRecord(Base):
     vaccine_id: Mapped[UUID] = mapped_column(ForeignKey("vaccination_options.id", ondelete="CASCADE"), nullable=False)
     schedule_id: Mapped[UUID] = mapped_column(ForeignKey("vaccination_schedules.id", ondelete="SET NULL"), nullable=True)
 
-    dose_num: Mapped[int] = mapped_column(Integer, nullable=False)
     date_given: Mapped[datetime | None] = mapped_column(Date, nullable=True)
-    
-    status: Mapped[VaccinationStatus] = mapped_column(
-        Enum(VaccinationStatus, name="vaccination_status_enum"), 
-        default=VaccinationStatus.PENDING,
-        nullable=False
-    )
+   
 
 
 class VaccinationReminder(Base):

@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Optional: Add to your global CSS or create a component-specific CSS file */
+
+/* Smooth transitions for expandable sections */
+.vaccine-expand-enter {
+  max-height: 0;
+  opacity: 0;
+}
+
+.vaccine-expand-enter-active {
+  max-height: 1000px;
+  opacity: 1;
+  transition: max-height 300ms ease-in-out, opacity 300ms ease-in-out;
+}
+
+.vaccine-expand-exit {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.vaccine-expand-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 300ms ease-in-out, opacity 300ms ease-in-out;
+}
+
+/* Custom scrollbar for schedule details */
+.schedule-details::-webkit-scrollbar {
+  width: 6px;
+}
+
+.schedule-details::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.schedule-details::-webkit-scrollbar-thumb {
+  background: #e5989b;
+  border-radius: 3px;
+}
+
+.schedule-details::-webkit-scrollbar-thumb:hover {
+  background: #d88a8d;
+}

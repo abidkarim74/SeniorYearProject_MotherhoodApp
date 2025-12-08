@@ -1,415 +1,404 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
-import { getRequest, deleteRequest, putRequest, postRequest } from "../api/requests";
-import { 
-  Syringe, 
-  Calendar, 
-  CheckCircle, 
-  Clock,
+import { getRequest } from "../api/requests";
+import ChildVaccinationModal from "../components/ChildVaccinationModal";
+import { Link } from "react-router-dom";
+
+import {
   Search,
-  Plus,
   Baby,
-  Trash2,
-  Edit2,
+  Shield,
+  Clock,
+  AlertCircle,
+  CheckSquare,
+  Calendar,
+  Eye,
+  Filter,
   X,
-  Save,
-  Bell,
-  BellOff
 } from "lucide-react";
 
-const Vaccinations = () => {
+// Type Definitions
+interface VaccineDoseInfo {
+  dose_num: number;
+  dose_name: string;
+  schedule_id: string;
+  min_age_days: number;
+  max_age_days: number | null;
+  child_current_age_days: number;
+  is_age_eligible: boolean;
+}
+
+interface PendingVaccine {
+  vaccine_id: string;
+  vaccine_name: string;
+  description: string | null;
+  protect_against: string | null;
+  is_mandatory: boolean;
+  doses_needed: number;
+  dose_info: VaccineDoseInfo;
+}
+
+interface ChildData {
+  child_id: string;
+  firstname: string;
+  lastname: string;
+  date_of_birth: string;
+  age_days: number;
+  total_pending_vaccines: number;
+  pending_vaccines?: PendingVaccine[];
+}
+
+interface PendingVaccinesResponse {
+  total_children: number;
+  total_pending_vaccines: number;
+  children: ChildData[];
+}
+
+interface StatCardProps {
+  title: string;
+  value: number;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  subtitle?: string;
+}
+
+interface ChildCardProps {
+  child: ChildData;
+  hasPending: boolean;
+  onViewVaccines: (child: ChildData) => void;
+}
+
+const Vaccinations: React.FC = () => {
   const { accessToken } = useAuth();
-  const [children, setChildren] = useState<any[]>([]);
-  const [vaccinations, setVaccinations] = useState<any[]>([]);
-  const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
-  const [reminders, setReminders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ date_given: "", status: "" });
-  const [showReminderModal, setShowReminderModal] = useState(false);
-  const [selectedVaccine, setSelectedVaccine] = useState<any>(null);
-  const [reminderForm, setReminderForm] = useState({ reminder_date: "" });
 
-  // Fetch all data
+  const [pendingData, setPendingData] = useState<PendingVaccinesResponse>({
+    total_children: 0,
+    total_pending_vaccines: 0,
+    children: [],
+  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "pending" | "uptodate"
+  >("all");
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+
+  // Modal state
+  const [selectedChild, setSelectedChild] = useState<ChildData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  // Fetch pending vaccines data
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPendingVaccines = async () => {
       try {
-        const [childrenData, vaccineOptionsData, remindersData] = await Promise.all([
-          getRequest("/user-profile/get-children"),
-          getRequest("/vaccination-options/all"),
-          getRequest("/vaccination-reminders/") // Fetch existing reminders
-        ]);
-        
-        setChildren(childrenData || []);
-        setVaccineOptions(vaccineOptionsData || []);
-        setReminders(remindersData || []);
-
-        // Fetch vaccinations for each child
-        const vaccinationPromises = (childrenData || []).map(async (child: any) => {
-          try {
-            const records = await getRequest(`/vaccination-records/child/${child.id}`);
-            return records.map((record: any) => ({
-              ...record,
-              childName: `${child.firstname} ${child.lastname}`,
-              child
-            }));
-          } catch (error) {
-            console.error(`Error fetching vaccinations for child ${child.id}:`, error);
-            return [];
+        setLoading(true);
+        const data = await getRequest("/vaccines/pending");
+        setPendingData(
+          data || {
+            total_children: 0,
+            total_pending_vaccines: 0,
+            children: [],
           }
-        });
-
-        const vaccinationsByChild = await Promise.all(vaccinationPromises);
-        setVaccinations(vaccinationsByChild.flat());
+        );
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching pending vaccines:", error);
+        setPendingData({
+          total_children: 0,
+          total_pending_vaccines: 0,
+          children: [],
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchPendingVaccines();
   }, [accessToken]);
 
-  const getVaccineName = (vaccineId: string) => {
-    const vaccine = vaccineOptions.find(v => v.id === vaccineId);
-    return vaccine?.vaccine_name || "Unknown Vaccine";
-  };
-
-  const getStatusColor = (status: string) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case "PENDING": return "from-yellow-100 to-yellow-200 text-yellow-800 border-yellow-300";
-      case "GIVEN": return "from-green-100 to-green-200 text-green-800 border-green-300";
-      case "MISSED": return "from-red-100 to-red-200 text-red-800 border-red-300";
-      default: return "from-gray-100 to-gray-200 text-gray-800 border-gray-300";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusUpper = status?.toUpperCase();
-    return statusUpper === "GIVEN" ? "Given" : 
-           statusUpper === "PENDING" ? "Pending" : 
-           statusUpper === "MISSED" ? "Missed" : status;
-  };
-
-  // Check if a vaccine has an existing reminder
-  const hasReminder = (vaccineId: string, childId: string) => {
-    return reminders.some(reminder => 
-      reminder.vaccine_id === vaccineId && reminder.child_id === childId
-    );
-  };
-
-  const handleDelete = async (recordId: string, vaccineName: string) => {
-    if (!window.confirm(`Are you sure you want to delete the ${vaccineName} vaccination record?`)) {
-      return;
-    }
-
+  // Refresh function
+  const refreshPendingVaccines = async () => {
     try {
-      await deleteRequest(`/vaccination-records/delete/${recordId}`);
-      setVaccinations(prev => prev.filter(v => v.id !== recordId));
-      alert("Vaccination record deleted successfully!");
-    } catch (error: any) {
-      console.error("Error deleting vaccination:", error);
-      alert(`Failed to delete vaccination: ${error.response?.data?.detail || error.message}`);
-    }
-  };
-
-  const startEdit = (vaccine: any) => {
-    setEditingId(vaccine.id);
-    setEditForm({
-      date_given: vaccine.date_given || "",
-      status: vaccine.status?.toUpperCase() || "PENDING"
-    });
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditForm({ date_given: "", status: "" });
-  };
-
-  const saveEdit = async (recordId: string) => {
-    try {
-      const updateData: any = {
-        status: editForm.status
-      };
-
-      // Only include date_given if it's not empty, otherwise send null
-      if (editForm.date_given && editForm.date_given.trim() !== "") {
-        updateData.date_given = editForm.date_given;
-      } else {
-        updateData.date_given = null;
-      }
-
-      const updated = await putRequest(`/vaccination-records/update/${recordId}`, updateData);
-      
-      // Update local state
-      setVaccinations(prev => prev.map(v => 
-        v.id === recordId ? { ...v, ...updated } : v
-      ));
-      
-      setEditingId(null);
-      alert("Vaccination record updated successfully!");
-    } catch (error: any) {
-      console.error("Error updating vaccination:", error);
-      alert(`Failed to update vaccination: ${error.response?.data?.detail || error.message}`);
-    }
-  };
-
-  // Open reminder modal
-  const openReminderModal = (vaccine: any) => {
-    setSelectedVaccine(vaccine);
-    // Set default reminder date to 1 week from now
-    const defaultDate = new Date();
-    defaultDate.setDate(defaultDate.getDate() + 7);
-    setReminderForm({
-      reminder_date: defaultDate.toISOString().split('T')[0]
-    });
-    setShowReminderModal(true);
-  };
-
-  // Close reminder modal
-  const closeReminderModal = () => {
-    setShowReminderModal(false);
-    setSelectedVaccine(null);
-    setReminderForm({ reminder_date: "" });
-  };
-
-  // Create reminder
-  const createReminder = async () => {
-    if (!selectedVaccine) return;
-
-    try {
-      const reminderData = {
-        child_id: selectedVaccine.child_id,
-        vaccine_id: selectedVaccine.vaccine_id,
-        reminder: reminderForm.reminder_date
-      };
-
-      const newReminder = await postRequest("/vaccination-reminders/", reminderData);
-      
-      // Add to local reminders state
-      setReminders(prev => [...prev, newReminder]);
-      
-      alert("Reminder created successfully!");
-      closeReminderModal();
-    } catch (error: any) {
-      console.error("Error creating reminder:", error);
-      alert(`Failed to create reminder: ${error.response?.data?.detail || error.message}`);
-    }
-  };
-
-  // Delete reminder
-  const deleteReminder = async (vaccineId: string, childId: string) => {
-    try {
-      // Find the reminder to get its ID
-      const reminder = reminders.find(r => 
-        r.vaccine_id === vaccineId && r.child_id === childId
+      const data = await getRequest("/vaccines/pending");
+      setPendingData(
+        data || {
+          total_children: 0,
+          total_pending_vaccines: 0,
+          children: [],
+        }
       );
-      
-      if (reminder) {
-        await deleteRequest(`/vaccination-reminders/${reminder.id}`);
-        setReminders(prev => prev.filter(r => r.id !== reminder.id));
-        alert("Reminder deleted successfully!");
-      }
-    } catch (error: any) {
-      console.error("Error deleting reminder:", error);
-      alert(`Failed to delete reminder: ${error.response?.data?.detail || error.message}`);
+    } catch (error) {
+      console.error("Error refreshing pending vaccines:", error);
     }
   };
 
-  const filteredVaccinations = vaccinations.filter(vaccine => {
-    const vaccineName = getVaccineName(vaccine.vaccine_id).toLowerCase();
-    const childName = vaccine.childName?.toLowerCase() || '';
-    const search = searchTerm.toLowerCase();
-    
-    return vaccineName.includes(search) || childName.includes(search);
-  });
+  // Handle when a vaccine is recorded
+  const handleVaccineRecorded = async (
+    childId: string,
+    vaccineId: string,
+    scheduleId: string
+  ) => {
+    // Optimistically update UI
+    setPendingData((prevData) => {
+      const updatedChildren = prevData.children.map((child) => {
+        if (child.child_id === childId) {
+          // Filter out the recorded vaccine from this child's pending vaccines
+          const updatedPendingVaccines =
+            child.pending_vaccines?.filter(
+              (vaccine) =>
+                !(
+                  vaccine.vaccine_id === vaccineId &&
+                  vaccine.dose_info.schedule_id === scheduleId
+                )
+            ) || [];
 
-  const StatCard = ({ title, value, icon: Icon, color }: any) => (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all hover:shadow-xl">
+          return {
+            ...child,
+            pending_vaccines: updatedPendingVaccines,
+            total_pending_vaccines: updatedPendingVaccines.length,
+          };
+        }
+        return child;
+      });
+
+      // Recalculate totals
+      const totalPendingVaccines = updatedChildren.reduce(
+        (total, child) => total + child.total_pending_vaccines,
+        0
+      );
+
+      return {
+        ...prevData,
+        children: updatedChildren,
+        total_pending_vaccines: totalPendingVaccines,
+      };
+    });
+
+    // Refresh from server to ensure consistency
+    setTimeout(() => {
+      refreshPendingVaccines();
+    }, 500);
+  };
+
+  // Filter children based on search and status
+  const filterChildren = (childrenList: ChildData[]): ChildData[] => {
+    let filtered = childrenList;
+
+    // Apply status filter
+    if (filterStatus === "pending") {
+      filtered = filtered.filter((child) => child.total_pending_vaccines > 0);
+    } else if (filterStatus === "uptodate") {
+      filtered = filtered.filter((child) => child.total_pending_vaccines === 0);
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter((child) => {
+        const fullName = `${child.firstname} ${child.lastname}`.toLowerCase();
+        return fullName.includes(searchTerm.toLowerCase());
+      });
+    }
+
+    return filtered;
+  };
+
+  // Get filtered children
+  const filteredChildren = filterChildren(pendingData.children);
+
+  // Open modal with child's pending vaccines
+  const openChildModal = (child: ChildData) => {
+    setSelectedChild(child);
+    setIsModalOpen(true);
+  };
+
+  // Close modal
+  const closeChildModal = () => {
+    setIsModalOpen(false);
+    setSelectedChild(null);
+    // Refresh data when modal closes
+    refreshPendingVaccines();
+  };
+
+  // Calculate summary stats
+  const stats = {
+    totalChildren: pendingData.total_children,
+    totalPendingVaccines: pendingData.total_pending_vaccines,
+    childrenWithPendingCount: pendingData.children.filter(
+      (c) => c.total_pending_vaccines > 0
+    ).length,
+    childrenUpToDateCount: pendingData.children.filter(
+      (c) => c.total_pending_vaccines === 0
+    ).length,
+    vaccinesDueSoon: pendingData.children.reduce((total, child) => {
+      return (
+        total +
+        (child.pending_vaccines?.filter((vaccine) => {
+          if (!vaccine.dose_info.max_age_days) return false;
+          const daysUntilMax = vaccine.dose_info.max_age_days - child.age_days;
+          return daysUntilMax <= 7 && daysUntilMax > 0;
+        }).length || 0)
+      );
+    }, 0),
+  };
+
+  // Format age display
+  const formatAge = (days: number): string => {
+    const years = Math.floor(days / 365);
+    const months = Math.floor((days % 365) / 30);
+    const remainingDays = days % 30;
+
+    const parts = [];
+    if (years > 0) parts.push(`${years}y`);
+    if (months > 0) parts.push(`${months}m`);
+    if (remainingDays > 0 || parts.length === 0)
+      parts.push(`${remainingDays}d`);
+
+    return parts.join(" ");
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Stat card component
+  const StatCard: React.FC<StatCardProps> = ({
+    title,
+    value,
+    icon: Icon,
+    color,
+    bgColor,
+    subtitle,
+  }) => (
+    <div
+      className={`${bgColor} rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 transition-all hover:shadow-md`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">
+            {title}
+          </p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${color}`}>
-          <Icon className="w-6 h-6 text-gray-700" />
+        <div className={`p-2 sm:p-3 rounded-lg ${color}`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
     </div>
   );
 
-  const VaccinationCard = ({ vaccine }: { vaccine: any }) => {
-    const vaccineName = getVaccineName(vaccine.vaccine_id);
-    const isEditing = editingId === vaccine.id;
-    const isPending = vaccine.status?.toUpperCase() === "PENDING";
-    const hasExistingReminder = hasReminder(vaccine.vaccine_id, vaccine.child_id);
-    
+  // Child card component
+  const ChildCard: React.FC<ChildCardProps> = ({
+    child,
+    hasPending,
+    onViewVaccines,
+  }) => {
+    // Calculate if any vaccine is urgent (within 7 days)
+    const hasUrgentVaccine = child.pending_vaccines?.some((vaccine) => {
+      if (!vaccine.dose_info.max_age_days) return false;
+      const daysUntilMax = vaccine.dose_info.max_age_days - child.age_days;
+      return daysUntilMax <= 7 && daysUntilMax > 0;
+    });
+
+    // Calculate if any vaccine is overdue
+    const hasOverdueVaccine = child.pending_vaccines?.some((vaccine) => {
+      if (!vaccine.dose_info.max_age_days) return false;
+      const daysUntilMax = vaccine.dose_info.max_age_days - child.age_days;
+      return daysUntilMax < 0;
+    });
+
     return (
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
-        {isEditing ? (
-          // Edit Mode
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Syringe className="w-5 h-5 text-[#e5989b]" />
-              <h3 className="text-lg font-semibold text-gray-900">{vaccineName}</h3>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Date Given</label>
-              <input
-                type="date"
-                value={editForm.date_given}
-                onChange={(e) => setEditForm({ ...editForm, date_given: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] outline-none"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">Status</label>
-              <select
-                value={editForm.status}
-                onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] outline-none"
-              >
-                <option value="PENDING">Pending</option>
-                <option value="GIVEN">Given</option>
-                <option value="MISSED">Missed</option>
-              </select>
-            </div>
-            
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => saveEdit(vaccine.id)}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                Save
-              </button>
-              <button
-                onClick={cancelEdit}
-                className="flex-1 flex items-center justify-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          // View Mode
-          <>
-            <div className="mb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Syringe className="w-5 h-5 text-[#e5989b]" />
-                <h3 className="text-lg font-semibold text-gray-900">{vaccineName}</h3>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                <Baby className="w-4 h-4" />
-                <span>{vaccine.childName}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="w-4 h-4" />
-                <span>Dose {vaccine.dose_num} • {vaccine.date_given || "Date not set"}</span>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r border ${getStatusColor(vaccine.status)}`}>
-                {getStatusLabel(vaccine.status)}
-              </span>
-              
-              <div className="flex gap-2">
-                {/* Reminder Button - Only show for pending vaccines */}
-                {isPending && (
-                  <button
-                    onClick={() => hasExistingReminder 
-                      ? deleteReminder(vaccine.vaccine_id, vaccine.child_id)
-                      : openReminderModal(vaccine)
-                    }
-                    className={`p-2 rounded-lg transition-colors ${
-                      hasExistingReminder 
-                        ? "text-green-500 hover:bg-green-50" 
-                        : "text-orange-500 hover:bg-orange-50"
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="relative flex-shrink-0">
+                <div
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center ${
+                    hasOverdueVaccine
+                      ? "bg-red-50"
+                      : hasUrgentVaccine
+                      ? "bg-orange-50"
+                      : hasPending
+                      ? "bg-yellow-50"
+                      : "bg-green-50"
+                  }`}
+                >
+                  <Baby
+                    className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                      hasOverdueVaccine
+                        ? "text-red-600"
+                        : hasUrgentVaccine
+                        ? "text-orange-600"
+                        : hasPending
+                        ? "text-yellow-600"
+                        : "text-green-600"
                     }`}
-                    title={hasExistingReminder ? "Remove reminder" : "Set reminder"}
-                  >
-                    {hasExistingReminder ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-                  </button>
+                  />
+                </div>
+                {child.total_pending_vaccines > 0 && (
+                  <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                    {child.total_pending_vaccines}
+                  </div>
                 )}
-                
-                <button
-                  onClick={() => startEdit(vaccine)}
-                  className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Edit vaccination record"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(vaccine.id, vaccineName)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete vaccination record"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                  {child.firstname} {child.lastname}
+                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
+                  <span className="text-xs sm:text-sm text-gray-500">
+                    {formatAge(child.age_days)} old
+                  </span>
+                  <span className="hidden sm:inline text-sm text-gray-500">
+                    •
+                  </span>
+                  <span className="text-xs sm:text-sm text-gray-500 truncate">
+                    Born {formatDate(child.date_of_birth)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {hasOverdueVaccine && (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                      Overdue
+                    </span>
+                  )}
+                  {hasUrgentVaccine && !hasOverdueVaccine && (
+                    <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                      Urgent
+                    </span>
+                  )}
+                  {hasPending && !hasUrgentVaccine && !hasOverdueVaccine && (
+                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                      {child.total_pending_vaccines} pending
+                    </span>
+                  )}
+                  {!hasPending && (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                      Up to date
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </>
-        )}
-      </div>
-    );
-  };
 
-  // Reminder Modal
-  const ReminderModal = () => {
-    if (!showReminderModal || !selectedVaccine) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Bell className="w-6 h-6 text-orange-500" />
-            <h3 className="text-lg font-semibold text-gray-900">Set Vaccination Reminder</h3>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-gray-600 mb-2">
-                Set a reminder for <strong>{getVaccineName(selectedVaccine.vaccine_id)}</strong> for{" "}
-                <strong>{selectedVaccine.childName}</strong>
-              </p>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1">
-                Reminder Date
-              </label>
-              <input
-                type="date"
-                value={reminderForm.reminder_date}
-                onChange={(e) => setReminderForm({ reminder_date: e.target.value })}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] outline-none"
-              />
-            </div>
-            
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={createReminder}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#e5989b] text-white px-4 py-2 rounded-lg hover:bg-[#d88a8d] transition-colors"
-              >
-                <Bell className="w-4 h-4" />
-                Set Reminder
-              </button>
-              <button
-                onClick={closeReminderModal}
-                className="flex-1 flex items-center justify-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
+            {/* Action button */}
+            <div className="flex justify-end sm:block">
+              {hasPending && (
+                <button
+                  onClick={() => onViewVaccines(child)}
+                  className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm sm:text-base w-full sm:w-auto"
+                >
+                  <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">View Vaccines</span>
+                  <span className="inline sm:hidden">View</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -419,90 +408,305 @@ const Vaccinations = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500 bg-[#fff6f6]">
-        Loading vaccinations...
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#e5989b] mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading vaccination data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fff6f6] to-[#fceaea] py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Vaccination Records</h1>
-            <p className="text-gray-600">Track and manage your children's vaccinations</p>
-          </div>
-          <Link
-            to="/add-vaccination"
-            className="inline-flex items-center bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all hover:-translate-y-0.5"
-          >
-            <Plus className="w-5 h-5 mr-2" /> Add Vaccination
-          </Link>
-        </div>
+    <>
+      {/* Main page with blur effect when modal is open */}
+      <div
+        className={`min-h-screen transition-all duration-300 ${
+          isModalOpen ? "blur-md" : ""
+        }`}
+      >
+        <div className="bg-gradient-to-br from-[#fff6f6] to-[#fceaea] py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+            {/* Header */}
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <StatCard 
-            title="Total Vaccinations" 
-            value={vaccinations.length} 
-            icon={Syringe} 
-            color="from-blue-100 to-blue-200" 
-          />
-          <StatCard 
-            title="Pending" 
-            value={vaccinations.filter(v => v.status?.toUpperCase() === "PENDING").length} 
-            icon={Clock} 
-            color="from-yellow-100 to-yellow-200" 
-          />
-          <StatCard 
-            title="Given" 
-            value={vaccinations.filter(v => v.status?.toUpperCase() === "GIVEN").length} 
-            icon={CheckCircle} 
-            color="from-green-100 to-green-200" 
-          />
-          <StatCard 
-            title="Children" 
-            value={children.length} 
-            icon={Baby} 
-            color="from-purple-100 to-purple-200" 
-          />
-        </div>
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                    Children's Vaccinations
+                  </h1>
+                  <p className="text-sm sm:text-base text-gray-600">
+                    Track and manage immunization records for your children
+                  </p>
+                </div>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by vaccine or child name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] outline-none bg-white"
-            />
-          </div>
-        </div>
-
-        {/* Vaccination Grid - 2 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredVaccinations.length > 0 ? (
-            filteredVaccinations.map(vaccine => (
-              <VaccinationCard key={vaccine.id} vaccine={vaccine} />
-            ))
-          ) : (
-            <div className="col-span-2 text-center py-20 bg-white rounded-2xl shadow-md">
-              <Syringe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No vaccination records found</p>
-              <p className="text-gray-400 text-sm mt-2">Add your first vaccination record to get started</p>
+                <Link
+                  to="/important-vaccines"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all text-sm sm:text-base font-medium w-full sm:w-auto group"
+                >
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
+                  Important Vaccines
+                </Link>
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Reminder Modal */}
-        <ReminderModal />
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <StatCard
+                title="Total Children"
+                value={stats.totalChildren}
+                icon={Baby}
+                color="bg-blue-100 text-blue-600"
+                bgColor="bg-white"
+              />
+              <StatCard
+                title="Pending Vaccines"
+                value={stats.totalPendingVaccines}
+                icon={Clock}
+                color="bg-yellow-100 text-yellow-600"
+                bgColor="bg-white"
+                subtitle="Currently due"
+              />
+              <StatCard
+                title="Children with Pending"
+                value={stats.childrenWithPendingCount}
+                icon={AlertCircle}
+                color="bg-orange-100 text-orange-600"
+                bgColor="bg-white"
+                subtitle="Need attention"
+              />
+              <StatCard
+                title="Due Soon"
+                value={stats.vaccinesDueSoon}
+                icon={Calendar}
+                color="bg-red-100 text-red-600"
+                bgColor="bg-white"
+                subtitle="Within 7 days"
+              />
+            </div>
+
+            {/* Search and Filter Bar */}
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search children by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#e5989b] focus:border-[#e5989b] outline-none shadow-sm text-sm sm:text-base"
+                  />
+                </div>
+
+                {/* Desktop Filter Buttons */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <button
+                    onClick={() => setFilterStatus("all")}
+                    className={`px-4 py-2.5 rounded-xl transition-colors ${
+                      filterStatus === "all"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus("pending")}
+                    className={`px-4 py-2.5 rounded-xl transition-colors ${
+                      filterStatus === "pending"
+                        ? "bg-yellow-500 text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Pending
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus("uptodate")}
+                    className={`px-4 py-2.5 rounded-xl transition-colors ${
+                      filterStatus === "uptodate"
+                        ? "bg-green-500 text-white"
+                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    Up to Date
+                  </button>
+                </div>
+
+                {/* Mobile Filter Button */}
+                <button
+                  onClick={() => setShowMobileFilter(!showMobileFilter)}
+                  className="sm:hidden flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50"
+                >
+                  <Filter className="w-4 h-4" />
+                  <span>Filter</span>
+                </button>
+              </div>
+
+              {/* Mobile Filter Dropdown */}
+              {showMobileFilter && (
+                <div className="sm:hidden mt-3 bg-white border border-gray-200 rounded-xl shadow-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-medium text-gray-900">
+                      Filter by Status
+                    </span>
+                    <button
+                      onClick={() => setShowMobileFilter(false)}
+                      className="p-1 hover:bg-gray-100 rounded-lg"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={() => {
+                        setFilterStatus("all");
+                        setShowMobileFilter(false);
+                      }}
+                      className={`px-4 py-2.5 rounded-lg text-left ${
+                        filterStatus === "all"
+                          ? "bg-blue-50 text-blue-700 border border-blue-200"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      All Children
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("pending");
+                        setShowMobileFilter(false);
+                      }}
+                      className={`px-4 py-2.5 rounded-lg text-left ${
+                        filterStatus === "pending"
+                          ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      With Pending Vaccines
+                    </button>
+                    <button
+                      onClick={() => {
+                        setFilterStatus("uptodate");
+                        setShowMobileFilter(false);
+                      }}
+                      className={`px-4 py-2.5 rounded-lg text-left ${
+                        filterStatus === "uptodate"
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      Up to Date
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Results Count */}
+            <div className="mb-4 sm:mb-6">
+              <p className="text-sm sm:text-base text-gray-600">
+                Showing{" "}
+                <span className="font-semibold">{filteredChildren.length}</span>{" "}
+                of{" "}
+                <span className="font-semibold">
+                  {pendingData.total_children}
+                </span>{" "}
+                children
+                {searchTerm && (
+                  <span>
+                    {" "}
+                    matching "
+                    <span className="font-semibold">{searchTerm}</span>"
+                  </span>
+                )}
+              </p>
+            </div>
+
+            {/* Children List */}
+            {filteredChildren.length > 0 ? (
+              <div className="space-y-4 sm:space-y-6">
+                {filteredChildren.map((child) => (
+                  <ChildCard
+                    key={child.child_id}
+                    child={child}
+                    hasPending={child.total_pending_vaccines > 0}
+                    onViewVaccines={openChildModal}
+                  />
+                ))}
+              </div>
+            ) : (
+              // No Results Found
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center">
+                <Search className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2">
+                  No children found
+                </h3>
+                <p className="text-gray-500 mb-4 max-w-md mx-auto">
+                  {searchTerm || filterStatus !== "all"
+                    ? "Try adjusting your search or filter criteria"
+                    : "There are no children in the system yet"}
+                </p>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Empty State - No Children */}
+            {pendingData.total_children === 0 && !loading && (
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center">
+                <Baby className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-2">
+                  No children found
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  There are no children in the system yet
+                </p>
+              </div>
+            )}
+
+            {/* All Caught Up Message */}
+            {pendingData.total_children > 0 &&
+              pendingData.total_pending_vaccines === 0 &&
+              filterStatus !== "pending" && (
+                <div className="mt-6 sm:mt-8 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-green-200">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                    <div className="flex-shrink-0">
+                      <CheckSquare className="w-12 h-12 sm:w-16 sm:h-16 text-green-500" />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                        Great News! 🎉
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        All your children are up-to-date with their vaccinations
+                        based on their current ages.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Child Vaccination Modal */}
+      {selectedChild && selectedChild.pending_vaccines && (
+        <ChildVaccinationModal
+          isOpen={isModalOpen}
+          onClose={closeChildModal}
+          child={selectedChild}
+          vaccines={selectedChild.pending_vaccines}
+          onVaccineRecorded={handleVaccineRecorded}
+        />
+      )}
+    </>
   );
 };
 

@@ -14,6 +14,7 @@ from router.vaccination_records_router import vaccination_records_router
 from router.vaccination_reminder_routes import vaccination_reminder_router
 
 from router.community_routes import community_router
+from router.vaccination_routes import vaccine_router
 
 from database.mongo import mongo_db
 
@@ -54,6 +55,7 @@ app.include_router(vaccination_schedules_router)
 app.include_router(vaccination_records_router)
 app.include_router(vaccination_reminder_router)
 app.include_router(community_router)
+app.include_router(vaccine_router)
 
 
 @app.get('/api/')
