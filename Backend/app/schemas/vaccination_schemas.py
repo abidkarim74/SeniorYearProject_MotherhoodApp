@@ -10,6 +10,20 @@ class VaccinationStatus(str, Enum):
     MISSED = "MISSED"
 
 
+
+class VaccinationListResponse(BaseModel):
+    id: UUID
+    vaccine_name: str
+    description: str
+    protect_against: str
+    doses_needed: int
+    is_mandatory: bool
+    dose_num: int
+    min_age_days: int
+    max_age_days: int
+    
+    
+    
 class VaccinationOptionBase(BaseModel):
     vaccine_name: str
     description: str | None = None

@@ -14,9 +14,10 @@ import UserProfile from "./pages/UserProfile";
 import LeftBar from "./components/LeftBar";
 import AIChatBot from "./pages/AIChatbot";
 import BottomBar from "./components/BottomBar";
-import ChildDetail from "./pages/Childdetail";
 import AddVaccination from "./pages/AddVaccination";
 import Settings from "./pages/Settings";
+import ImportantVaccines from "./pages/ImportantVaccines";
+import ChildDetail from "./pages/ChildDetail";
 
 
 // Layout component for protected routes
@@ -79,6 +80,9 @@ function App() {
             </ProtectedRoutes>
           }
         />
+
+        <Route path="/important-vaccines" element={<ProtectedRoutes><ImportantVaccines></ImportantVaccines></ProtectedRoutes>} />
+
 
         <Route
           path="/mother/:id"
