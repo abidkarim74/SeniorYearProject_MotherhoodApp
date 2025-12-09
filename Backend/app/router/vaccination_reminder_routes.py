@@ -7,6 +7,7 @@ from middleware.protect_endpoints import verify_authentication
 from schemas.vaccination_schemas import VaccinationReminderCreate, VaccinationReminderResponse
 from controllers.vaccination_reminder_controller import VaccinationReminderController
 
+
 vaccination_reminder_router = APIRouter(
     prefix='/api/vaccination-reminders',
     tags=['Vaccination Reminders']

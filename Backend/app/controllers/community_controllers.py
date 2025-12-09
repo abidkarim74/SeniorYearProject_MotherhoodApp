@@ -7,9 +7,13 @@ from sqlalchemy.orm import selectinload
 from schemas.community_schemas import PostCreate, PostUpdate, PostChangeVisiblity, PostResponse
 from models.community import Post, PostLike
 from typing import List
+from datetime import date, timedelta, datetime
 from models.user import User
+from sqlalchemy import func
 from schemas.community_schemas import MiniUserSchema
 from schemas.community_schemas import PostChangeVisiblity
+from models.user import User
+from models.community import Post
 
 
 class PostControllers():
@@ -489,3 +493,52 @@ class PostLikeControllers():
                 status_code=error_dict.get('status_code', 500), 
                 detail=error_dict.get('detail', 'Internal server error!')
             )
+            
+    
+class CommunityStatsControllers():
+    @staticmethod
+    async def totol_members(db: AsyncSession):
+        try:
+            statement = select(func.count()).select_from(User)
+            
+            result = await db.execute(statement)
+            
+            return result.scalar_one()
+            
+        except SQLAlchemyError:
+            await db.rollback()
+            
+            raise HTTPException(status_code=500, detail='Internal server error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
+        
+        
+    @staticmethod
+    async def today_posts_count(db: AsyncSession):
+        try:
+            twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        
+            statement = select(func.count()).select_from(Post).where(
+                Post.created_at >= twenty_four_hours_ago
+            )
+            
+            result = await db.execute(statement)
+            count = result.scalar_one()
+            
+            return count
+        
+        except SQLAlchemyError:
+            await db.rollback()
+            
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except HTTPException as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
+            

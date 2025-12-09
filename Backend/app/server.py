@@ -8,9 +8,6 @@ from router.child_routes import child_router
 from router.profile_routes import profile_router
 from router.ai_chatbot_routes import ai_chatbot_router
 
-from router.vaccination_options_router import vaccination_options_router
-from router.vaccination_schedules_router import vaccination_schedules_router
-from router.vaccination_records_router import vaccination_records_router
 from router.vaccination_reminder_routes import vaccination_reminder_router
 
 from router.community_routes import community_router
@@ -43,16 +40,14 @@ async def startup_event():
 
     except Exception as e:
         print(f"Database connection failed: {e}")
-
+        
         
         
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(child_router)
 app.include_router(ai_chatbot_router)
-app.include_router(vaccination_options_router)
-app.include_router(vaccination_schedules_router)
-app.include_router(vaccination_records_router)
+
 app.include_router(vaccination_reminder_router)
 app.include_router(community_router)
 app.include_router(vaccine_router)
