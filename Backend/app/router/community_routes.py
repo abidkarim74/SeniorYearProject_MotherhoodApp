@@ -5,7 +5,7 @@ from schemas.community_schemas import PostCreate, PostResponse, PostUpdate, Post
 from database.postgres import connect_db
 from middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
-from controllers.community_controllers import PostControllers, PostLikeControllers
+from controllers.community_controllers import PostControllers, PostLikeControllers, CommunityStatsControllers
 
 
 community_router = APIRouter(
@@ -57,5 +57,10 @@ async def toogle_like(post_id: str, payload = Depends(verify_authentication), db
 
 @community_router.get('/members/all')
 async def all_community_members(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    return await CommunityStatsControllers.totol_members(db)
     
-    pass
+
+@community_router.get('/posts/latest')
+async def todays_posts(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    return await CommunityStatsControllers.today_posts_count(db)
+    

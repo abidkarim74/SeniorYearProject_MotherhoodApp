@@ -11,6 +11,7 @@ from dotenv import load_dotenv # type: ignore
 import os
 from utils.token_services import verify_token
 from jose.exceptions import JWTError, ExpiredSignatureError
+from schemas.auth_schemas import ChangePassword
 
 
 class AuthController():
@@ -174,6 +175,50 @@ class AuthController():
                 }
             
             raise HTTPException(status_code=404, detail='User not found!')
+            
+        except SQLAlchemyError:
+            await db.rollback()
+            
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500),
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+            
+            
+    @staticmethod
+    async def logout_user_func(res: Response):
+        res.delete_cookie("refreshToken")
+        return {"message": "Logged out successfully"}
+        
+        
+    @staticmethod 
+    async def reset_password(data: ChangePassword, auth_id: str, db: AsyncSession):
+        try:
+            user = await db.get(User, auth_id)
+            
+            if not user:
+                raise HTTPException(status_code=404, detail='User not found!')
+            
+                        
+            is_match = verify_password(data.password, user.password)
+            
+            if not is_match:
+                raise HTTPException(status_code=403, detail='Password is incorrect!')
+            
+            new_hashed_password = hash_password_func(data.new_password)
+            
+            user.password = new_hashed_password
+            
+            db.add(user)
+            
+            await db.commit()
+            await db.refresh(user)
+            
+            return True
             
         except SQLAlchemyError:
             await db.rollback()

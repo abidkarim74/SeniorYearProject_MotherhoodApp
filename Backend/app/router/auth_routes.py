@@ -38,3 +38,12 @@ async def logout_route(res: Response, payload = Depends(verify_authentication)):
 async def authenticated_user_route(db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
     id = payload['id']
     return await AuthController.authenticated_user_func(id, db)
+
+
+from schemas.auth_schemas import ChangePassword
+
+
+@auth_router.post('/password-reset')
+async def reset_password(data: ChangePassword, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    id = payload['id']
+    return await AuthController.reset_password(data, id, db)

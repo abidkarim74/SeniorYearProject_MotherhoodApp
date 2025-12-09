@@ -28,3 +28,8 @@ class UserResponseSchema(UserBaseSchema):
 
 class TokenPayload(BaseModel):
     id: str
+
+
+class ChangePassword(BaseModel):
+    password: str
+    new_password: str

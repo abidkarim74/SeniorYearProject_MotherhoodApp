@@ -32,7 +32,8 @@ class Post(Base):
         DateTime, 
         default=datetime.utcnow, 
         server_default=text('now()'), 
-        nullable=False
+        nullable=False,
+        index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, 
