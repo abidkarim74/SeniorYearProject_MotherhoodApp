@@ -165,15 +165,12 @@ class AdvancedGeminiClient:
                                     continue
                                 
             except asyncio.TimeoutError:
-                # last_error = f"Request timeout (15s) on attempt {attempt + 1}"
                 await asyncio.sleep(2 ** attempt)
                 
             except aiohttp.ClientError as e:
-                # last_error = f"Network error: {str(e)}"
                 await asyncio.sleep(2 ** attempt)
                 
             except Exception as e:
-                # last_error = f"Unexpected error: {str(e)}"
                 await asyncio.sleep(2 ** attempt)
         
         return GeminiResponse(

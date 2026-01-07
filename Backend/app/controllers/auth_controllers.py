@@ -29,6 +29,8 @@ class AuthController():
             if user:
                 raise HTTPException(status_code=400, detail='Email or username already exist!')
             
+            print("Hello world")
+            
             hashed_password = hash_password_func(data.password)
             
             new_user = User(email=data.email, username=data.username, firstname=data.firstname, lastname=data.lastname, password=hashed_password)
