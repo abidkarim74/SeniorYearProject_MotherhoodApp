@@ -1,8 +1,8 @@
-"""create notification table
+"""generate notifications)
 
-Revision ID: c58710dcdf83
-Revises: e99014e7ad04
-Create Date: 2026-01-07 17:15:23.611216
+Revision ID: fa9e159b98cb
+Revises: 3df6529dd229
+Create Date: 2026-01-07 19:46:03.195021
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c58710dcdf83'
-down_revision: Union[str, Sequence[str], None] = 'e99014e7ad04'
+revision: str = 'fa9e159b98cb'
+down_revision: Union[str, Sequence[str], None] = '3df6529dd229'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -28,6 +28,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('receiver', sa.UUID(), nullable=False),
     sa.Column('sender', sa.UUID(), nullable=True),
+    sa.Column('seen', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['receiver'], ['users.id'], ),
     sa.ForeignKeyConstraint(['sender'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')

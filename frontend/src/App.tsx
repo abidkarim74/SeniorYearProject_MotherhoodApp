@@ -24,7 +24,6 @@ import ChildDetail from "./pages/ChildDetail";
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col h-screen bg-[#fff6f6]">
-      {/* Fixed Header - Full width top */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <Header />
       </div>
@@ -38,7 +37,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         {/* Main Content - Adjusts for sidebar on desktop */}
         <div className="flex-1 lg:ml-20 transition-all duration-300 min-w-0">
           {/* Scrollable Main Content */}
-          <main className="h-full overflow-auto pb-20 lg:pb-6 p-8">
+          <main className="h-full overflow-auto pb-20 lg:pb-6 ">
             {children}
           </main>
 
@@ -53,7 +52,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
-  const { accessToken } = useAuth();
 
   return (
     <div className="App">
