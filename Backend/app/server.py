@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from router.child_routes import child_router
 from router.profile_routes import profile_router
 from router.ai_chatbot_routes import ai_chatbot_router
+from router.child_growth_routes import child_growth_router
 
 from router.vaccination_reminder_routes import vaccination_reminder_router
 
@@ -51,6 +52,7 @@ app.include_router(ai_chatbot_router)
 app.include_router(vaccination_reminder_router)
 app.include_router(community_router)
 app.include_router(vaccine_router)
+app.include_router(child_growth_router)
 
 
 @app.get('/api/')
