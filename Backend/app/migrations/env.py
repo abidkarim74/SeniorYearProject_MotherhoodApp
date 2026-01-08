@@ -13,6 +13,7 @@ from models.vaccination import VaccinationRecord, VaccinationOption, Vaccination
 from models.ai import AIChatbot, AiConversation
 from models.community import Post, PostLike
 from models.child_growth import ChildGrowthRecord
+from models.notifications import Notification
 
 
 # this is the Alembic Config object, which provides

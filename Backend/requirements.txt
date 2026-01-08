@@ -17,3 +17,6 @@ itsdangerous
 aiohttp 
 motor
 pymongo
+
+redis
+websockets
