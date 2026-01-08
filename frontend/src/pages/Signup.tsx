@@ -329,39 +329,94 @@ const Signup = () => {
                 )}
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter your password"
-                    className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
-                      getError('password') && isTouched('password') 
-                        ? 'border-red-300 focus:ring-red-200' 
-                        : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {/* Password Fields - Single line on large screens */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {/* Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="Enter your password"
+                      className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
+                        getError('password') && isTouched('password') 
+                          ? 'border-red-300 focus:ring-red-200' 
+                          : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {getError('password') && isTouched('password') && (
+                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" />
+                      {getError('password')}
+                    </p>
+                  )}
                 </div>
-                {formData.password && (
-                  <div className="mt-2 space-y-1">
+
+                {/* Confirm Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="Confirm your password"
+                      className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
+                        getError('confirmPassword') && isTouched('confirmPassword') 
+                          ? 'border-red-300 focus:ring-red-200' 
+                          : formData.confirmPassword && formData.confirmPassword === formData.password
+                          ? 'border-green-300 focus:ring-green-200'
+                          : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {getError('confirmPassword') && isTouched('confirmPassword') && (
+                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                      <XCircle className="w-3 h-3" />
+                      {getError('confirmPassword')}
+                    </p>
+                  )}
+                  {formData.confirmPassword && formData.confirmPassword === formData.password && (
+                    <p className="text-green-600 text-xs mt-1 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Passwords match
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Password Requirements - Show below on all screen sizes */}
+              {formData.password && (
+                <div className="mt-2 space-y-1 bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs font-medium text-gray-700 mb-1">Password Requirements:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                     {getPasswordRequirements().map((req, index) => (
                       <div key={index} className="flex items-center gap-2 text-xs">
                         {req.met ? (
-                          <CheckCircle className="w-3 h-3 text-green-500" />
+                          <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
                         ) : (
-                          <XCircle className="w-3 h-3 text-gray-300" />
+                          <XCircle className="w-3 h-3 text-gray-300 flex-shrink-0" />
                         )}
                         <span className={req.met ? 'text-green-600' : 'text-gray-500'}>
                           {req.text}
@@ -369,55 +424,8 @@ const Signup = () => {
                       </div>
                     ))}
                   </div>
-                )}
-                {getError('password') && isTouched('password') && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <XCircle className="w-3 h-3" />
-                    {getError('password')}
-                  </p>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Confirm your password"
-                    className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
-                      getError('confirmPassword') && isTouched('confirmPassword') 
-                        ? 'border-red-300 focus:ring-red-200' 
-                        : formData.confirmPassword && formData.confirmPassword === formData.password
-                        ? 'border-green-300 focus:ring-green-200'
-                        : 'border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
-                {getError('confirmPassword') && isTouched('confirmPassword') && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <XCircle className="w-3 h-3" />
-                    {getError('confirmPassword')}
-                  </p>
-                )}
-                {formData.confirmPassword && formData.confirmPassword === formData.password && (
-                  <p className="text-green-600 text-xs mt-1 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    Passwords match
-                  </p>
-                )}
-              </div>
+              )}
 
               {/* Terms and Conditions */}
               <div className="flex items-start space-x-2">
