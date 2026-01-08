@@ -3,50 +3,17 @@ import { postRequest, getRequest } from "../../api/requests";
 import { useAuth } from "../../context/authContext";
 import { useNavigate } from "react-router-dom";
 import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  MoreVertical,
-  Clock,
-  Users,
+  MessageCircle,
   AlertCircle,
   TrendingUp,
+  Users,
   Plus
 } from "lucide-react";
 import SuccessToast from "./SuccessToast";
 import CreatePostModal from "./CreatePost";
-// Type definitions (same as before)
-type PostType = "Advice" | "Discussion" | "Support";
+import SinglePost from "./SinglePost";
+import type { Post, PostFormData, PostType } from "../../interfaces/CommunityInterfaces";
 
-interface User {
-  firstname: string;
-  lastname: string;
-  username: string;
-  profile_pic: string;
-}
-
-interface Post {
-  user_id: string;
-  user: User;
-  title: string;
-  tags: string[];
-  images: string[];
-  description: string;
-  post_type: PostType;
-  id: string;
-  visible: boolean;
-  post_category: string;
-  like_count: number;
-  created_at: string;
-}
-
-interface PostFormData {
-  title: string;
-  description: string;
-  post_type: PostType;
-  tags: string[];
-  images: string[];
-}
 
 const CommunityCenter = () => {
   const { user } = useAuth();
@@ -57,9 +24,6 @@ const CommunityCenter = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [createdPostId, setCreatedPostId] = useState<string | null>(null);
-
-
-  console.log(posts)
 
   // Fetch posts
   const fetchPosts = async () => {
@@ -235,146 +199,15 @@ const CommunityCenter = () => {
               </button>
             </div>
           ) : (
-            posts.map((post) => {
-              const postTypeStyle = getPostTypeStyle(post.post_type);
-              
-              return (
-                <div 
-                  key={post.id} 
-                  className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  onClick={() => navigate(`/community/post/${post.id}`)}
-                >
-                  {/* Post Header */}
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={post.user?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-                          alt={post.user?.firstname}
-                          className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-semibold text-gray-900">
-                              {post.user?.firstname} {post.user?.lastname}
-                            </h4>
-                            <span className="text-xs text-gray-500">@{post.user?.username}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${postTypeStyle.bg} ${postTypeStyle.text}`}>
-                              {postTypeStyle.icon}
-                              {post.post_type}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-gray-500">
-                              <Clock className="w-3 h-3" />
-                              {formatDate(post.created_at)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <button 
-                        className="text-gray-400 hover:text-gray-600"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle menu click
-                        }}
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Post Content */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-gray-700 mb-4 line-clamp-3">
-                      {post.description}
-                    </p>
-
-                    {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {post.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-block bg-[#fff6f6] text-[#e5989b] px-3 py-1 rounded-full text-xs font-medium"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Images */}
-                    {post.images && post.images.length > 0 && (
-                      <div className={`grid gap-2 mb-4 ${
-                        post.images.length === 1 ? "grid-cols-1" :
-                        post.images.length === 2 ? "grid-cols-2" :
-                        "grid-cols-2 sm:grid-cols-3"
-                      }`}>
-                        {post.images.slice(0, 3).map((image, index) => (
-                          <img
-                            key={index}
-                            src={image}
-                            alt={`Post image ${index + 1}`}
-                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                            onError={(e) => {
-                              e.currentTarget.src = "https://via.placeholder.com/300x200?text=Image+Not+Found";
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Post Actions */}
-                  <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLike(post.id);
-                          }}
-                          className="flex items-center gap-1.5 text-gray-600 hover:text-[#e5989b] transition-colors group"
-                        >
-                          <div className="p-1.5 rounded-full bg-white border border-gray-200 group-hover:bg-[#fceaea] group-hover:border-[#e5989b]/20 transition-colors">
-                            <Heart className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm font-medium">{post.like_count}</span>
-                        </button>
-                        <button 
-                          className="flex items-center gap-1.5 text-gray-600 hover:text-blue-600 transition-colors group"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Handle comment
-                          }}
-                        >
-                          <div className="p-1.5 rounded-full bg-white border border-gray-200 group-hover:bg-blue-50 group-hover:border-blue-200 transition-colors">
-                            <MessageCircle className="w-4 h-4" />
-                          </div>
-                          <span className="text-sm font-medium">Comment</span>
-                        </button>
-                      </div>
-                      <button 
-                        className="flex items-center gap-1.5 text-gray-600 hover:text-green-600 transition-colors group"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle share
-                        }}
-                      >
-                        <div className="p-1.5 rounded-full bg-white border border-gray-200 group-hover:bg-green-50 group-hover:border-green-200 transition-colors">
-                          <Share2 className="w-4 h-4" />
-                        </div>
-                        <span className="text-sm font-medium">Share</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+            posts.map((post) => (
+              <SinglePost
+                key={post.id}
+                post={post}
+                onLike={handleLike}
+                getPostTypeStyle={getPostTypeStyle}
+                formatDate={formatDate}
+              />
+            ))
           )}
         </div>
       </div>
