@@ -18,7 +18,7 @@ import AddVaccination from "./pages/AddVaccination";
 import Settings from "./pages/Settings";
 import ImportantVaccines from "./pages/ImportantVaccines";
 import ChildDetail from "./pages/ChildDetail";
-
+import ChildGrowthTracking from "./pages/ChildGrowthTracking";
 
 // Layout component for protected routes
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -167,6 +167,17 @@ function App() {
             <ProtectedRoutes>
               <DashboardLayout>
                 <ChildDetail />
+              </DashboardLayout>
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/child/:childId/growth"
+          element={
+            <ProtectedRoutes>
+              <DashboardLayout>
+                <ChildGrowthTracking />
               </DashboardLayout>
             </ProtectedRoutes>
           }
