@@ -9,6 +9,28 @@ from models.ai import AIChatbot
 
 class LLMController():
     @staticmethod
+    async def ai_chatbot_exits(user_id: UUID, db: AsyncSession):
+        try:
+            print(user_id)
+            bot = await db.get(AIChatbot, user_id)
+            
+            if bot:
+                return True
+            else:
+                return False
+        
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
+        
+        
+        
     async def create_ai_chatbot(data: AIBotCreate, auth_id: UUID, db: AsyncSession):
         try:
             user = await db.get(User, auth_id)

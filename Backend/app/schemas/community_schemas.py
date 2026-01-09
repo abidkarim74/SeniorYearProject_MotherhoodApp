@@ -46,6 +46,7 @@ class PostResponse(BaseModel):
     post_category: str
     like_count: int
     created_at: datetime
+    likers: List[UUID] = []
     
     
     

@@ -128,13 +128,24 @@ class PostControllers():
             result = await db.execute(query)
             rows = result.all()
             
+            post_ids = [post.id for post, _ in rows]
+            
+            likes_query = select(PostLike).where(PostLike.post_id.in_(post_ids))
+            likes_result = await db.execute(likes_query)
+            all_likes = likes_result.scalars().all()
+            
+            likes_by_post = {}
+            for like in all_likes:
+                if like.post_id not in likes_by_post:
+                    likes_by_post[like.post_id] = []
+                likes_by_post[like.post_id].append(like.user_id)
+            
             post_responses = []
             
             for post, user in rows:
-                like_query = select(PostLike).where(PostLike.post_id == post.id)
-                like_result = await db.execute(like_query)
-                
-                like_count = len(like_result.scalars().all())
+                # Get likes for this specific post
+                likers = likes_by_post.get(post.id, [])
+                like_count = len(likers)
                 
                 mini_user = MiniUserSchema(
                     firstname=user.firstname,
@@ -145,7 +156,7 @@ class PostControllers():
                 
                 post_response = PostResponse(
                     id=post.id,
-                    post_type=post.post_type.value,
+                    post_type=post.post_type.value if post.post_type else None,
                     visible=post.visible,
                     post_category=post.post_category,
                     like_count=like_count,
@@ -155,7 +166,8 @@ class PostControllers():
                     created_at=post.created_at,
                     description=post.description,
                     user_id=post.user_id,
-                    user=mini_user  
+                    user=mini_user,
+                    likers=likers
                 )
                 
                 post_responses.append(post_response)
@@ -164,13 +176,11 @@ class PostControllers():
         
         except SQLAlchemyError:
             await db.rollback()
-            
             raise HTTPException(status_code=500, detail='Database error!')
         
         except Exception as e:
             await db.rollback()
             error_dict = e.__dict__
-            
             raise HTTPException(
                 status_code=error_dict.get('status_code', 500), 
                 detail=error_dict.get('detail', 'Internal server error!')
@@ -447,6 +457,8 @@ class PostLikeControllers():
     @staticmethod
     async def toggle_like(post_id: UUID, auth_id: UUID, db: AsyncSession):
         try:
+            print(f"This: {post_id}")
+            
             post_query = select(Post).where(
                 and_(
                     Post.id == post_id,

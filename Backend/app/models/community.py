@@ -78,3 +78,13 @@ class PostLike(Base):
         server_default=text('now()'),
         nullable=False
     )
+    
+
+class PostComplain(Base):
+    __tablename__ = 'post_complains'
+    
+    id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    post_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('posts.id'), nullable=False)
+    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

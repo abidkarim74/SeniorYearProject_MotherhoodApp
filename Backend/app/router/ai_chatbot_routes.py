@@ -21,6 +21,16 @@ ai_chatbot_router = APIRouter(
 )
 
 
+@ai_chatbot_router.get('/exists')
+async def bot_exists(db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='You are not authorized')
+    
+    return await LLMController.ai_chatbot_exits(user_id, db)
+
+
 @ai_chatbot_router.post('/create-bot', status_code=201)
 async def create_ai_chatbot(data: AIBotCreate, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
     return await LLMController.create_ai_chatbot(data, payload['id'], db)

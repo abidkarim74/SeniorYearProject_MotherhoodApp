@@ -12,8 +12,17 @@ import {
   Zap,
   Clock
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getRequest } from "../../api/requests";
 
 const CommunityLeftSidebar = () => {
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    postsToday: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Dummy data for online users
   const onlineUsers = [
     { id: 1, name: "Alex Morgan", role: "Mom of 2", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face", isActive: true },
@@ -32,6 +41,50 @@ const CommunityLeftSidebar = () => {
     { id: 5, name: "Sleep Training", posts: 98, icon: <Clock className="w-4 h-4" />, color: "text-purple-600" },
   ];
 
+  useEffect(() => {
+    const fetchCommunityStats = async () => {
+      try {
+        setLoading(true);
+        
+        const membersResponse = await getRequest('/community/members/all');
+        const membersCount = membersResponse;
+        
+        const postsResponse = await getRequest('/community/posts/latest');
+
+        console.log("Ne", postsResponse);
+
+        const postsToday = postsResponse
+        
+        setStats({
+          totalMembers: membersCount,
+          postsToday: postsToday
+        });
+        
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching community stats:", err);
+        setError("Failed to load community statistics");
+        // Set default values or keep previous data
+        setStats(prev => ({
+          totalMembers: prev.totalMembers || 42800,
+          postsToday: prev.postsToday || 5678
+        }));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCommunityStats();
+  }, []);
+
+  // Format numbers with commas
+  const formatNumber = (num:any) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toLocaleString();
+  };
+
   return (
     <div className="space-y-6">
       {/* Quick Stats Card */}
@@ -39,6 +92,12 @@ const CommunityLeftSidebar = () => {
         <h3 className="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
           <TrendingUp className="w-4 h-4 text-[#e5989b]" />
           Community Stats
+          {loading && (
+            <span className="text-xs text-gray-400 font-normal">Loading...</span>
+          )}
+          {error && (
+            <span className="text-xs text-red-400 font-normal">⚠️ Data may be outdated</span>
+          )}
         </h3>
         
         <div className="space-y-3">
@@ -77,7 +136,9 @@ const CommunityLeftSidebar = () => {
               </div>
               <div>
                 <p className="text-xs text-gray-600">Posts Today</p>
-                <p className="text-sm font-bold text-gray-900">5,678</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {loading ? "..." : formatNumber(stats.postsToday)}
+                </p>
               </div>
             </div>
             <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full">
@@ -93,7 +154,9 @@ const CommunityLeftSidebar = () => {
               </div>
               <div>
                 <p className="text-xs text-gray-600">Total Members</p>
-                <p className="text-sm font-bold text-gray-900">42.8K</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {loading ? "..." : formatNumber(stats.totalMembers)}
+                </p>
               </div>
             </div>
             <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-full">
@@ -116,8 +179,6 @@ const CommunityLeftSidebar = () => {
         </div>
         <ChevronRight className="w-4 h-4 text-[#e5989b] group-hover:translate-x-1 transition-transform" />
       </button>
-
-     
     </div>
   );
 };
