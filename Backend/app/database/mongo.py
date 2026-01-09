@@ -11,3 +11,4 @@ client = AsyncIOMotorClient(MONGO_URL)
 
 
 mongo_db = client["new_test"]  
+

@@ -40,7 +40,8 @@ async def startup_event():
 
     except Exception as e:
         print(f"Database connection failed: {e}")
-        
+
+
         
         
 app.include_router(auth_router)

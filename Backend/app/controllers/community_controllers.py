@@ -16,6 +16,12 @@ from models.user import User
 from models.community import Post
 
 
+
+from models.community import Comment, CommentLike
+from schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
+
+
+
 class PostControllers():
     @staticmethod
     async def create(auth_id: UUID, data: PostCreate, db: AsyncSession):
@@ -541,4 +547,294 @@ class CommunityStatsControllers():
             error_dict = e.__dict__
             
             raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
+        
+
+
+
+
+from models.community import Comment, CommentLike
+from schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
+
+
+class CommentControllers():
+    @staticmethod
+    async def create(post_id: UUID, auth_id: UUID, data: CommentCreate, db: AsyncSession):
+        try:
+            # Verify post exists and is visible
+            post_query = select(Post).where(
+                and_(
+                    Post.id == post_id,
+                    Post.visible == True
+                )
+            )
+            post_result = await db.execute(post_query)
+            post = post_result.scalar_one_or_none()
+            
+            if not post:
+                raise HTTPException(status_code=404, detail='Post not found or not visible')
+            
+            # Create new comment
+            new_comment = Comment(
+                post_id=post_id,
+                user_id=auth_id,
+                content=data.content
+            )
+            
+            db.add(new_comment)
+            await db.commit()
+            await db.refresh(new_comment)
+            
+            # Get user info
+            user_query = select(User).where(User.id == auth_id)
+            user_result = await db.execute(user_query)
+            user = user_result.scalar_one()
+            
+            # Get like count (will be 0 for new comment)
+            mini_user = MiniUserSchema(
+                firstname=user.firstname,
+                lastname=user.lastname,
+                username=user.username,
+                profile_pic=user.profile_pic
+            )
+            
+            comment_response = CommentResponse(
+                id=new_comment.id,
+                post_id=new_comment.post_id,
+                user_id=new_comment.user_id,
+                content=new_comment.content,
+                created_at=new_comment.created_at,
+                updated_at=new_comment.updated_at,
+                user=mini_user,
+                like_count=0
+            )
+            
+            return comment_response
+        
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+    
+    
+    @staticmethod
+    async def get_post_comments(post_id: UUID, auth_id: UUID, db: AsyncSession):
+        try:
+            # Verify post exists and is visible
+            post_query = select(Post).where(
+                and_(
+                    Post.id == post_id,
+                    Post.visible == True
+                )
+            )
+            post_result = await db.execute(post_query)
+            post = post_result.scalar_one_or_none()
+            
+            if not post:
+                raise HTTPException(status_code=404, detail='Post not found or not visible')
+            
+            # Get all comments for the post
+            query = select(Comment, User).join(
+                User, Comment.user_id == User.id
+            ).where(
+                Comment.post_id == post_id
+            ).order_by(Comment.created_at.asc())
+            
+            result = await db.execute(query)
+            rows = result.all()
+            
+            comment_responses = []
+            
+            for comment, user in rows:
+                # Get like count for each comment
+                like_query = select(CommentLike).where(CommentLike.comment_id == comment.id)
+                like_result = await db.execute(like_query)
+                like_count = len(like_result.scalars().all())
+                
+                mini_user = MiniUserSchema(
+                    firstname=user.firstname,
+                    lastname=user.lastname,
+                    username=user.username,
+                    profile_pic=user.profile_pic
+                )
+                
+                comment_response = CommentResponse(
+                    id=comment.id,
+                    post_id=comment.post_id,
+                    user_id=comment.user_id,
+                    content=comment.content,
+                    created_at=comment.created_at,
+                    updated_at=comment.updated_at,
+                    user=mini_user,
+                    like_count=like_count
+                )
+                
+                comment_responses.append(comment_response)
+            
+            return comment_responses
+        
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+    
+    
+    @staticmethod
+    async def update(comment_id: UUID, auth_id: UUID, update_data: CommentUpdate, db: AsyncSession):
+        try:
+            query = select(Comment).where(
+                and_(
+                    Comment.id == comment_id,
+                    Comment.user_id == auth_id
+                )
+            )
+            
+            result = await db.execute(query)
+            comment = result.scalar_one_or_none()
+            
+            if not comment:
+                raise HTTPException(status_code=404, detail='Comment not found or you do not have permission to edit it')
+            
+            # Update comment
+            stmt = update(Comment).where(Comment.id == comment_id).values(
+                content=update_data.content,
+                updated_at=datetime.utcnow()
+            )
+            
+            await db.execute(stmt)
+            await db.commit()
+            await db.refresh(comment)
+            
+            # Get user info and like count
+            user_query = select(User).where(User.id == auth_id)
+            user_result = await db.execute(user_query)
+            user = user_result.scalar_one()
+            
+            like_query = select(CommentLike).where(CommentLike.comment_id == comment_id)
+            like_result = await db.execute(like_query)
+            like_count = len(like_result.scalars().all())
+            
+            mini_user = MiniUserSchema(
+                firstname=user.firstname,
+                lastname=user.lastname,
+                username=user.username,
+                profile_pic=user.profile_pic
+            )
+            
+            comment_response = CommentResponse(
+                id=comment.id,
+                post_id=comment.post_id,
+                user_id=comment.user_id,
+                content=comment.content,
+                created_at=comment.created_at,
+                updated_at=comment.updated_at,
+                user=mini_user,
+                like_count=like_count
+            )
+            
+            return comment_response
+        
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+    
+    
+    @staticmethod
+    async def delete(comment_id: UUID, auth_id: UUID, db: AsyncSession):
+        try:
+            query = select(Comment).where(
+                and_(
+                    Comment.id == comment_id,
+                    Comment.user_id == auth_id
+                )
+            )
+            
+            result = await db.execute(query)
+            comment = result.scalar_one_or_none()
+            
+            if not comment:
+                raise HTTPException(status_code=404, detail='Comment not found or you do not have permission to delete it')
+            
+            await db.delete(comment)
+            await db.commit()
+            
+            return {"message": "Comment deleted successfully"}
+        
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+
+
+class CommentLikeControllers():
+    @staticmethod
+    async def toggle_like(comment_id: UUID, auth_id: UUID, db: AsyncSession):
+        try:
+            # Verify comment exists
+            comment_query = select(Comment).where(Comment.id == comment_id)
+            comment_result = await db.execute(comment_query)
+            comment = comment_result.scalar_one_or_none()
+            
+            if not comment:
+                raise HTTPException(status_code=404, detail='Comment not found')
+            
+            # Check if like exists
+            like_query = select(CommentLike).where(
+                and_(
+                    CommentLike.comment_id == comment_id,
+                    CommentLike.user_id == auth_id
+                )
+            )
+            like_result = await db.execute(like_query)
+            existing_like = like_result.scalar_one_or_none()
+            
+            if existing_like:
+                await db.delete(existing_like)
+                await db.commit()
+                return {"liked": False, "message": "Comment unliked"}
+            else:
+                new_like = CommentLike(comment_id=comment_id, user_id=auth_id)
+                db.add(new_like)
+                await db.commit()
+                return {"liked": True, "message": "Comment liked"}
+        
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
             

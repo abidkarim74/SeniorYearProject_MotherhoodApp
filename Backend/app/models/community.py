@@ -78,3 +78,66 @@ class PostLike(Base):
         server_default=text('now()'),
         nullable=False
     )
+
+
+
+
+class Comment(Base):
+    __tablename__ = 'comments'
+        
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+    post_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("posts.id", ondelete="CASCADE"), 
+        nullable=False
+    )
+    user_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False,
+        index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False
+    )
+
+
+class CommentLike(Base):
+    __tablename__ = 'comment_likes'
+    
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+    comment_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("comments.id", ondelete="CASCADE"), 
+        nullable=False
+    )
+    user_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False
+    )
