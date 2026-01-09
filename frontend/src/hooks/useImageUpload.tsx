@@ -19,6 +19,7 @@ const useImageUpload = () => {
     }
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    
     if (!validTypes.includes(file.type)) {
       setError('Invalid file type. Please upload JPEG, PNG, WEBP, or GIF');
       return null;

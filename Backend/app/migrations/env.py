@@ -11,7 +11,7 @@ from models.ai import AIChatbot
 from models.child import Child
 from models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
 from models.ai import AIChatbot, AiConversation
-from models.community import Post, PostLike
+from models.community import Post, PostLike, PostComplain
 from models.child_growth import ChildGrowthRecord
 from models.notifications import Notification
 

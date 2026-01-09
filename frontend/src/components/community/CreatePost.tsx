@@ -1,6 +1,7 @@
 // components/community/CreatePostModal.tsx
-import { useState, type FormEvent } from "react";
-import { X, Send, Image as ImageIcon, Tag, TrendingUp, MessageCircle, Users, Loader2 } from "lucide-react";
+import { useState, type FormEvent, useRef } from "react";
+import { X, Send, Image as ImageIcon, Tag, TrendingUp, MessageCircle, Users, Loader2, Upload, Trash2 } from "lucide-react";
+import useImageUpload from "../../hooks/useImageUpload";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -24,15 +25,27 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
   const [loading, setLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [imageInput, setImageInput] = useState("");
   const [error, setError] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use the image upload hook
+  const { 
+    imageUrl, 
+    isLoading: isUploading, 
+    error: uploadError, 
+    progress, 
+    uploadImage, 
+    reset: resetUpload 
+  } = useImageUpload();
 
   const [postForm, setPostForm] = useState<Omit<PostFormData, 'user_id' | 'tags' | 'images'>>({
     title: "",
     description: "",
     post_type: "Advice",
   });
+
+  // Store uploaded image URLs
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   // Post type styling
   const getPostTypeStyle = (type: PostType) => {
@@ -91,32 +104,57 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
     setError("");
   };
 
-  // Handle image URL input
-  const handleAddImage = () => {
-    const trimmedUrl = imageInput.trim();
-    if (trimmedUrl) {
-      if (!imageUrls.includes(trimmedUrl)) {
-        if (imageUrls.length < 4) {
-          try {
-            new URL(trimmedUrl);
-            setImageUrls([...imageUrls, trimmedUrl]);
-            setImageInput("");
-            setError("");
-          } catch {
-            setError("Please enter a valid URL");
-          }
-        } else {
-          setError("Maximum 4 images allowed");
-        }
-      } else {
-        setError("Image URL already added");
-      }
+  // Handle file selection
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (uploadedImages.length >= 4) {
+      setError("Maximum 4 images allowed");
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setError("Invalid file type. Please upload JPEG, PNG, WEBP, or GIF");
+      return;
+    }
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError("File too large. Maximum size is 5MB");
+      return;
+    }
+
+    // Upload the image
+    const url = await uploadImage(file);
+    if (url) {
+      setUploadedImages([...uploadedImages, url]);
+      setError("");
+    } else if (uploadError) {
+      setError(uploadError);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleRemoveImage = (urlToRemove: string) => {
-    setImageUrls(imageUrls.filter(url => url !== urlToRemove));
+    setUploadedImages(uploadedImages.filter(url => url !== urlToRemove));
     setError("");
+  };
+
+  // Trigger file input
+  const triggerFileInput = () => {
+    if (uploadedImages.length >= 4) {
+      setError("Maximum 4 images allowed");
+      return;
+    }
+    fileInputRef.current?.click();
   };
 
   // Handle form submission
@@ -152,8 +190,8 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
         title: postForm.title.trim(),
         description: postForm.description.trim(),
         post_type: postForm.post_type,
-        tags: selectedTags,
-        images: imageUrls
+        tags: selectedTags, // Optional - can be empty array
+        images: uploadedImages // Optional - can be empty array
       };
 
       console.log("Creating post with data:", postData);
@@ -178,10 +216,10 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
       post_type: "Advice",
     });
     setSelectedTags([]);
-    setImageUrls([]);
+    setUploadedImages([]);
     setTagInput("");
-    setImageInput("");
     setError("");
+    resetUpload();
   };
 
   // Handle key presses
@@ -192,16 +230,9 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
     }
   };
 
-  const handleImageKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddImage();
-    }
-  };
-
   // Close modal handler
   const handleClose = () => {
-    if (!loading) {
+    if (!loading && !isUploading) {
       resetForm();
       onClose();
     }
@@ -210,6 +241,13 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
   // Character counter for description
   const descriptionLength = postForm.description.length;
   const isDescriptionValid = descriptionLength >= 10;
+
+  // Check if form is valid for submission
+  const isFormValid = 
+    postForm.title.trim() && 
+    isDescriptionValid && 
+    !!user?.id &&
+    !isUploading;
 
   if (!isOpen) return null;
 
@@ -232,7 +270,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
           </div>
           <button
             onClick={handleClose}
-            disabled={loading}
+            disabled={loading || isUploading}
             className="flex-shrink-0 p-1.5 sm:p-2 rounded-full hover:bg-white/50 transition-colors disabled:opacity-50 ml-2"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
@@ -252,7 +290,6 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                 <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                   Posting as: {user?.firstname} {user?.lastname}
                 </p>
-               
               </div>
             </div>
           </div>
@@ -262,9 +299,9 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
         <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 py-4 sm:py-5">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Error Message */}
-            {error && (
+            {(error || uploadError) && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700">{error || uploadError}</p>
               </div>
             )}
 
@@ -286,7 +323,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                           ? `${style.bg} ${style.border} ${style.text} scale-[1.02] shadow-sm`
                           : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
                       }`}
-                      disabled={loading}
+                      disabled={loading || isUploading}
                     >
                       <div className={`p-1.5 sm:p-2 rounded-md sm:rounded-lg ${style.bg}`}>
                         {style.icon}
@@ -310,7 +347,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                 onChange={(e) => setPostForm({...postForm, title: e.target.value})}
                 className="w-full bg-white border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#e5989b]/30 focus:border-[#e5989b]"
                 required
-                disabled={loading}
+                disabled={loading || isUploading}
                 maxLength={100}
               />
               <div className="text-xs text-gray-500 mt-1 text-right">
@@ -330,7 +367,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                 rows={4}
                 className={`w-full bg-white border ${isDescriptionValid ? 'border-gray-300' : 'border-red-300'} rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#e5989b]/30 focus:border-[#e5989b] resize-none`}
                 required
-                disabled={loading}
+                disabled={loading || isUploading}
                 minLength={10}
               />
               <div className="flex flex-col sm:flex-row sm:justify-between mt-1 space-y-1 sm:space-y-0">
@@ -349,11 +386,14 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
               </div>
             </div>
 
-            {/* Tags */}
+            {/* Tags - Optional */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags (Optional) - Max 5
-              </label>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Tags
+                </label>
+                <span className="text-xs text-gray-500">(Optional)</span>
+              </div>
               <div className="flex flex-col sm:flex-row gap-2 mb-3">
                 <input
                   type="text"
@@ -362,13 +402,13 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyPress={handleTagKeyPress}
                   className="flex-1 bg-white border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#e5989b]/30 focus:border-[#e5989b]"
-                  disabled={loading || selectedTags.length >= 5}
+                  disabled={loading || isUploading || selectedTags.length >= 5}
                 />
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  disabled={loading || selectedTags.length >= 5}
-                  className="bg-[#e5989b] text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl hover:bg-[#d88a8d] transition-colors text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 w-full sm:w-auto"
+                  disabled={loading || isUploading || selectedTags.length >= 5}
+                  className="bg-gray-100 text-gray-700 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 w-full sm:w-auto"
                 >
                   <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Add</span>
@@ -387,7 +427,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
-                        disabled={loading}
+                        disabled={loading || isUploading}
                         className="text-[#d88a8d] hover:text-[#e5989b] flex-shrink-0"
                       >
                         <X className="w-3 h-3" />
@@ -398,57 +438,108 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
               )}
             </div>
 
-            {/* Images */}
+            {/* Images - Optional */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Images (Optional) - Max 4
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2 mb-3">
-                <input
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  onKeyPress={handleImageKeyPress}
-                  className="flex-1 bg-white border border-gray-300 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#e5989b]/30 focus:border-[#e5989b]"
-                  disabled={loading || imageUrls.length >= 4}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddImage}
-                  disabled={loading || imageUrls.length >= 4}
-                  className="bg-gray-100 text-gray-700 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 w-full sm:w-auto"
-                >
-                  <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>Add</span>
-                </button>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Images
+                </label>
+                <span className="text-xs text-gray-500">(Optional)</span>
               </div>
               
+              {/* Hidden file input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*"
+                className="hidden"
+                disabled={loading || isUploading || uploadedImages.length >= 4}
+              />
+
+              {/* Upload progress */}
+              {isUploading && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-blue-700">Uploading image...</span>
+                    <span className="text-sm text-blue-600">{progress}%</span>
+                  </div>
+                  <div className="w-full bg-blue-100 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Upload button - only show if less than 4 images */}
+              {uploadedImages.length < 4 && (
+                <button
+                  type="button"
+                  onClick={triggerFileInput}
+                  disabled={loading || isUploading}
+                  className="w-full p-4 sm:p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-[#e5989b] hover:bg-[#fdf5f5] transition-all duration-200 flex flex-col items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                >
+                  <div className="p-2 bg-[#fceaea] rounded-full">
+                    <Upload className="w-6 h-6 text-[#e5989b]" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-700">
+                      Click to upload images
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      JPEG, PNG, WEBP, GIF • Max 5MB • {uploadedImages.length}/4
+                    </p>
+                  </div>
+                </button>
+              )}
+              
               {/* Image Previews */}
-              {imageUrls.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-2">
-                  {imageUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <div className="aspect-square w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-                        <img
-                          src={url}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://via.placeholder.com/300x300?text=Invalid+URL";
-                          }}
-                        />
+              {uploadedImages.length > 0 && (
+                <div className="mt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {uploadedImages.map((url, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+                          <img
+                            src={url}
+                            alt={`Uploaded ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://via.placeholder.com/300x300?text=Image+Error";
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(url)}
+                          disabled={loading || isUploading}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50 shadow-lg"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 text-white text-xs truncate">
+                          Image {index + 1}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-gray-500">
+                      {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} uploaded
+                    </p>
+                    {uploadedImages.length < 4 && (
                       <button
                         type="button"
-                        onClick={() => handleRemoveImage(url)}
-                        disabled={loading}
-                        className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-red-500 text-white rounded-full p-0.5 sm:p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 disabled:opacity-50"
+                        onClick={triggerFileInput}
+                        disabled={loading || isUploading}
+                        className="text-xs text-[#e5989b] hover:text-[#d88a8d] font-medium"
                       >
-                        <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        + Add more
                       </button>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -461,7 +552,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
             <button
               type="button"
               onClick={handleClose}
-              disabled={loading}
+              disabled={loading || isUploading}
               className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-100 text-gray-700 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors text-sm sm:text-base font-medium disabled:opacity-50 order-2 sm:order-1"
             >
               Cancel
@@ -469,7 +560,7 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={loading || !postForm.title.trim() || !isDescriptionValid || !user?.id}
+              disabled={!isFormValid || loading}
               className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-lg sm:rounded-xl hover:opacity-90 transition-all text-sm sm:text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
             >
               {loading ? (

@@ -20,6 +20,7 @@ export interface Post {
   post_category: string;
   like_count: number;
   created_at: string;
+  likers: string[]
 }
 
 export interface PostFormData {

@@ -25,6 +25,8 @@ const CommunityCenter = () => {
   const [toastMessage, setToastMessage] = useState<string>("");
   const [createdPostId, setCreatedPostId] = useState<string | null>(null);
 
+  console.log(posts);
+
   // Fetch posts
   const fetchPosts = async () => {
     try {
@@ -79,19 +81,19 @@ const CommunityCenter = () => {
   };
 
   // Handle like
-  const handleLike = async (postId: string) => {
-    try {
-      // Update local state for now
-      setPosts(posts.map(post => {
-        if (post.id === postId) {
-          return { ...post, like_count: post.like_count + 1 };
-        }
-        return post;
-      }));
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
+  // const handleLike = async (postId: string) => {
+  //   try {
+  //     // Update local state for now
+  //     setPosts(posts.map(post => {
+  //       if (post.id === postId) {
+  //         return { ...post, like_count: post.like_count + 1 };
+  //       }
+  //       return post;
+  //     }));
+  //   } catch (error) {
+  //     console.error("Error liking post:", error);
+  //   }
+  // };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -203,7 +205,6 @@ const CommunityCenter = () => {
               <SinglePost
                 key={post.id}
                 post={post}
-                onLike={handleLike}
                 getPostTypeStyle={getPostTypeStyle}
                 formatDate={formatDate}
               />

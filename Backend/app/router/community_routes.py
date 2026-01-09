@@ -51,6 +51,7 @@ async def delete_post_route(post_id: str, payload = Depends(verify_authenticatio
 
 @community_router.post('/post/toogle-like/{post_id}')
 async def toogle_like(post_id: str, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    print("hdasdasda")
     return await PostLikeControllers.toggle_like(post_id, payload['id'], db)
 
 
