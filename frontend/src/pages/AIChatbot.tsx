@@ -12,16 +12,16 @@ const AIChatbot = () => {
 
   const checkBotExists = async () => {
     try {
-      // const res = await getRequest('/ai-chatbot/exists');
+      const res = await getRequest('/ai-chatbot/exists');
       // console.log("Check: ", res);
 
-      setIsBotCreated(true);
+      setIsBotCreated(res);
       setLoading(false);
       
       // Show create modal only if bot doesn't exist
-      // if (!res) {
-      //   setShowCreateModal(true);
-      // }
+      if (!res) {
+        setShowCreateModal(true);
+      }
     } catch (error) {
       console.error("Error checking bot:", error);
       setLoading(false);
