@@ -46,3 +46,28 @@
 .schedule-details::-webkit-scrollbar-thumb:hover {
   background: #d88a8d;
 }
+
+
+/* Add to your global CSS file */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: #e5989b #f1f1f1;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: #e5989b;
+  border-radius: 10px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: #d88a8d;
+}
