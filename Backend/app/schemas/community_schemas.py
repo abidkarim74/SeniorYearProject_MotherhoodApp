@@ -3,6 +3,7 @@ from uuid import UUID
 from models.community import PostType
 from typing import List
 from datetime import datetime
+from models.community import ReportReason, ReportStatus
 
 
 class PostBase(BaseModel):
@@ -77,4 +78,44 @@ class CommentResponse(BaseModel):
 
 
 
+class PostReportCreate(BaseModel):
+    reason: ReportReason
+    description: str | None = None
+
+
+class PostReportResponse(BaseModel):
+    id: UUID
+    post_id: UUID
+    reporter_id: UUID
+    reason: ReportReason
+    description: str | None
+    status: ReportStatus
+    created_at: datetime
+    updated_at: datetime
+    reporter: MiniUserSchema
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PostReportDetailResponse(BaseModel):
+    id: UUID
+    post_id: UUID
+    reporter_id: UUID
+    reason: ReportReason
+    description: str | None
+    status: ReportStatus
+    created_at: datetime
+    updated_at: datetime
+    reviewed_by: UUID | None
+    reviewed_at: datetime | None
+    admin_notes: str | None
+    reporter: MiniUserSchema
+    post: PostResponse
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PostReportUpdateStatus(BaseModel):
+    status: ReportStatus
+    admin_notes: str | None = None
 
