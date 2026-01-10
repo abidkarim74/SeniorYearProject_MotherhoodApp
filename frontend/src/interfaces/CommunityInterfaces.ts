@@ -32,7 +32,6 @@
 // }
 
 
-
 // Community Post Types
 export type PostType = "Advice" | "Discussion" | "Support";
 
@@ -53,6 +52,7 @@ export interface Post {
   description: string;
   post_type: PostType;
   like_count: number;
+  comment_count?: number; // Add comment count
   created_at: string;
   likers: string[];
   user_id: string;
@@ -76,7 +76,7 @@ export interface Comment {
   updated_at: string;
   user: User;
   like_count: number;
-  is_liked?: boolean; // Optional: to track if current user liked this comment
+  is_liked?: boolean;
 }
 
 export interface CommentCreate {
@@ -85,4 +85,32 @@ export interface CommentCreate {
 
 export interface CommentUpdate {
   content: string;
+}
+
+// Report Types
+export type ReportReason = 
+  | "Spam" 
+  | "Offensive" 
+  | "Misinformation" 
+  | "Harassment" 
+  | "Inappropriate Content" 
+  | "Other";
+
+export type ReportStatus = "Pending" | "Under Review" | "Resolved" | "Dismissed";
+
+export interface PostReportCreate {
+  reason: ReportReason;
+  description?: string;
+}
+
+export interface PostReportResponse {
+  id: string;
+  post_id: string;
+  reporter_id: string;
+  reason: ReportReason;
+  description?: string;
+  status: ReportStatus;
+  created_at: string;
+  updated_at: string;
+  reporter: User;
 }
