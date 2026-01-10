@@ -151,3 +151,72 @@ class CommentLike(Base):
         server_default=text('now()'),
         nullable=False
     )
+
+class ReportReason(Enum):
+    SPAM = "Spam"
+    OFFENSIVE = "Offensive"
+    MISINFORMATION = "Misinformation"
+    HARASSMENT = "Harassment"
+    INAPPROPRIATE_CONTENT = "Inappropriate Content"
+    OTHER = "Other"
+
+
+class ReportStatus(Enum):
+    PENDING = "Pending"
+    UNDER_REVIEW = "Under Review"
+    RESOLVED = "Resolved"
+    DISMISSED = "Dismissed"
+
+
+class PostReport(Base):
+    __tablename__ = 'post_reports'
+    
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+    post_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("posts.id", ondelete="CASCADE"), 
+        nullable=False
+    )
+    reporter_id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    reason: Mapped[ReportReason] = mapped_column(
+        E(ReportReason, name="report_reason_enum"), 
+        nullable=False
+    )
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    status: Mapped[ReportStatus] = mapped_column(
+        E(ReportStatus, name="report_status_enum"),
+        default=ReportStatus.PENDING,
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False,
+        index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        server_default=text('now()'),
+        nullable=False
+    )
+    reviewed_by: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.id"),
+        nullable=True
+    )
+    reviewed_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=True
+    )
+    admin_notes: Mapped[str] = mapped_column(String, nullable=True)
