@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from controllers.community_controllers import PostControllers, PostLikeControllers, CommunityStatsControllers
 from schemas.community_schemas import CommentCreate, CommentResponse, CommentUpdate
 from controllers.community_controllers import CommentControllers, CommentLikeControllers
+from schemas.community_schemas import PostReportCreate, PostReportResponse, PostReportDetailResponse, PostReportUpdateStatus
+from controllers.community_controllers import PostReportControllers
 
 
 community_router = APIRouter(
@@ -115,3 +117,59 @@ async def toggle_comment_like_route(
     db: AsyncSession = Depends(connect_db)
 ):
     return await CommentLikeControllers.toggle_like(UUID(comment_id), payload['id'], db)
+
+
+@community_router.post('/post/{post_id}/report', status_code=201, response_model=PostReportResponse)
+async def report_post_route(
+    post_id: str, 
+    data: PostReportCreate, 
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    return await PostReportControllers.create(UUID(post_id), payload['id'], data, db)
+
+
+@community_router.get('/my-reports', response_model=List[PostReportResponse])
+async def get_my_reports_route(
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    return await PostReportControllers.get_user_reports(payload['id'], db)
+
+
+@community_router.get('/reports/all', response_model=List[PostReportDetailResponse])
+async def get_all_reports_route(
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    """Admin endpoint to view all reports"""
+    return await PostReportControllers.get_all_reports(payload['id'], db)
+
+
+@community_router.get('/report/{report_id}', response_model=PostReportDetailResponse)
+async def get_report_detail_route(
+    report_id: str, 
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    return await PostReportControllers.get_report_detail(UUID(report_id), payload['id'], db)
+
+
+@community_router.patch('/report/{report_id}/status', response_model=PostReportResponse)
+async def update_report_status_route(
+    report_id: str, 
+    data: PostReportUpdateStatus, 
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    """Admin endpoint to update report status"""
+    return await PostReportControllers.update_report_status(UUID(report_id), payload['id'], data, db)
+
+
+@community_router.delete('/report/{report_id}', status_code=204)
+async def delete_report_route(
+    report_id: str, 
+    payload = Depends(verify_authentication), 
+    db: AsyncSession = Depends(connect_db)
+):
+    return await PostReportControllers.delete(UUID(report_id), payload['id'], db)
