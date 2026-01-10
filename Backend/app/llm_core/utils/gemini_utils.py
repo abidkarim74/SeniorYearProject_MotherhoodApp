@@ -13,7 +13,9 @@ async def get_gemini_client():
     if not api_key:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY environment variable not set")
     
-    client = AdvancedGeminiClient(api_key=api_key)
+    print(api_key)
+    
+    client = AdvancedGeminiClient(api_key="AIzaSyBkt5GUq9QL9BSlsDYEUmd4ggNipE_FDyE")
     
     if not await client.discover_working_model():
         raise HTTPException(

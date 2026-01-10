@@ -1,27 +1,20 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import { type ReactNode } from "react";
 import MainLoading from "../components/MainLoading";
 
 
-interface ProtectedRoutesProps {
-  children: ReactNode;
-}
-
-function ProtectedRoutes({ children }: ProtectedRoutesProps) {
+function ProtectedRoutes() {
   const { accessToken, mainLoading } = useAuth();
 
-  if (mainLoading) {
-    return (
-      <MainLoading></MainLoading>
-    );
+ if (mainLoading) {
+    return <MainLoading />;
   }
-
+ 
   if (!accessToken) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 }
 
 export default ProtectedRoutes;

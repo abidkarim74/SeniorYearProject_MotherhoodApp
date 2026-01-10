@@ -20,7 +20,7 @@ class MessageType(str, Enum):
 
 
 class AIBotBase(BaseModel):
-    name: str
+    name: Optional[str] = None
     description: Optional[str] = None
 
 

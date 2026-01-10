@@ -11,11 +11,11 @@ interface GuestRouteProps {
 function GuestRoute({ children }: GuestRouteProps) {
   const { accessToken, mainLoading } = useAuth();
 
-  if (mainLoading) {
-    return (
-      <MainLoading></MainLoading>
-    )
-  }
+  // if (mainLoading) {
+  //   return (
+  //     <MainLoading></MainLoading>
+  //   )
+  // }
 
   if (accessToken) {
     return <Navigate to="/" replace />;

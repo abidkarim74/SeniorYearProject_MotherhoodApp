@@ -14,6 +14,8 @@ from schemas.ai_bot_schemas import AIBotCreate, AIBotResponse
 from controllers.llm_controllers import LLMController
 from models.user import User
 
+from utils.ai_services import generate_conversation_topic
+
 
 ai_chatbot_router = APIRouter(
     prefix='/api/ai-chatbot',
@@ -36,9 +38,31 @@ async def create_ai_chatbot(data: AIBotCreate, db: AsyncSession = Depends(connec
     return await LLMController.create_ai_chatbot(data, payload['id'], db)
     
 
-@ai_chatbot_router.get('/{bot_id}', response_model=AIBotResponse)
-async def create_ai_chatbot(bot_id: UUID,  db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
-    return await LLMController.get_ai_chatbot(bot_id, db)
+@ai_chatbot_router.get('/detail', response_model=AIBotResponse)
+async def create_ai_chatbot(db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='You are not authorized!')
+    
+    return await LLMController.get_ai_chatbot(user_id, db)
+
+
+@ai_chatbot_router.get('/create-conversation')
+async def create_ai_conversation(db: AsyncSession = Depends(connect_db)):
+    # user_id = payload['id']
+    
+    
+    topic = await generate_conversation_topic("How to feed a 8 months baby?")
+    
+    return topic
+    
+    
+    # if not user_id:
+    #     raise HTTPException(status_code=401, detail='You are not authorized!')
+    
+    return await LLMController.get_ai_chatbot(user_id, db)
+
 
 
 @ai_chatbot_router.post("/chat", response_model=ChatResponse)

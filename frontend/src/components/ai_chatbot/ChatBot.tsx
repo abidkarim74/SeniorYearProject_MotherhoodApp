@@ -1,6 +1,6 @@
 import { useState } from "react";
 import BotLeftBar from "./includes/BotLeftBar";
-import BotConversationArea from "./includes/BotConversationArea";
+import BotConversationArea from "./includes/ChatArea";
 
 const ChatBot = () => {
   const [isLeftBarOpen, setIsLeftBarOpen] = useState(false);
