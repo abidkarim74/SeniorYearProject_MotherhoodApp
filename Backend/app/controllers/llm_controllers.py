@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
 from models.user import User
-from models.ai import AIChatbot
+from models.ai import AIChatbot, AiConversation
 from sqlalchemy import select
 
 
@@ -103,7 +103,55 @@ class LLMController():
                 status_code=error_dict.get('status_code', 500),
                 detail=error_dict.get('detail', 'Internal server error!')
             ) 
+            
         
-    
+    @staticmethod
     async def create_ai_conversation(user_id: UUID, db: AsyncSession):
-        pass
+        try:
+            topic = "New chat"
+            conversation = AiConversation(user_id=user_id, topic=topic)
+            
+            db.add(conversation)
+            
+            await db.commit()
+            
+            await db.refresh(conversation)
+            
+            return True
+        
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500),
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+            
+    @staticmethod
+    async def fetch_all_conversations(user_id: UUID, db: AsyncSession):
+        try:
+            result = await db.execute(select(AiConversation).where(AiConversation.user_id==user_id))
+            
+            conversations = result.scalars().all()
+            
+            return conversations
+            
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500),
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+            
+            

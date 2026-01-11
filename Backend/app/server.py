@@ -55,6 +55,6 @@ app.include_router(vaccine_router)
 app.include_router(child_growth_router)
 
 
-@app.get('/api/')
-def index(payload = Depends(verify_authentication)):
-    return 'dasd'
+@app.get("/health")
+async def health():
+    return {"status": "healthy headasd"}
