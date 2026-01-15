@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 from datetime import datetime, date
 from typing import List
-from models.child import GenderEnum
+from app.models.child import GenderEnum
 
 
 class MotherProfileResponse(BaseModel):

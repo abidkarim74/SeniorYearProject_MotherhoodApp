@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import UUID
 from typing import List
-from schemas.community_schemas import PostCreate, PostResponse, PostUpdate, PostChangeVisiblity
-from database.postgres import connect_db
-from middleware.protect_endpoints import verify_authentication
+from app.schemas.community_schemas import PostCreate, PostResponse, PostUpdate, PostChangeVisiblity
+from app.database.postgres import connect_db
+from app.middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
-from controllers.community_controllers import PostControllers, PostLikeControllers, CommunityStatsControllers
-from schemas.community_schemas import CommentCreate, CommentResponse, CommentUpdate
-from controllers.community_controllers import CommentControllers, CommentLikeControllers
-from schemas.community_schemas import PostReportCreate, PostReportResponse, PostReportDetailResponse, PostReportUpdateStatus
-from controllers.community_controllers import PostReportControllers
+from app.controllers.community_controllers import PostControllers, PostLikeControllers, CommunityStatsControllers
+from app.schemas.community_schemas import CommentCreate, CommentResponse, CommentUpdate
+from app.controllers.community_controllers import CommentControllers, CommentLikeControllers
+from app.schemas.community_schemas import PostReportCreate, PostReportResponse, PostReportDetailResponse, PostReportUpdateStatus
+from app.controllers.community_controllers import PostReportControllers
 
 
 community_router = APIRouter(

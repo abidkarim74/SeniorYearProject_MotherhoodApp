@@ -43,9 +43,11 @@ class ChatResponse(BaseModel):
     error: Optional[str] = None
 
 
+
 @dataclass
 class GeminiResponse:
     prompt: str
     response_text: Optional[str]
     error: Optional[str]
     latency: float
+    model_used: Optional[str] = None 

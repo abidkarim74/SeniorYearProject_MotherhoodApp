@@ -1,11 +1,13 @@
 from uuid import UUID
-from schemas.ai_bot_schemas import AIBotCreate
+from app.schemas.ai_bot_schemas import AIBotCreate
+from app.schemas.llm_schemas import AiConversationUpdate
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from models.user import User
-from models.ai import AIChatbot, AiConversation
+from app.models.user import User
+from app.models.ai import AIChatbot, AiConversation
 from sqlalchemy import select
+from app.utils.ai_services import generate_conversation_topic
 
 
 class LLMController():
@@ -108,16 +110,22 @@ class LLMController():
     @staticmethod
     async def create_ai_conversation(user_id: UUID, db: AsyncSession):
         try:
+            print("1---")
             topic = "New chat"
             conversation = AiConversation(user_id=user_id, topic=topic)
             
             db.add(conversation)
             
+            
             await db.commit()
+            
+            print("2---")
             
             await db.refresh(conversation)
             
-            return True
+            print("3---")
+            
+            return conversation
         
         except SQLAlchemyError:
             await db.rollback()
@@ -132,11 +140,60 @@ class LLMController():
                 detail=error_dict.get('detail', 'Internal server error!')
             )
             
+            
+    @staticmethod
+    async def update_conversation(data: AiConversationUpdate, db: AsyncSession):
+        try:
+            prompt = f"""
+            Generate a concise topic (3-8 words) that summarizes the following message.
+            Return only the topic, no quotes or extra text.
+
+            Message:
+            {data.message}
+            """
+            
+            
+            print("damn")
+            topic =  await generate_conversation_topic(prompt)
+            print(topic)
+            
+            
+            
+            conversation = await db.get(AiConversation, data.con_id)
+            
+            if not conversation:
+                raise HTTPException(status_code=404, detail="Conversation not found!")
+            
+            conversation.topic = topic
+            
+            await db.commit()
+            await db.refresh(conversation)
+            
+            return conversation.topic    
+            
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500),
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
+            
+            
+            
     @staticmethod
     async def fetch_all_conversations(user_id: UUID, db: AsyncSession):
         try:
-            result = await db.execute(select(AiConversation).where(AiConversation.user_id==user_id))
-            
+            result = await db.execute(
+                select(AiConversation)
+                .where(AiConversation.user_id == user_id)
+                .order_by(AiConversation.updated_at.desc())
+            )   
             conversations = result.scalars().all()
             
             return conversations

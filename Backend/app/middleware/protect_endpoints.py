@@ -1,6 +1,6 @@
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
-from utils.token_services import verify_token
+from app.utils.token_services import verify_token
 from jose.exceptions import JWTError, ExpiredSignatureError
 
 

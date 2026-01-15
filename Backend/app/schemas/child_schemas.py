@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from enum import Enum
 from typing import Optional
-from models.child import GenderEnum
+from app.models.child import GenderEnum
 from uuid import UUID
 from datetime import date, datetime
 

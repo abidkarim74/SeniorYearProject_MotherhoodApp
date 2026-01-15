@@ -1,9 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.vaccination import VaccinationReminder, VaccinationOption
-from models.child import Child
-from schemas.vaccination_schemas import VaccinationReminderCreate
+from app.models.vaccination import VaccinationReminder, VaccinationOption
+from app.models.child import Child
+from app.schemas.vaccination_schemas import VaccinationReminderCreate
 
 
 class VaccinationReminderController:

@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.child_medical_schemas import VaccinationCreate, VaccinationUpdate
+from app.schemas.child_medical_schemas import VaccinationCreate, VaccinationUpdate
 from uuid import UUID
-from schemas.child_medical_schemas import MedicalConditionCreate, MedicalConditionUpdate
+from app.schemas.child_medical_schemas import MedicalConditionCreate, MedicalConditionUpdate
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from models.child import Vaccination, Child
+from app.models.child import Vaccination, Child
 from sqlalchemy import select
 
 

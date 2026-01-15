@@ -1,4 +1,4 @@
-from database.postgres import Base
+from app.database.postgres import Base
 from uuid import UUID as u, uuid4
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID, ARRAY

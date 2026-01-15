@@ -1,6 +1,6 @@
 from dotenv import load_dotenv # type: ignore
 import os
-from schemas.auth_schemas import TokenPayload
+from app.schemas.auth_schemas import TokenPayload
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status

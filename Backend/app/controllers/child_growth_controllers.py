@@ -5,9 +5,9 @@ from fastapi import HTTPException
 from uuid import UUID
 from datetime import date
 
-from models.child import Child
-from models.child_growth import ChildGrowthRecord
-from schemas.child_growth_schemas import GrowthRecordCreate, GrowthRecordUpdate
+from app.models.child import Child
+from app.models.child_growth import ChildGrowthRecord
+from app.schemas.child_growth_schemas import GrowthRecordCreate, GrowthRecordUpdate
 
 
 class ChildGrowthController:

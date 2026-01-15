@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.child_schemas import ChildCreateSchema, ChildBaseUpdateSchema, ChildPhysicalInfoUpdate
+from app.schemas.child_schemas import ChildCreateSchema, ChildBaseUpdateSchema, ChildPhysicalInfoUpdate
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException
-from models.child import Child
+from app.models.child import Child
 from uuid import UUID
 
 

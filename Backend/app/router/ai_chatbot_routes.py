@@ -5,19 +5,19 @@ import os
 from sqlalchemy import select
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from llm_core.gemini_client import AdvancedGeminiClient
-from llm_core.utils.gemini_utils import get_gemini_client
-from schemas.ai_schemas import ChatMessage, ChatResponse
-from middleware.protect_endpoints import verify_authentication
-from database.postgres import connect_db
-from schemas.ai_bot_schemas import AIBotCreate, AIBotResponse
-from controllers.llm_controllers import LLMController
-from models.user import User
-from schemas.llm_schemas import AiConversationResponseSchema
+from app.llm_core.gemini_client import AdvancedGeminiClient
+from app.llm_core.utils.gemini_utils import get_gemini_client
+from app.schemas.ai_schemas import ChatMessage, ChatResponse
+from app.middleware.protect_endpoints import verify_authentication
+from app.database.postgres import connect_db
+from app.schemas.ai_bot_schemas import AIBotCreate, AIBotResponse
+from app.controllers.llm_controllers import LLMController
+from app.models.user import User
+from app.schemas.llm_schemas import AiConversationResponseSchema, AiConversationUpdate
 from typing import List
 
 
-from utils.ai_services import generate_conversation_topic
+from app.utils.ai_services import generate_conversation_topic
 
 
 ai_chatbot_router = APIRouter(
@@ -51,10 +51,10 @@ async def create_ai_chatbot(db: AsyncSession = Depends(connect_db), payload = De
     return await LLMController.get_ai_chatbot(user_id, db)
 
 
-from llm_core.utils.gemini_utils import get_gemini_client
+from app.llm_core.utils.gemini_utils import get_gemini_client
 
 
-@ai_chatbot_router.get('/create-conversation')
+@ai_chatbot_router.post('/create-conversation', response_model=AiConversationResponseSchema)
 async def create_ai_conversation(
     db: AsyncSession = Depends(connect_db),
     payload = Depends(verify_authentication)
@@ -89,6 +89,20 @@ async def create_ai_conversation(
 
 
 
+@ai_chatbot_router.put('/update-conversation')
+async def update_ai_conversation(
+    data: AiConversationUpdate,
+    db: AsyncSession = Depends(connect_db),
+    payload = Depends(verify_authentication)
+):
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Not authorized!')
+    
+    return await LLMController.update_conversation(data, db)
+    
+    
 @ai_chatbot_router.post("/chat", response_model=ChatResponse)
 async def chat_with_ai(
     message: ChatMessage,

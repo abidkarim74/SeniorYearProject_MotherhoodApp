@@ -1,6 +1,6 @@
 import aiohttp
 import asyncio
-from schemas.ai_schemas import GeminiResponse
+from app.schemas.ai_schemas import GeminiResponse
 import time
 import json
 from typing import List, Dict, Optional
@@ -125,6 +125,8 @@ class AdvancedGeminiClient:
                 blacklist_time = time.time() + 30
                 self.model_blacklist_time[model] = blacklist_time
     
+    
+    
     async def generate_with_retry(self, prompt: str, max_retries: int = 2) -> GeminiResponse:
         last_error = None
         models_tried = set()
@@ -134,8 +136,8 @@ class AdvancedGeminiClient:
             
             if current_model in models_tried:
                 available = [m for m in self.working_models 
-                           if m not in models_tried and 
-                           (m not in self.model_blacklist_time or 
+                        if m not in models_tried and 
+                        (m not in self.model_blacklist_time or 
                             time.time() >= self.model_blacklist_time.get(m, 0))]
                 
                 if available:
@@ -196,6 +198,7 @@ class AdvancedGeminiClient:
                                     self._update_model_health(current_model, True)
                                     self.active_model = current_model
                                     
+                                    # FIXED: Correct order for dataclass parameters
                                     return GeminiResponse(
                                         prompt=prompt,
                                         response_text=text.strip(),
@@ -243,6 +246,7 @@ class AdvancedGeminiClient:
                 self._update_model_health(current_model, False, str(e))
                 await asyncio.sleep(2 ** attempt)
         
+        # FIXED: Correct order for error response
         return GeminiResponse(
             prompt=prompt,
             response_text=None,

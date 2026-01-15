@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from llm_core.gemini_client import AdvancedGeminiClient
+from app.llm_core.gemini_client import AdvancedGeminiClient
 import os
 from dotenv import load_dotenv
 
