@@ -220,3 +220,15 @@ class PostReport(Base):
         nullable=True
     )
     admin_notes: Mapped[str] = mapped_column(String, nullable=True)
+
+
+
+class UserSavedPost(Base):
+    __tablename__ = 'user_save_posts'
+
+    id: Mapped[u] = mapped_column(
+        UUID(as_uuid=True), 
+        primary_key=True, 
+        default=uuid4
+    )
+
