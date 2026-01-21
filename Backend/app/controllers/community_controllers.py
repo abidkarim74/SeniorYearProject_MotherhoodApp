@@ -4,20 +4,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, and_, update, or_
 from sqlalchemy.orm import selectinload
-from schemas.community_schemas import PostCreate, PostUpdate, PostChangeVisiblity, PostResponse
-from models.community import Post, PostLike
+from app.schemas.community_schemas import PostCreate, PostUpdate, PostChangeVisiblity, PostResponse
+from app.models.community import Post, PostLike
 from typing import List
 from datetime import date, timedelta, datetime
-from models.user import User
+from app.models.user import User
 from sqlalchemy import func
-from schemas.community_schemas import MiniUserSchema
-from schemas.community_schemas import PostChangeVisiblity
-from models.user import User
-from models.community import Post
-from models.community import Comment, CommentLike
-from schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
-from models.community import PostReport, ReportStatus
-from schemas.community_schemas import PostReportCreate, PostReportResponse, PostReportDetailResponse, PostReportUpdateStatus
+from app.schemas.community_schemas import MiniUserSchema
+from app.schemas.community_schemas import PostChangeVisiblity
+from app.models.user import User
+from app.models.community import Post
+from app.models.community import Comment, CommentLike
+from app.schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
+from app.models.community import PostReport, ReportStatus
+from app.schemas.community_schemas import PostReportCreate, PostReportResponse, PostReportDetailResponse, PostReportUpdateStatus
 
 
 class PostControllers():
@@ -559,8 +559,8 @@ class CommunityStatsControllers():
             raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
             
 
-from models.community import Comment, CommentLike
-from schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
+from app.models.community import Comment, CommentLike
+from app.schemas.community_schemas import CommentCreate, CommentUpdate, CommentResponse
 
 
 class CommentControllers():
@@ -839,6 +839,7 @@ class CommentLikeControllers():
         
         except Exception as e:
             await db.rollback()
+            
             error_dict = e.__dict__
             raise HTTPException(
                 status_code=error_dict.get('status_code', 500), 

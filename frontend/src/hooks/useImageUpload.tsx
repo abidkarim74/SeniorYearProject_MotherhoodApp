@@ -91,6 +91,7 @@ const useImageUpload = () => {
     setError(null);
     setProgress(0);
   };
+  
 
   return { imageUrl, isLoading, error, progress, uploadImage, reset };
 };

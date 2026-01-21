@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Response, Cookie
-from database.postgres import connect_db
-from schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLoginSchema
+from app.database.postgres import connect_db
+from app.schemas.auth_schemas import UserCreateSchema, UserResponseSchema, UserLoginSchema
 from sqlalchemy.ext.asyncio import AsyncSession
-from controllers.auth_controllers import AuthController
-from middleware.protect_endpoints import verify_authentication
+from app.controllers.auth_controllers import AuthController
+from app.middleware.protect_endpoints import verify_authentication
 
 
 auth_router = APIRouter(
@@ -39,7 +39,7 @@ async def authenticated_user_route(db: AsyncSession = Depends(connect_db), paylo
     return await AuthController.authenticated_user_func(id, db)
 
 
-from schemas.auth_schemas import ChangePassword
+from app.schemas.auth_schemas import ChangePassword
 
 
 @auth_router.post('/password-reset')

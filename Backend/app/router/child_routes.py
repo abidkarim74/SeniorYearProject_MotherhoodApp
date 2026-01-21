@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from schemas.child_schemas import ChildCreateSchema, ChildResponseSchema, ChildBaseUpdateSchema, ChildPhysicalInfoUpdate
-from middleware.protect_endpoints import verify_authentication
-from database.postgres import connect_db
+from app.schemas.child_schemas import ChildCreateSchema, ChildResponseSchema, ChildBaseUpdateSchema, ChildPhysicalInfoUpdate
+from app.middleware.protect_endpoints import verify_authentication
+from app.database.postgres import connect_db
 from sqlalchemy.ext.asyncio import AsyncSession
-from controllers.child_controllers import ChildController
+from app.controllers.child_controllers import ChildController
 
 
 child_router = APIRouter(

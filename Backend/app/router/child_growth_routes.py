@@ -4,11 +4,11 @@ from uuid import UUID
 from typing import List, Optional
 from datetime import date
 
-from database.postgres import connect_db
-from middleware.protect_endpoints import verify_authentication
+from app.database.postgres import connect_db
+from app.middleware.protect_endpoints import verify_authentication
 
-from controllers.child_growth_controllers import ChildGrowthController
-from schemas.child_growth_schemas import GrowthRecordCreate, GrowthRecordUpdate, GrowthRecordResponse
+from app.controllers.child_growth_controllers import ChildGrowthController
+from app.schemas.child_growth_schemas import GrowthRecordCreate, GrowthRecordUpdate, GrowthRecordResponse
 
 
 child_growth_router = APIRouter(

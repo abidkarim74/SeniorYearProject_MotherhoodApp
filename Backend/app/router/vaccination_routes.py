@@ -4,13 +4,11 @@ from sqlalchemy import select
 import logging
 from uuid import UUID
 from typing import List
-from schemas.vaccine_schemas import VaccineWithSchedulesResponse, VaccinationPendingSchemaResponse
+from app.schemas.vaccine_schemas import VaccineWithSchedulesResponse, VaccinationPendingSchemaResponse
 from datetime import date
-
-from database.postgres import connect_db
-
-from middleware.protect_endpoints import verify_authentication
-from controllers.vaccination_controllers import VaccinationControllers
+from app.database.postgres import connect_db
+from app.middleware.protect_endpoints import verify_authentication
+from app.controllers.vaccination_controllers import VaccinationControllers
 
 
 vaccine_router = APIRouter(prefix="/api/vaccines", tags=["vaccines"])

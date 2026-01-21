@@ -1,20 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { putRequest } from '../../../api/requests';
+
+import type { AiConversation } from '../../../interfaces/AIBotInterfaces';
 
 
-interface Message {
-  id: number;
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: string;
-}
 
 interface ChatAreaProps {
-  currentConversation: {
-    id: string;
-    title: string;
-    messages: Message[];
-    createdAt: string;
-  } | null;
+  currentConversation: AiConversation | null;
   isLoading: boolean;
   isChatPage: boolean;
   onBackToAllChats: () => void;
@@ -22,42 +14,110 @@ interface ChatAreaProps {
   onCopyLink: () => void;
   onNewChat: () => void;
   showMobileSidebarToggle?: boolean;
+  
+  // Fix these prop types
+  conversations: AiConversation[];
+  setConversations: React.Dispatch<React.SetStateAction<AiConversation[]>>;
+  
+  // Add this if you need to update current conversation in parent
+  onConversationUpdate?: (conversation: AiConversation) => void;
 }
 
-const ChatArea = ({ 
-  currentConversation, 
-  isLoading, 
-  onToggleSidebar, 
+const ChatArea = ({
+  currentConversation,
+  isLoading,
+  onToggleSidebar,
   onNewChat,
-  showMobileSidebarToggle = false 
+  showMobileSidebarToggle = false,
+  conversations,
+  setConversations,
+  onConversationUpdate
 }: ChatAreaProps) => {
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    if (messagesEndRef.current && currentConversation?.messages.length) {
+    if (messagesEndRef.current && currentConversation?.messages?.length) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [currentConversation?.messages.length]);
+  }, [currentConversation?.messages?.length]);
 
-  const handleSendMessage = () => {
-    if (inputText.trim()) {
-      // Handle sending message - this would typically call an API
-      console.log('Sending message:', inputText);
+  const handleSendMessage = async () => {
+    const messageText = inputText.trim();
+    if (!messageText || !currentConversation || isSending) return;
+
+    setIsSending(true);
+
+    try {
+      const data = {
+        'message': messageText,
+        'con_id': currentConversation.id
+      };
+
+      console.log('Sending message data:', data);
+
+      const updatedTopic = await putRequest('/ai-chatbot/update-conversation', data);
+      
+      console.log("Updated topic from API:", updatedTopic);
+
+      // Clear input text
       setInputText('');
+
+      // Create updated conversation object
+      const updatedConversation: AiConversation = {
+        id: currentConversation.id,
+        topic: updatedTopic || currentConversation.topic,
+        user_id: currentConversation.user_id,
+        created_at: currentConversation.created_at,
+        updated_at: new Date().toISOString(),
+        messages: []
+      };
+
+      // Update conversations list
+      setConversations(prev => {
+        // Check if conversation exists in the list
+        const existingIndex = prev.findIndex(conv => conv.id === currentConversation.id);
+        
+        if (existingIndex >= 0) {
+          // Update existing conversation
+          const newList = [...prev];
+          newList[existingIndex] = updatedConversation;
+          
+          // Sort by updated_at (most recent first)
+          return newList.sort((a, b) => 
+            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          );
+        } else {
+          // Add new conversation to the beginning
+          return [updatedConversation, ...prev];
+        }
+      });
+
+      // Notify parent about the updated conversation
+      if (onConversationUpdate) {
+        onConversationUpdate(updatedConversation);
+      }
+
+    } catch (err: any) {
+      console.error('Error sending message:', err);
+      // You might want to show an error to the user here
+    } finally {
+      setIsSending(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  
+  // Helper to check if currentConversation has messages
+  const hasMessages = currentConversation?.messages && currentConversation.messages.length > 0;
 
   if (isLoading) {
     return (
@@ -75,24 +135,20 @@ const ChatArea = ({
   if (currentConversation) {
     return (
       <div className="flex flex-1 flex-col h-full">
-       
-
-        {/* Messages Area - Use flex-1 to fill available space */}
-        <div 
+        {/* Messages Area */}
+        <div
           ref={messagesContainerRef}
           className="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-white to-gray-50/30 custom-scrollbar"
         >
           <div className="max-w-2xl mx-auto w-full pt-4 pb-20 px-4">
-            {currentConversation.messages.length > 0 ? (
+            {hasMessages ? (
               <div className="space-y-3">
-                {currentConversation.messages.map((message) => (
+                {currentConversation.messages!.map((message) => (
                   <div
                     key={message.id}
                     className={`group w-full ${message.sender === 'user' ? 'text-right' : 'text-left'}`}
                   >
-                    <div className={`inline-block max-w-[85%] ${
-                      message.sender === 'user' ? 'ml-auto' : 'mr-auto'
-                    }`}>
+                    <div className={`inline-block max-w-[85%] ${message.sender === 'user' ? 'ml-auto' : 'mr-auto'}`}>
                       <div className="flex gap-2.5">
                         {/* Avatar - Only show for AI messages */}
                         {message.sender === 'ai' && (
@@ -102,16 +158,12 @@ const ChatArea = ({
                             </svg>
                           </div>
                         )}
-                        
+
                         {/* Message Content */}
-                        <div className={`flex-1 min-w-0 ${
-                          message.sender === 'user' ? 'order-first' : 'order-last'
-                        }`}>
+                        <div className={`flex-1 min-w-0 ${message.sender === 'user' ? 'order-first' : 'order-last'}`}>
                           {/* Sender and timestamp */}
                           <div className={`flex items-center gap-1.5 mb-0.5 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <span className={`text-xs font-medium ${
-                              message.sender === 'user' ? 'text-blue-600' : 'text-[#d88a8d]'
-                            }`}>
+                            <span className={`text-xs font-medium ${message.sender === 'user' ? 'text-blue-600' : 'text-[#d88a8d]'}`}>
                               {message.sender === 'user' ? 'You' : 'AI Assistant'}
                             </span>
                             {message.timestamp && (
@@ -120,28 +172,23 @@ const ChatArea = ({
                               </span>
                             )}
                           </div>
-                          
+
                           {/* Message Bubble */}
-                          <div className={`relative ${
-                            message.sender === 'user' 
-                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-sm' 
+                          <div className={`relative ${message.sender === 'user'
+                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-sm'
                               : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-sm shadow-sm'
-                          } px-3.5 py-2.5`}>
-                            {/* Message text */}
+                            } px-3.5 py-2.5`}>
                             <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                               {message.text}
                             </div>
-                            
-                            {/* Corner decoration for user messages */}
+
                             {message.sender === 'user' && (
                               <div className="absolute -right-1.5 bottom-0 w-3 h-3 bg-blue-500 rounded-br-lg transform rotate-45"></div>
                             )}
                           </div>
-                          
+
                           {/* Actions - Hover only on desktop */}
-                          <div className={`flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${
-                            message.sender === 'user' ? 'justify-end' : 'justify-start'
-                          }`}>
+                          <div className={`flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <button className="p-0.5 text-gray-400 hover:text-gray-600 transition-colors">
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -154,7 +201,7 @@ const ChatArea = ({
                             </button>
                           </div>
                         </div>
-                        
+
                         {/* Avatar for user messages */}
                         {message.sender === 'user' && (
                           <div className="flex-shrink-0 w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mt-0.5">
@@ -185,62 +232,75 @@ const ChatArea = ({
           </div>
         </div>
 
-        {/* Input Area - Fixed height container */}
+        {/* Input Area */}
         <div className="flex-shrink-0 bg-gradient-to-t from-white via-white to-transparent pt-4 pb-3 px-4 border-t border-gray-100">
           <div className="max-w-2xl mx-auto w-full">
             <div className="relative">
-              {/* Main input container with cool border */}
               <div className="relative flex items-center bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-[#e5989b] focus-within:ring-1 focus-within:ring-[#e5989b]/20 focus-within:shadow-md">
-                {/* Gradient border effect on focus */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#e5989b]/0 via-[#e5989b]/0 to-[#e5989b]/0 rounded-2xl group-focus-within:from-[#e5989b]/10 group-focus-within:via-[#d88a8d]/10 group-focus-within:to-[#e5989b]/10 transition-all duration-300 pointer-events-none"></div>
-                
+
                 <textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Message AI Assistant..."
                   className="relative flex-1 p-2.5 pr-10 text-sm bg-transparent border-0 focus:outline-none focus:ring-0 resize-none min-h-[44px] max-h-[120px] placeholder-gray-400 z-10"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
+                  onKeyDown={handleKeyDown}
                   rows={1}
-                  style={{ 
+                  disabled={isSending}
+                  style={{
                     overflow: 'hidden',
                     overflowWrap: 'break-word'
                   }}
                 />
-                
-                {/* Send button with gradient */}
-                <button 
+
+                <button
                   onClick={handleSendMessage}
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() || isSending}
                   className="absolute right-1.5 z-20 p-1.5 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-xl hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
+                  {isSending ? (
+                    <div className="w-3.5 h-3.5 flex items-center justify-center">
+                      <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : (
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  )}
                 </button>
               </div>
-              
-              {/* Info text */}
+
               <p className="text-[10px] text-gray-400 text-center mt-1.5">
                 Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">Enter</kbd> to send • <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">Shift</kbd> + <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[9px]">Enter</kbd> for new line
               </p>
-              
-              {/* Quick action buttons - Smaller and more compact */}
+
               <div className="flex items-center justify-center flex-wrap gap-1.5 mt-2">
-                <button className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm">
+                <button 
+                  onClick={() => setInputText("Can you suggest a bedtime routine for my 2-year-old?")}
+                  disabled={isSending}
+                  className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
+                >
                   Bedtime routine
                 </button>
-                <button className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm">
+                <button 
+                  onClick={() => setInputText("What are some healthy meal ideas for toddlers?")}
+                  disabled={isSending}
+                  className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
+                >
                   Toddler meals
                 </button>
-                <button className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm">
+                <button 
+                  onClick={() => setInputText("What developmental milestones should I expect at 18 months?")}
+                  disabled={isSending}
+                  className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
+                >
                   Milestones
                 </button>
-                <button className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm">
+                <button 
+                  onClick={() => setInputText("How can I help my child with a fever?")}
+                  disabled={isSending}
+                  className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
+                >
                   Health tips
                 </button>
               </div>

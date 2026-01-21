@@ -1,20 +1,17 @@
 from fastapi import FastAPI, Depends
-from database.postgres import SessionLocal
+from app.database.postgres import SessionLocal
 from sqlalchemy import text
-from router.auth_routes import auth_router
-from middleware.protect_endpoints import verify_authentication
+from app.router.auth_routes import auth_router
+from app.middleware.protect_endpoints import verify_authentication
 from fastapi.middleware.cors import CORSMiddleware
-from router.child_routes import child_router
-from router.profile_routes import profile_router
-from router.ai_chatbot_routes import ai_chatbot_router
-from router.child_growth_routes import child_growth_router
-
-from router.vaccination_reminder_routes import vaccination_reminder_router
-
-from router.community_routes import community_router
-from router.vaccination_routes import vaccine_router
-
-from database.mongo import mongo_db
+from app.router.child_routes import child_router
+from app.router.profile_routes import profile_router
+from app.router.ai_chatbot_routes import ai_chatbot_router
+from app.router.child_growth_routes import child_growth_router
+from app.router.vaccination_reminder_routes import vaccination_reminder_router
+from app.router.community_routes import community_router
+from app.router.vaccination_routes import vaccine_router
+from app.database.mongo import mongo_db
 
 app = FastAPI()
 

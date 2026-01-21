@@ -5,6 +5,10 @@ import BotLeftBar from "../components/ai_chatbot/includes/BotLeftBar";
 import ChatArea from "../components/ai_chatbot/includes/ChatArea";
 import { Menu, X, ChevronLeft } from 'lucide-react';
 
+
+import { type AiConversation } from '../interfaces/AIBotInterfaces';
+import { postRequest } from '../api/requests';
+
 const ConversationAIChatbot = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -12,6 +16,32 @@ const ConversationAIChatbot = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [conversations, setConversations] = useState<AiConversation[]>([]);
+
+  const createNewConversation = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await postRequest('/ai-chatbot/create-conversation', {});
+
+      console.log("res: ",response.id);
+
+      setConversations(prev => [...prev, response]);
+
+      navigate('/ai-assistant/chat/' + response.id);
+
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const isChatPage = id !== undefined;
 
@@ -206,8 +236,12 @@ const ConversationAIChatbot = () => {
         <div className="flex-1 h-[85vh] md:h-[93.5%] lg:h-[93.5%] overflow-y-auto">
           <BotLeftBar
             onSelectConversation={handleSelectConversation}
-            onNewChat={handleNewChat}
+            onNewChat={createNewConversation}
             currentChatId={id}
+            conversations={conversations}
+            setConversations={setConversations}
+            loading={loading}
+            error={error}
           />
         </div>
       </div>
@@ -217,7 +251,9 @@ const ConversationAIChatbot = () => {
         <ChatArea
           currentConversation={currentConversation}
           isLoading={isLoading}
+          conversations={conversations}
           isChatPage={isChatPage}
+          setConversations={setConversations}
           onBackToAllChats={handleBackToAllChats}
           onToggleSidebar={toggleSidebar}
           onCopyLink={handleCopyLink}

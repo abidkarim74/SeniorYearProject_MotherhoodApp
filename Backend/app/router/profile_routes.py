@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
-from schemas.profile_schemas import MotherProfileResponse, MotherProfileUpdate
-from middleware.protect_endpoints import verify_authentication
+from app.schemas.profile_schemas import MotherProfileResponse, MotherProfileUpdate
+from app.middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.postgres import connect_db
-from controllers.profile_controllers import ProfileController
-from schemas.child_schemas import ChildMiniResponseSchema
+from app.database.postgres import connect_db
+from app.controllers.profile_controllers import ProfileController
+from app.schemas.child_schemas import ChildMiniResponseSchema
 from typing import List
 
 

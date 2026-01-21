@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.postgres import connect_db
+from app.database.postgres import connect_db
 from fastapi import HTTPException
-from schemas.profile_schemas import MotherProfileUpdate
+from app.schemas.profile_schemas import MotherProfileUpdate
 from sqlalchemy.exc import SQLAlchemyError
-from models.user import User
+from app.models.user import User
 from sqlalchemy import select, inspect
 from uuid import UUID
 from typing import Dict, Any, Optional
-from models.child import Child
+from app.models.child import Child
 
 
 

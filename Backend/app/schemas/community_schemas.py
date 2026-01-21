@@ -1,9 +1,9 @@
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
-from models.community import PostType
+from app.models.community import PostType
 from typing import List
 from datetime import datetime
-from models.community import ReportReason, ReportStatus
+from app.models.community import ReportReason, ReportStatus
 
 
 class PostBase(BaseModel):

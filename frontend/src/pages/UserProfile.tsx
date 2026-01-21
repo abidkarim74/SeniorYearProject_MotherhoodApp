@@ -202,6 +202,7 @@ const UserProfile = () => {
     ? (uploadedProfilePic || mother?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png")
     : (mother?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png");
 
+  
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea]">
       <div className="text-center">

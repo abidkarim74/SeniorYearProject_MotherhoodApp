@@ -1,17 +1,15 @@
-from schemas.auth_schemas import UserCreateSchema, UserLoginSchema
+from app.schemas.auth_schemas import UserCreateSchema, UserLoginSchema, ChangePassword
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import HTTPException, Response
 from sqlalchemy import select
 from itsdangerous import Signer
-from models.user import User
-from utils.hash_services import hash_password_func, verify_password
-from utils.token_services import generate_access_token, generate_refresh_token
+from app.models.user import User
+from app.utils.hash_services import hash_password_func, verify_password
+from app.utils.token_services import generate_access_token, generate_refresh_token, verify_token
 from dotenv import load_dotenv # type: ignore
 import os
-from utils.token_services import verify_token
 from jose.exceptions import JWTError, ExpiredSignatureError
-from schemas.auth_schemas import ChangePassword
 
 
 class AuthController():
