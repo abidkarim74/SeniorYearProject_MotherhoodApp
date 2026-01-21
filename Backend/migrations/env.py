@@ -5,15 +5,16 @@ from sqlalchemy import pool
 
 from alembic import context # type: ignore
 
-from database.postgres import Base
-from models.user import User
-from models.ai import AIChatbot
-from models.child import Child
-from models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
-from models.ai import AIChatbot, AiConversation
-from models.community import Post, PostLike, PostComplain
-from models.child_growth import ChildGrowthRecord
-from models.notifications import Notification
+from app.database.postgres import Base
+from app.models.user import User
+from app.models.ai import AIChatbot
+from app.models.child import Child
+from app.models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
+from app.models.ai import AIChatbot, AiConversation
+from app.models.community import Post, PostLike, PostComplain
+from app.models.child_growth import ChildGrowthRecord
+from app.models.notifications import Notification
+from app.models.tutorial import VideoTutorial
 
 
 # this is the Alembic Config object, which provides

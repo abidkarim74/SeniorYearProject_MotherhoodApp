@@ -13,6 +13,7 @@ from app.router.community_routes import community_router
 from app.router.vaccination_routes import vaccine_router
 from app.database.mongo import mongo_db
 
+
 app = FastAPI()
 
 
