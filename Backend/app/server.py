@@ -11,6 +11,7 @@ from app.router.child_growth_routes import child_growth_router
 from app.router.vaccination_reminder_routes import vaccination_reminder_router
 from app.router.community_routes import community_router
 from app.router.vaccination_routes import vaccine_router
+from app.router.mood_routes import router as mood_router  
 from app.database.mongo import mongo_db
 
 
@@ -46,7 +47,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(child_router)
 app.include_router(ai_chatbot_router)
-
+app.include_router(mood_router)  
 app.include_router(vaccination_reminder_router)
 app.include_router(community_router)
 app.include_router(vaccine_router)
