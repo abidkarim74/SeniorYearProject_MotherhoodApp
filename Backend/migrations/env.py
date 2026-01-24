@@ -11,7 +11,8 @@ from app.models.ai import AIChatbot
 from app.models.child import Child
 from app.models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
 from app.models.ai import AIChatbot, AiConversation
-from app.models.community import Post, PostLike, PostComplain
+import app.models.community  # ensures ALL community models register on Base.metadata
+
 from app.models.child_growth import ChildGrowthRecord
 from app.models.notifications import Notification
 from app.models.tutorial import VideoTutorial

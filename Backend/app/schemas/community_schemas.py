@@ -6,17 +6,13 @@ from datetime import datetime
 from app.models.community import ReportReason, ReportStatus
 
 
-class PostBase(BaseModel):
-    user_id: UUID
+# Used for create input (client sends this)
+class PostCreate(BaseModel):
     title: str
     tags: List[str] | None = None
     images: List[str] | None = None
     description: str
     post_type: PostType | None = None
-    
-    
-class PostCreate(PostBase):
-    pass
 
 
 class PostUpdate(BaseModel):
@@ -25,15 +21,16 @@ class PostUpdate(BaseModel):
 
 class PostChangeVisiblity(BaseModel):
     visible: bool | None = None
-    
-    
+
+
 class MiniUserSchema(BaseModel):
     firstname: str
     lastname: str
     username: str
     profile_pic: str | None = None
-    
-    
+
+
+# Used for response output (server returns this)
 class PostResponse(BaseModel):
     user_id: UUID
     user: MiniUserSchema
@@ -48,11 +45,8 @@ class PostResponse(BaseModel):
     like_count: int
     created_at: datetime
     likers: List[UUID] = []
-    
-    
-    
-    model_config = ConfigDict(from_attributes=True)
 
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CommentCreate(BaseModel):
@@ -72,10 +66,8 @@ class CommentResponse(BaseModel):
     updated_at: datetime
     user: MiniUserSchema
     like_count: int
-    
+
     model_config = ConfigDict(from_attributes=True)
-
-
 
 
 class PostReportCreate(BaseModel):
@@ -93,7 +85,7 @@ class PostReportResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     reporter: MiniUserSchema
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -111,11 +103,10 @@ class PostReportDetailResponse(BaseModel):
     admin_notes: str | None
     reporter: MiniUserSchema
     post: PostResponse
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
 class PostReportUpdateStatus(BaseModel):
     status: ReportStatus
     admin_notes: str | None = None
-

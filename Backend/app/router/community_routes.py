@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import UUID
 from typing import List
+from typing import Optional
+from fastapi import Query
 from app.schemas.community_schemas import PostCreate, PostResponse, PostUpdate, PostChangeVisiblity
 from app.database.postgres import connect_db
 from app.middleware.protect_endpoints import verify_authentication
@@ -55,8 +57,8 @@ async def delete_post_route(post_id: str, payload = Depends(verify_authenticatio
 
 @community_router.post('/post/toogle-like/{post_id}')
 async def toogle_like(post_id: str, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    print("hdasdasda")
-    return await PostLikeControllers.toggle_like(post_id, payload['id'], db)
+    return await PostLikeControllers.toggle_like(UUID(post_id), payload['id'], db)
+
 
 
 
@@ -74,12 +76,13 @@ async def todays_posts(payload = Depends(verify_authentication), db: AsyncSessio
 
 @community_router.post('/post/{post_id}/comment', status_code=201, response_model=CommentResponse)
 async def create_comment_route(
-    post_id: str, 
-    data: CommentCreate, 
-    payload = Depends(verify_authentication), 
+    post_id: str,
+    data: CommentCreate,
+    payload = Depends(verify_authentication),
     db: AsyncSession = Depends(connect_db)
 ):
-    return await CommentControllers.create(UUID(post_id), payload['id'], data, db)
+    auth_id = UUID(payload["id"]) if isinstance(payload["id"], str) else payload["id"]
+    return await CommentControllers.create(UUID(post_id), auth_id, data, db)
 
 
 @community_router.get('/post/{post_id}/comments', response_model=List[CommentResponse])
@@ -173,3 +176,22 @@ async def delete_report_route(
     db: AsyncSession = Depends(connect_db)
 ):
     return await PostReportControllers.delete(UUID(report_id), payload['id'], db)
+@community_router.get('/search', response_model=List[PostResponse])
+async def search_posts_route(
+    q: str = Query(..., min_length=1),
+    post_type: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    payload = Depends(verify_authentication),
+    db: AsyncSession = Depends(connect_db),
+):
+    return await PostControllers.search(
+        auth_id=payload['id'],
+        q=q,
+        db=db,
+        post_type=post_type,
+        category=category,
+        limit=limit,
+        offset=offset,
+    )
