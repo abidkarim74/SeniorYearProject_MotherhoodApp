@@ -42,7 +42,7 @@ function App() {
         }
       />
 
-      {/* ================= PROTECTED ROUTES ================= */}
+      {/* ================ PROTECTED ROUTES ================ */}
       <Route element={<ProtectedRoutes />}>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Home />} />
