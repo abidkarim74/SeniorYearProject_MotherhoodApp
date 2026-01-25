@@ -19,6 +19,8 @@ import Settings from "./pages/Settings";
 import ImportantVaccines from "./pages/ImportantVaccines";
 import ChildDetail from "./pages/ChildDetail";
 import ChildGrowthTracking from "./pages/ChildGrowthTracking";
+// New Import
+import LogMood from "./pages/LogMood"; 
 
 function App() {
   return (
@@ -54,7 +56,10 @@ function App() {
           <Route path="/add-vaccination" element={<AddVaccination />} />
           <Route path="/important-vaccines" element={<ImportantVaccines />} />
 
+          {/* Kept Community as requested, added Log Mood below it */}
           <Route path="/community" element={<Community />} />
+          <Route path="/log-mood" element={<LogMood />} /> 
+          
           <Route path="/settings" element={<Settings />} />
 
           <Route path="/mother/:id" element={<UserProfile />} />

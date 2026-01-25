@@ -3,7 +3,7 @@ import {
   Home, 
   Users, 
   Calendar, 
-  MessageCircle,
+  Smile, // Replaced MessageCircle with Smile
   Baby,
   Settings,
   LogOut
@@ -20,7 +20,8 @@ const LeftBar = () => {
     { path: "/", icon: Home, label: "Dashboard" },
     { path: "/children", icon: Users, label: "My Children" },
     { path: "/vaccinations", icon: Calendar, label: "Vaccinations" },
-    { path: "/community", icon: MessageCircle, label: "Community" },
+    // Replaced Community with Log Mood
+    { path: "/log-mood", icon: Smile, label: "Log Mood" }, 
   ];
 
   const handleLogout = async () => {
@@ -40,7 +41,7 @@ const LeftBar = () => {
 
   return (
     <div className="h-full bg-white shadow-lg border-r border-gray-200 flex flex-col w-20 hover:w-64 transition-all duration-300 group">
-     
+      
       {/* Navigation Items */}
       <nav className="flex-1 px-3 py-4 space-y-2">
         {navigationItems.map((item) => {
