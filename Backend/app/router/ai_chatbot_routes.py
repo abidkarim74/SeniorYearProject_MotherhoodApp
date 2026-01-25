@@ -1,23 +1,18 @@
 from fastapi import APIRouter, HTTPException, Depends
-import aiohttp # type: ignore
-import time
-import os
-from sqlalchemy import select
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.llm_core.gemini_client import AdvancedGeminiClient
-from app.llm_core.utils.gemini_utils import get_gemini_client
-from app.schemas.ai_schemas import ChatMessage, ChatResponse
+
+
+from app.schemas.ai_schemas import AIChatMessage
 from app.middleware.protect_endpoints import verify_authentication
 from app.database.postgres import connect_db
 from app.schemas.ai_bot_schemas import AIBotCreate, AIBotResponse
 from app.controllers.llm_controllers import LLMController
-from app.models.user import User
-from app.schemas.llm_schemas import AiConversationResponseSchema, AiConversationUpdate
+from app.schemas.llm_schemas import AiConversationResponseSchema
 from typing import List
 
+from app.schemas.llm_schemas import AIMessageResponseSchema
 
-from app.utils.ai_services import generate_conversation_topic
 
 
 ai_chatbot_router = APIRouter(
@@ -51,7 +46,6 @@ async def create_ai_chatbot(db: AsyncSession = Depends(connect_db), payload = De
     return await LLMController.get_ai_chatbot(user_id, db)
 
 
-from app.llm_core.utils.gemini_utils import get_gemini_client
 
 
 @ai_chatbot_router.post('/create-conversation', response_model=AiConversationResponseSchema)
@@ -66,11 +60,8 @@ async def create_ai_conversation(
         raise HTTPException(status_code=401, detail='Not authorized!')
     
     return await LLMController.create_ai_conversation(user_id, db)
-    # client = await get_gemini_client()
     
-    # topic = await generate_conversation_topic("whats ur name? one word ans")
-    
-    # return topic
+
     
 @ai_chatbot_router.get('/all-conversations', response_model=List[AiConversationResponseSchema])
 async def create_ai_conversation(
@@ -88,10 +79,12 @@ async def create_ai_conversation(
     
 
 
+from app.schemas.ai_schemas import AIConversationUpdate
+
 
 @ai_chatbot_router.put('/update-conversation')
 async def update_ai_conversation(
-    data: AiConversationUpdate,
+    data: AIConversationUpdate,
     db: AsyncSession = Depends(connect_db),
     payload = Depends(verify_authentication)
 ):
@@ -101,81 +94,68 @@ async def update_ai_conversation(
         raise HTTPException(status_code=401, detail='Not authorized!')
     
     return await LLMController.update_conversation(data, db)
+
+
+@ai_chatbot_router.put('/summarize-conversation/{conversation_id}')
+async def update_ai_conversation(
+    conversation_id: UUID,
+    db: AsyncSession = Depends(connect_db),
+    payload = Depends(verify_authentication)
+):
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Not authorized!')
+    
+    return await LLMController.summarize_conversation(conversation_id, db)
     
     
-@ai_chatbot_router.post("/chat", response_model=ChatResponse)
+@ai_chatbot_router.post("/chat")
 async def chat_with_ai(
-    message: ChatMessage,
+    message: AIChatMessage,
     db: AsyncSession = Depends(connect_db),
     payload = Depends(verify_authentication),
-    gemini_client: AdvancedGeminiClient = Depends(get_gemini_client)
 ):
     if not message.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     
-    try:
-        user_stmt = select(User).where(User.id == payload['id'])
-        user_result = await db.execute(user_stmt)
-        user = user_result.scalar_one_or_none()
-        
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-            
-                
-        personalized_prompt = f"""
-        You are a helpful, knowledgeable, and compassionate parenting assistant named "ParentPal". 
-        You are currently talking to {user.firstname}.
-        
-        Context about {user.firstname}:
-        - They are a parent seeking advice and support
-        - They may have questions about child care, development, health, or parenting challenges
-        - They appreciate evidence-based information with a compassionate tone
-        
-        Important guidelines:
-        1. Address them by name naturally in conversation when appropriate
-        2. Provide supportive, evidence-based parenting advice
-        3. Be compassionate and understanding of parenting challenges
-        4. Suggest consulting healthcare professionals for medical concerns
-        5. Maintain a warm, professional, and reassuring tone
-        6. Keep responses clear and practical
-        7. If you're unsure about something, acknowledge it and suggest reliable resources
-        
-        Current message from {user.username}: {message.message}
-        
-        Please provide a helpful response:
-        """
-        
-        result = await gemini_client.generate_with_retry(personalized_prompt)
-        
-        if result.error:
-            raise HTTPException(
-                status_code=500, 
-                detail=f"AI service error: {result.error}"
-            )
-            
-        return ChatResponse(
-            response=result.response_text,
-            conversation_id=message.conversation_id,
-            latency=round(result.latency, 2),
-            error=None
-        )
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"Error in chat endpoint: {e}")
-        result = await gemini_client.generate_with_retry(message.message)
-        
-        if result.error:
-            raise HTTPException(
-                status_code=500, 
-                detail=f"AI service error: {result.error}"
-            )
-            
-        return ChatResponse(
-            response=result.response_text,
-            conversation_id=message.conversation_id,
-            latency=round(result.latency, 2),
-            error=None
-        )
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Not authorized!')
+    
+    return await LLMController.chat_with_ai(user_id, message, db)
+
+
+
+
+
+
+@ai_chatbot_router.get("/messages/{conversation_id}", response_model=List[AIMessageResponseSchema])
+async def chatbot_message_list(
+    conversation_id: UUID,
+    db: AsyncSession = Depends(connect_db),
+    payload = Depends(verify_authentication),
+): 
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Not authorized!')
+    
+    return await LLMController.fetch_messages(conversation_id, db)
+
+
+
+@ai_chatbot_router.delete("/delete-conversation/{conversation_id}")
+async def delete_conversation(
+    conversation_id: UUID,
+    db: AsyncSession = Depends(connect_db),
+    payload = Depends(verify_authentication),
+): 
+    user_id = payload['id']
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Not authorized!')
+    
+    return await LLMController.delete_conversation(conversation_id, db)
+

@@ -21,3 +21,14 @@ export interface AiConversation {
   updated_at:  string
   messages: Message[]
 }
+
+
+export interface AIMessage {
+  id: string;
+  conversation_id: string;
+  user_id: string;
+  sender: 'user' | 'ai'; // This is what you're using in the component
+  text: string;
+  created_at: string;
+  timestamp?: string;
+}

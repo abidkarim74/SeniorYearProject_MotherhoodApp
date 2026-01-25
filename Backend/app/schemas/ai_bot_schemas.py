@@ -8,6 +8,7 @@ from enum import Enum
 class ChatMessage(BaseModel):
     message: str
     conversation_id: UUID
+    chatbot_id: UUID
 
 class ChatResponse(BaseModel):
     response: str
