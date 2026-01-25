@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { putRequest } from '../../../api/requests';
-
-import type { AiConversation } from '../../../interfaces/AIBotInterfaces';
-
-
+import { putRequest, postRequest, getRequest } from '../../../api/requests';
+import type { AiConversation, AIMessage } from '../../../interfaces/AIBotInterfaces';
+import { useAuth } from '../../../context/authContext';
 
 interface ChatAreaProps {
   currentConversation: AiConversation | null;
@@ -14,13 +12,26 @@ interface ChatAreaProps {
   onCopyLink: () => void;
   onNewChat: () => void;
   showMobileSidebarToggle?: boolean;
-  
-  // Fix these prop types
   conversations: AiConversation[];
   setConversations: React.Dispatch<React.SetStateAction<AiConversation[]>>;
-  
-  // Add this if you need to update current conversation in parent
   onConversationUpdate?: (conversation: AiConversation) => void;
+}
+
+// Interface matching your Pydantic schemas
+interface AIMessageResponse {
+  id: string;
+  conversation_id: string;
+  user_id: string;
+  message_type: 'human' | 'ai';
+  content: string;
+  created_at: string;
+}
+
+// Updated to match AIChatMessage schema
+interface AIChatMessageRequest {
+  message: string;
+  user_fullname: string;
+  conversation_id: string;
 }
 
 const ChatArea = ({
@@ -35,75 +46,134 @@ const ChatArea = ({
 }: ChatAreaProps) => {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isFetchingMessages, setIsFetchingMessages] = useState(false);
+  const [messages, setMessages] = useState<AIMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  // Fetch messages when conversation changes
+  useEffect(() => {
+    if (currentConversation?.id) {
+      fetchConversationMessages(currentConversation.id);
+    } else {
+      setMessages([]);
+    }
+  }, [currentConversation?.id]);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    if (messagesEndRef.current && currentConversation?.messages?.length) {
+    if (messagesEndRef.current && messages.length > 0) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [currentConversation?.messages?.length]);
+  }, [messages.length]);
+
+  const fetchConversationMessages = async (conversationId: string) => {
+    setIsFetchingMessages(true);
+    try {
+      const response: AIMessageResponse[] = await getRequest(
+        `/ai-chatbot/messages/${conversationId}`
+      );
+      
+      // Transform the API response to match AIMessage interface
+      const transformedMessages: AIMessage[] = response.map((msg) => ({
+        id: msg.id,
+        conversation_id: msg.conversation_id,
+        user_id: msg.user_id,
+        sender: msg.message_type === 'ai' ? 'ai' : 'user', // Convert 'human' to 'user'
+        text: msg.content,
+        created_at: msg.created_at,
+        timestamp: formatTimestamp(msg.created_at)
+      }));
+      
+      // Sort messages by creation time
+      transformedMessages.sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      setMessages(transformedMessages);
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+    } finally {
+      setIsFetchingMessages(false);
+    }
+  };
+
+  const formatTimestamp = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const sendChatMessage = async (messageData: AIChatMessageRequest): Promise<AIMessageResponse> => {
+    const response = await postRequest('/ai-chatbot/chat', messageData);
+    return response;
+  };
 
   const handleSendMessage = async () => {
     const messageText = inputText.trim();
-    if (!messageText || !currentConversation || isSending) return;
+    if (!messageText || !currentConversation || isSending || !user?.id) return;
 
     setIsSending(true);
 
     try {
-      const data = {
-        'message': messageText,
-        'con_id': currentConversation.id
+      // First, update conversation topic with user's message
+      const update_data = {
+        message: messageText,
+        conversation_id: currentConversation.id
       };
 
-      console.log('Sending message data:', data);
+      const updatedTopic = await putRequest(
+        "/ai-chatbot/update-conversation",
+        update_data
+      );
 
-      const updatedTopic = await putRequest('/ai-chatbot/update-conversation', data);
-      
-      console.log("Updated topic from API:", updatedTopic);
+      // Create user message (this will be saved by the API)
+      const chatRequestData: AIChatMessageRequest = {
+        message: messageText,
+        user_fullname: `${user.firstname || ''} ${user.lastname || ''}`.trim() || 'User',
+        conversation_id: currentConversation.id
+      };
 
-      // Clear input text
-      setInputText('');
+      // Send message to AI and get response
+      const response = await sendChatMessage(chatRequestData);
 
-      // Create updated conversation object
+      // Refresh messages to get the complete conversation
+      await fetchConversationMessages(currentConversation.id);
+
+      // Clear input
+      setInputText("");
+
+      // Update conversations list with new topic
       const updatedConversation: AiConversation = {
-        id: currentConversation.id,
+        ...currentConversation,
         topic: updatedTopic || currentConversation.topic,
-        user_id: currentConversation.user_id,
-        created_at: currentConversation.created_at,
-        updated_at: new Date().toISOString(),
-        messages: []
+        updated_at: new Date().toISOString()
       };
 
-      // Update conversations list
+      // Update the conversations list
       setConversations(prev => {
-        // Check if conversation exists in the list
-        const existingIndex = prev.findIndex(conv => conv.id === currentConversation.id);
-        
+        const existingIndex = prev.findIndex(
+          conv => conv.id === currentConversation.id
+        );
+
         if (existingIndex >= 0) {
-          // Update existing conversation
           const newList = [...prev];
           newList[existingIndex] = updatedConversation;
-          
-          // Sort by updated_at (most recent first)
-          return newList.sort((a, b) => 
-            new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+          return newList.sort(
+            (a, b) =>
+              new Date(b.updated_at).getTime() -
+              new Date(a.updated_at).getTime()
           );
-        } else {
-          // Add new conversation to the beginning
-          return [updatedConversation, ...prev];
         }
+
+        return [updatedConversation, ...prev];
       });
 
-      // Notify parent about the updated conversation
-      if (onConversationUpdate) {
-        onConversationUpdate(updatedConversation);
-      }
+      // Notify parent component
+      onConversationUpdate?.(updatedConversation);
 
     } catch (err: any) {
-      console.error('Error sending message:', err);
-      // You might want to show an error to the user here
+      console.error("Error sending message:", err);
     } finally {
       setIsSending(false);
     }
@@ -116,16 +186,121 @@ const ChatArea = ({
     }
   };
 
-  // Helper to check if currentConversation has messages
-  const hasMessages = currentConversation?.messages && currentConversation.messages.length > 0;
+  // Summarize conversation when it's loaded
+  useEffect(() => {
+    if (!currentConversation?.id) return;
 
-  if (isLoading) {
+    const summarizeConversation = async () => {
+      try {
+        await putRequest(
+          `/ai-chatbot/summarize-conversation/${currentConversation.id}`,
+          {}
+        );
+      } catch (error) {
+        console.error("Failed to summarize conversation:", error);
+      }
+    };
+
+    summarizeConversation();
+  }, [currentConversation?.id]);
+
+  // Optimistic update - show user message immediately while waiting for AI response
+  const optimisticSendMessage = async () => {
+    const messageText = inputText.trim();
+    if (!messageText || !currentConversation || isSending || !user?.id) return;
+
+    setIsSending(true);
+
+    // Create optimistic user message
+    const optimisticUserMessage: AIMessage = {
+      id: `temp-${Date.now()}`,
+      conversation_id: currentConversation.id,
+      user_id: user.id,
+      sender: 'user',
+      text: messageText,
+      created_at: new Date().toISOString(),
+      timestamp: formatTimestamp(new Date().toISOString())
+    };
+
+    // Add optimistic message immediately
+    setMessages(prev => [...prev, optimisticUserMessage]);
+    setInputText("");
+
+    try {
+      // Update conversation topic with user's message
+      const update_data = {
+        message: messageText,
+        conversation_id: currentConversation.id
+      };
+
+      const updatedTopic = await putRequest(
+        "/ai-chatbot/update-conversation",
+        update_data
+      );
+
+      // Create user message (this will be saved by the API)
+      const chatRequestData: AIChatMessageRequest = {
+        message: messageText,
+        user_fullname: `${user.firstname || ''} ${user.lastname || ''}`.trim() || 'User',
+        conversation_id: currentConversation.id
+      };
+
+      // Send message to AI and get response
+      await sendChatMessage(chatRequestData);
+
+      // Refresh messages to get the complete conversation (including AI response)
+      await fetchConversationMessages(currentConversation.id);
+
+      // Update conversations list with new topic
+      const updatedConversation: AiConversation = {
+        ...currentConversation,
+        topic: updatedTopic || currentConversation.topic,
+        updated_at: new Date().toISOString()
+      };
+
+      // Update the conversations list
+      setConversations(prev => {
+        const existingIndex = prev.findIndex(
+          conv => conv.id === currentConversation.id
+        );
+
+        if (existingIndex >= 0) {
+          const newList = [...prev];
+          newList[existingIndex] = updatedConversation;
+          return newList.sort(
+            (a, b) =>
+              new Date(b.updated_at).getTime() -
+              new Date(a.updated_at).getTime()
+          );
+        }
+
+        return [updatedConversation, ...prev];
+      });
+
+      // Notify parent component
+      onConversationUpdate?.(updatedConversation);
+
+    } catch (err: any) {
+      console.error("Error sending message:", err);
+      // Remove optimistic message if error occurs
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticUserMessage.id));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Replace handleSendMessage with optimistic version
+  const handleSendMessageOptimistic = optimisticSendMessage;
+
+  if (isLoading || isFetchingMessages) {
     return (
       <div className="flex flex-1 flex-col bg-white">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e5989b] mx-auto mb-3"></div>
-            <p className="text-gray-500 text-sm">Loading conversation...</p>
+            <p className="text-gray-500 text-sm">
+              {isFetchingMessages ? 'Loading messages...' : 'Loading conversation...'}
+            </p>
           </div>
         </div>
       </div>
@@ -141,9 +316,9 @@ const ChatArea = ({
           className="flex-1 min-h-0 overflow-y-auto bg-gradient-to-b from-white to-gray-50/30 custom-scrollbar"
         >
           <div className="max-w-2xl mx-auto w-full pt-4 pb-20 px-4">
-            {hasMessages ? (
+            {messages.length > 0 ? (
               <div className="space-y-3">
-                {currentConversation.messages!.map((message) => (
+                {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`group w-full ${message.sender === 'user' ? 'text-right' : 'text-left'}`}
@@ -175,8 +350,8 @@ const ChatArea = ({
 
                           {/* Message Bubble */}
                           <div className={`relative ${message.sender === 'user'
-                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-sm'
-                              : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-sm shadow-sm'
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-sm'
+                            : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-sm shadow-sm'
                             } px-3.5 py-2.5`}>
                             <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                               {message.text}
@@ -189,7 +364,11 @@ const ChatArea = ({
 
                           {/* Actions - Hover only on desktop */}
                           <div className={`flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <button className="p-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+                            <button 
+                              onClick={() => navigator.clipboard.writeText(message.text)}
+                              className="p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Copy message"
+                            >
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                               </svg>
@@ -244,7 +423,12 @@ const ChatArea = ({
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Message AI Assistant..."
                   className="relative flex-1 p-2.5 pr-10 text-sm bg-transparent border-0 focus:outline-none focus:ring-0 resize-none min-h-[44px] max-h-[120px] placeholder-gray-400 z-10"
-                  onKeyDown={handleKeyDown}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessageOptimistic();
+                    }
+                  }}
                   rows={1}
                   disabled={isSending}
                   style={{
@@ -254,7 +438,7 @@ const ChatArea = ({
                 />
 
                 <button
-                  onClick={handleSendMessage}
+                  onClick={handleSendMessageOptimistic}
                   disabled={!inputText.trim() || isSending}
                   className="absolute right-1.5 z-20 p-1.5 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-xl hover:shadow-md transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
                 >
@@ -275,28 +459,28 @@ const ChatArea = ({
               </p>
 
               <div className="flex items-center justify-center flex-wrap gap-1.5 mt-2">
-                <button 
+                <button
                   onClick={() => setInputText("Can you suggest a bedtime routine for my 2-year-old?")}
                   disabled={isSending}
                   className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
                 >
                   Bedtime routine
                 </button>
-                <button 
+                <button
                   onClick={() => setInputText("What are some healthy meal ideas for toddlers?")}
                   disabled={isSending}
                   className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
                 >
                   Toddler meals
                 </button>
-                <button 
+                <button
                   onClick={() => setInputText("What developmental milestones should I expect at 18 months?")}
                   disabled={isSending}
                   className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"
                 >
                   Milestones
                 </button>
-                <button 
+                <button
                   onClick={() => setInputText("How can I help my child with a fever?")}
                   disabled={isSending}
                   className="px-2 py-1 text-[10px] bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-lg hover:from-gray-100 hover:to-gray-200 transition-all duration-200 border border-gray-200/50 shadow-sm disabled:opacity-50"

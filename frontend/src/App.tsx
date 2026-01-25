@@ -42,7 +42,7 @@ function App() {
         }
       />
 
-      {/* ================= PROTECTED ROUTES ================= */}
+      {/* ================ PROTECTED ROUTES ================ */}
       <Route element={<ProtectedRoutes />}>
         <Route element={<DashboardLayout />}>
           <Route path="/" element={<Home />} />
@@ -55,6 +55,7 @@ function App() {
           <Route path="/important-vaccines" element={<ImportantVaccines />} />
 
           <Route path="/community" element={<Community />} />
+          
           <Route path="/settings" element={<Settings />} />
 
           <Route path="/mother/:id" element={<UserProfile />} />

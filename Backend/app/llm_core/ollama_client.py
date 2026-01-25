@@ -8,22 +8,18 @@ from collections import defaultdict
 from datetime import datetime
 
 
-class AdvancedGeminiClient:
-    def __init__(self, api_key: str, max_concurrent: int = 3, requests_per_minute: int = 10):
-        self.api_key = api_key
-        
-        self.base_url = "https://generativelanguage.googleapis.com/v1beta/models"
+class AdvancedOllamaClient:
+    def __init__(self, base_url: str = "http://localhost:11434", max_concurrent: int = 3, requests_per_minute: int = 30):
+        self.base_url = base_url
         
         self.semaphore = asyncio.Semaphore(max_concurrent)
         
         self.requests_per_minute = requests_per_minute
         self.last_request_time = 0
         
+        # Using only gemma3:1b model
         self.working_models = [
-            "gemma-3-4b-it",
-            "gemma-3-1b-it",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest"
+            "gemma3:1b"
         ]
         
         self.model_health = {
@@ -42,11 +38,10 @@ class AdvancedGeminiClient:
         
         self.active_model = self.working_models[0]
         
-        self.quota_errors = defaultdict(int)
         self.model_blacklist_time = {}
         
-        print(f"Gemini client initialized with {len(self.working_models)} models")
-        print(f"Primary model: {self.working_models[0]}")
+        print(f"Ollama client initialized with model: {self.working_models[0]}")
+        print(f"Ollama API URL: {self.base_url}")
     
     async def _rate_limit(self):
         now = time.time()
@@ -77,30 +72,19 @@ class AdvancedGeminiClient:
         
         return self.working_models[0]
     
-    def _handle_quota_error(self, model: str, error_message: str):
-        print(f"Model {model} exceeded quota")
+    def _handle_error(self, model: str, error_message: str):
+        print(f"Model {model} error: {error_message}")
         
-        if "Please retry in" in error_message:
-            try:
-                import re
-                match = re.search(r'Please retry in (\d+\.?\d*)s', error_message)
-                if match:
-                    retry_seconds = float(match.group(1))
-                    blacklist_time = time.time() + retry_seconds + 5
-                else:
-                    blacklist_time = time.time() + 60
-            except:
-                blacklist_time = time.time() + 60
+        # For temporary errors, blacklist for 30 seconds
+        if "context length exceeded" in error_message.lower() or "timeout" in error_message.lower():
+            blacklist_time = time.time() + 30
         else:
-            blacklist_time = time.time() + 300
+            blacklist_time = time.time() + 60
         
         self.model_blacklist_time[model] = blacklist_time
         self.model_health[model]['available'] = False
-        self.model_health[model]['last_error'] = "Quota exceeded"
+        self.model_health[model]['last_error'] = error_message
         self.model_health[model]['error_time'] = time.time()
-        
-        self.active_model = self._select_next_model()
-        print(f"Switching to: {self.active_model}")
     
     def _update_model_health(self, model: str, success: bool, error: str = None):
         health = self.model_health[model]
@@ -125,50 +109,32 @@ class AdvancedGeminiClient:
                 blacklist_time = time.time() + 30
                 self.model_blacklist_time[model] = blacklist_time
     
-    
-    
-    async def generate_with_retry(self, prompt: str, max_retries: int = 2) -> GeminiResponse:
+    async def generate_with_retry(self, prompt: str, max_retries: int = 3) -> GeminiResponse:
         last_error = None
-        models_tried = set()
         
         for attempt in range(max_retries):
             current_model = self._select_next_model()
             
-            if current_model in models_tried:
-                available = [m for m in self.working_models 
-                        if m not in models_tried and 
-                        (m not in self.model_blacklist_time or 
-                            time.time() >= self.model_blacklist_time.get(m, 0))]
-                
-                if available:
-                    current_model = available[0]
-                else:
-                    wait_time = 2 ** attempt
-                    await asyncio.sleep(wait_time)
-                    continue
+            url = f"{self.base_url}/api/generate"
             
-            models_tried.add(current_model)
-            
-            url = f"{self.base_url}/{current_model}:generateContent?key={self.api_key}"
-            
-            config = {
-                "temperature": 0.7,
-                "maxOutputTokens": 1000,
-            }
-            
-            if "gemma" in current_model:
-                config["temperature"] = 0.8
-            if "lite" in current_model:
-                config["maxOutputTokens"] = 500
-            
+            # Ollama API payload
             payload = {
-                "contents": [{
-                    "parts": [{
-                        "text": prompt
-                    }]
-                }],
-                "generationConfig": config
+                "model": current_model,
+                "prompt": prompt,
+                "stream": False,
+                "options": {
+                    "temperature": 0.7,
+                    "num_predict": 1000,
+                    "top_p": 0.9,
+                    "top_k": 40,
+                    "repeat_penalty": 1.1
+                }
             }
+            
+            # Adjust parameters for gemma3:1b model
+            if "gemma3" in current_model or "1b" in current_model:
+                payload["options"]["temperature"] = 0.8
+                payload["options"]["num_predict"] = 1500
             
             try:
                 await self._rate_limit()
@@ -183,7 +149,7 @@ class AdvancedGeminiClient:
                             headers={
                                 'Content-Type': 'application/json',
                             },
-                            timeout=aiohttp.ClientTimeout(total=10)
+                            timeout=aiohttp.ClientTimeout(total=30)  # Longer timeout for local model
                         ) as response:
                             
                             response_text = await response.text()
@@ -192,13 +158,12 @@ class AdvancedGeminiClient:
                             if response.status == 200:
                                 data = json.loads(response_text)
                                 
-                                if "candidates" in data and data["candidates"]:
-                                    text = data["candidates"][0]["content"]["parts"][0]["text"]
+                                if "response" in data:
+                                    text = data["response"]
                                     
                                     self._update_model_health(current_model, True)
                                     self.active_model = current_model
                                     
-                                    # FIXED: Correct order for dataclass parameters
                                     return GeminiResponse(
                                         prompt=prompt,
                                         response_text=text.strip(),
@@ -207,27 +172,26 @@ class AdvancedGeminiClient:
                                         model_used=current_model
                                     )
                                 else:
-                                    last_error = "No candidates in response"
+                                    last_error = "No response field in API response"
                                     self._update_model_health(current_model, False, last_error)
                                     
                             else:
                                 error_msg = f"HTTP {response.status}"
                                 try:
                                     error_data = json.loads(response_text)
-                                    error_msg = error_data.get("error", {}).get("message", response_text[:200])
+                                    error_msg = error_data.get("error", error_msg)
                                 except:
                                     error_msg = response_text[:200]
                                 
                                 last_error = error_msg
                                 self._update_model_health(current_model, False, error_msg)
                                 
-                                if response.status == 429 or "quota" in error_msg.lower():
-                                    self._handle_quota_error(current_model, error_msg)
-                                    continue
-                                
-                                if response.status in [400, 401, 403]:
+                                # Handle specific errors
+                                if "model not found" in error_msg.lower():
+                                    print(f"Error: Model {current_model} not found. Please ensure it's pulled in Ollama.")
+                                    print(f"Run: ollama pull {current_model}")
                                     break
-                                    
+                                
                                 wait_time = 2 ** attempt
                                 await asyncio.sleep(wait_time)
                                 
@@ -239,6 +203,12 @@ class AdvancedGeminiClient:
             except aiohttp.ClientError as e:
                 last_error = f"Network error: {str(e)}"
                 self._update_model_health(current_model, False, str(e))
+                
+                # Check if Ollama is running
+                if attempt == 0:
+                    print("⚠️  Cannot connect to Ollama. Please ensure Ollama is running.")
+                    print(f"   Run: ollama serve (or start the Ollama application)")
+                
                 await asyncio.sleep(2 ** attempt)
                 
             except Exception as e:
@@ -246,16 +216,16 @@ class AdvancedGeminiClient:
                 self._update_model_health(current_model, False, str(e))
                 await asyncio.sleep(2 ** attempt)
         
-        # FIXED: Correct order for error response
         return GeminiResponse(
             prompt=prompt,
             response_text=None,
-            error=last_error or "All models failed",
+            error=last_error or "All attempts failed",
             latency=0,
             model_used=None
         )
     
     async def quick_health_check(self) -> List[str]:
+        """Check if Ollama is accessible and the model is available."""
         current_time = time.time()
         healthy_models = []
         
@@ -271,12 +241,34 @@ class AdvancedGeminiClient:
             
             healthy_models.append(model)
         
+        # Additionally, try to ping Ollama API
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.base_url}/api/tags", timeout=5) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        available_models = [m["name"] for m in data.get("models", [])]
+                        
+                        # Check if our model is available
+                        if self.active_model in available_models:
+                            print(f"✅ Ollama is running. Model '{self.active_model}' is available.")
+                        else:
+                            print(f"⚠️  Ollama is running, but model '{self.active_model}' not found.")
+                            print(f"   Available models: {available_models}")
+                            print(f"   Run: ollama pull {self.active_model}")
+                    else:
+                        print("⚠️  Ollama API responded with error")
+        except Exception as e:
+            print(f"❌ Cannot connect to Ollama: {str(e)}")
+            print("   Please ensure Ollama is running (ollama serve)")
+        
         return healthy_models
     
     def get_model_stats(self) -> Dict:
         stats = {
             'total_models': len(self.working_models),
             'active_model': self.active_model,
+            'base_url': self.base_url,
             'blacklisted_models': [],
             'available_models': [],
             'model_health': {}
@@ -315,3 +307,16 @@ class AdvancedGeminiClient:
         results = await asyncio.gather(*tasks)
         
         return results
+    
+    async def get_available_models(self) -> List[str]:
+        """Get list of models available in Ollama"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{self.base_url}/api/tags", timeout=5) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return [model["name"] for model in data.get("models", [])]
+        except:
+            return []
+        return []
+    

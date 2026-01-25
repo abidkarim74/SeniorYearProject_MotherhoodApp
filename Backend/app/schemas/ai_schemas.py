@@ -4,9 +4,10 @@ from dataclasses import dataclass
 from pydantic import BaseModel, Field
 from bson import ObjectId # type: ignore
 from enum import Enum
+from uuid import UUID
 
 
-class MessageType(str, Enum):
+class AiMessageType(str, Enum):
     AI = "AI"
     HUMAN = "Human"
     
@@ -26,14 +27,26 @@ class AiMessageModel(BaseModel):
     conversation_id: str
     content: str
     sender: str 
-    sender_type: MessageType
+    sender_type: AiMessageType
     created_at: str 
 
 
 
-class ChatMessage(BaseModel):
+class AIChatMessage(BaseModel):
     message: str
-    conversation_id: Optional[str] = None
+    user_fullname: str
+    conversation_id: UUID
+
+
+class AIConversationUpdate(BaseModel):
+    message: str
+    conversation_id: UUID
+
+
+class AiGenerateMessageSchema(BaseModel):
+    summary: str
+    user_fullname: str
+    last_messages: list[str]
 
 
 class ChatResponse(BaseModel):
