@@ -13,6 +13,8 @@ from app.router.community_routes import community_router
 from app.router.vaccination_routes import vaccine_router
 from app.router.mood_routes import router as mood_router  
 from app.database.mongo import mongo_db
+from app.router.tutorial_routes import tutorial_router
+
 
 
 app = FastAPI()
@@ -52,6 +54,7 @@ app.include_router(vaccination_reminder_router)
 app.include_router(community_router)
 app.include_router(vaccine_router)
 app.include_router(child_growth_router)
+app.include_router(tutorial_router)
 
 
 @app.get("/health")
