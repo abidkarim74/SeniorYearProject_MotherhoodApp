@@ -2,10 +2,16 @@
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime
+from app.models.ai import MessageType
+
+
+
+class ConversationSummarySchema(BaseModel):
+    topic: str
+    last_messages: list[str]
 
 
 class AiConversationBaseSchema(BaseModel):
-    id: UUID
     user_id: UUID
     topic: str
     created_at: datetime
@@ -13,9 +19,32 @@ class AiConversationBaseSchema(BaseModel):
     
     
 class AiConversationResponseSchema(AiConversationBaseSchema):
+    id: UUID
     model_config = ConfigDict(from_attributes=True)
 
 
 class AiConversationUpdate(BaseModel):
     con_id: UUID
     message: str
+
+
+
+class AIMessageBaseSchema(BaseModel):
+    conversation_id: UUID
+    user_id: UUID
+    message_type: MessageType
+    content: str
+
+
+class AIMessageCreateSchema(AIMessageBaseSchema):
+    pass
+
+
+class AIMessageResponseSchema(AIMessageBaseSchema):
+    id: UUID
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+

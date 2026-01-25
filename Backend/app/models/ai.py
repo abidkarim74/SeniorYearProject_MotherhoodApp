@@ -8,8 +8,12 @@ from sqlalchemy import String
 from sqlalchemy import Enum, DateTime
 from typing import List
 from enum import Enum as PyEnum
+from sqlalchemy import Boolean
 from datetime import datetime
+from sqlalchemy.ext.mutable import MutableList
+
 from sqlalchemy import text
+
 
 
 
@@ -29,10 +33,14 @@ class AiConversation(Base):
         server_default=text('now()'),
         nullable=False
     )
+
+    messages_exist: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True)
     
 
-    last_messages: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=True)
-
+    last_messages: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(ARRAY(String)),
+        nullable=True
+    )
     summary: Mapped[str] = mapped_column(String, nullable=True)
 
 
@@ -59,7 +67,7 @@ class ChatbotMessage(Base):
     __tablename__ = 'chatbot_messages'
 
     id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    chatbot_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('aibots.id'), nullable=False, index=True)
+    chatbot_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('aibots.id'), nullable=True, index=True)
     conversation_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('ai_conversations.id'), nullable=False, index=True)
     user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
     

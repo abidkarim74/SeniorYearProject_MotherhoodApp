@@ -1,27 +1,78 @@
-// pages/ConversationAIChatbot.tsx
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate} from 'react-router-dom';
 import BotLeftBar from "../components/ai_chatbot/includes/BotLeftBar";
 import ChatArea from "../components/ai_chatbot/includes/ChatArea";
 import { Menu, X, ChevronLeft } from 'lucide-react';
 
-
 import { type AiConversation } from '../interfaces/AIBotInterfaces';
-import { postRequest } from '../api/requests';
+import { postRequest, getRequest } from '../api/requests';
 
 const ConversationAIChatbot = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [currentConversation, setCurrentConversation] = useState<any | null>(null);
+  const [currentConversation, setCurrentConversation] = useState<AiConversation | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-
-
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [conversations, setConversations] = useState<AiConversation[]>([]);
 
+  // Fetch conversation details when ID changes
+  useEffect(() => {
+    const fetchConversationDetails = async () => {
+      if (!id) {
+        setCurrentConversation(null);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // First, try to find conversation in local state
+        const existingConversation = conversations.find(conv => conv.id === id);
+        
+        if (existingConversation) {
+          setCurrentConversation(existingConversation);
+        } else {
+          // If not found locally, fetch it from the server
+          // Note: You might need an endpoint like `/ai-chatbot/conversation/{id}`
+          // For now, let's use the conversations list we already have
+          console.log('Conversation not found locally, fetching all conversations again...');
+          await fetchAllConversations();
+        }
+      } catch (err: any) {
+        console.error('Error fetching conversation details:', err);
+        setError('Failed to load conversation');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchConversationDetails();
+  }, [id, conversations]);
+
+  // Fetch all conversations
+  const fetchAllConversations = async () => {
+    try {
+      setLoading(true);
+      const response = await getRequest('/ai-chatbot/all-conversations');
+      setConversations(response || []);
+      
+      // If there's an ID in the URL, find and set the current conversation
+      if (id) {
+        const foundConversation = response?.find((conv: AiConversation) => conv.id === id);
+        setCurrentConversation(foundConversation || null);
+      }
+    } catch (err: any) {
+      console.error('Error fetching conversations:', err);
+      setError('Failed to load conversations');
+      setConversations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a new conversation
   const createNewConversation = async () => {
     try {
       setLoading(true);
@@ -29,10 +80,13 @@ const ConversationAIChatbot = () => {
 
       const response = await postRequest('/ai-chatbot/create-conversation', {});
 
-      console.log("res: ",response.id);
-
-      setConversations(prev => [...prev, response]);
-
+      // Add to conversations list
+      setConversations(prev => [response, ...prev]);
+      
+      // Set as current conversation
+      setCurrentConversation(response);
+      
+      // Navigate to the new conversation
       navigate('/ai-assistant/chat/' + response.id);
 
     } catch (err: any) {
@@ -42,10 +96,9 @@ const ConversationAIChatbot = () => {
     }
   };
 
-
   const isChatPage = id !== undefined;
 
-  // Check if mobile on mount and resize
+  // Handle responsive sidebar
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
@@ -62,91 +115,37 @@ const ConversationAIChatbot = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, [id]);
 
-  // Close sidebar on mobile when chat is selected
   useEffect(() => {
     if (id && isMobile) {
       setIsSidebarOpen(false);
     }
   }, [id, isMobile]);
 
-  // Fetch conversation data when ID changes
+  // Initial fetch of conversations
   useEffect(() => {
-    if (id) {
-      fetchConversationData(id);
-    } else {
-      setCurrentConversation(null);
-    }
-  }, [id]);
-
-  const fetchConversationData = async (conversationId: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      const mockData: Record<string, any> = {
-        '1': {
-          id: '1',
-          title: 'Vaccination Schedule',
-          messages: [
-            { id: 1, sender: 'user' as const, text: 'When is the next MMR vaccine due for my 1-year-old?', timestamp: '10:30 AM' },
-            { id: 2, sender: 'ai' as const, text: 'The next MMR vaccine is typically given between 12-15 months of age. It\'s the first dose, with the second dose recommended between 4-6 years.', timestamp: '10:31 AM' },
-          ],
-          createdAt: '2024-01-10'
-        },
-        '2': {
-          id: '2',
-          title: 'Growth Milestones',
-          messages: [
-            { id: 1, sender: 'user' as const, text: 'What milestones should my 6-month-old be reaching?', timestamp: 'Yesterday' },
-            { id: 2, sender: 'ai' as const, text: 'At 6 months, babies typically start sitting without support, babbling (making consonant-vowel sounds), and may begin to show interest in solid foods.', timestamp: 'Yesterday' },
-          ],
-          createdAt: '2024-01-09'
-        },
-        '3d04b408-45d3-406d-bc71-b79ee2b46daa': {
-          id: '3d04b408-45d3-406d-bc71-b79ee2b46daa',
-          title: 'Sleep Training',
-          messages: [
-            { id: 1, sender: 'user' as const, text: 'What are the best sleep training methods?', timestamp: 'Dec 15' },
-            { id: 2, sender: 'ai' as const, text: 'Gentle sleep training methods include the Ferber method, chair method, and bedtime fading. Always consult with your pediatrician first.', timestamp: 'Dec 15' }
-          ],
-          createdAt: '2024-01-08'
-        }
-      };
-
-      await new Promise(resolve => setTimeout(resolve, 300));
-      const data = mockData[conversationId];
-      if (data) {
-        setCurrentConversation(data);
-      } else {
-        setCurrentConversation({
-          id: conversationId,
-          title: `Chat ${conversationId.substring(0, 8)}...`,
-          messages: [],
-          createdAt: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching conversation:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fetchAllConversations();
+  }, []);
 
   const handleSelectConversation = (conversationId: string): void => {
+    // Find the conversation from local state
+    const selectedConversation = conversations.find(conv => conv.id === conversationId);
+    
+    if (selectedConversation) {
+      setCurrentConversation(selectedConversation);
+    }
+    
     navigate(`/ai-assistant/chat/${conversationId}`);
     if (isMobile) {
       setIsSidebarOpen(false);
     }
   };
 
-  const handleNewChat = (): void => {
-    const newId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
-    navigate(`/ai-assistant/chat/${newId}`);
-    setCurrentConversation(null);
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
+  const handleNewChat = async (): Promise<void> => {
+    await createNewConversation();
   };
 
   const handleBackToAllChats = (): void => {
+    setCurrentConversation(null);
     navigate('/ai-assistant/chat');
     if (isMobile) {
       setIsSidebarOpen(true);
@@ -155,6 +154,20 @@ const ConversationAIChatbot = () => {
 
   const toggleSidebar = (): void => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleConversationUpdate = (updatedConversation: AiConversation): void => {
+    // Update in conversations list
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === updatedConversation.id ? updatedConversation : conv
+      )
+    );
+    
+    // Update current conversation if it's the same one
+    if (currentConversation?.id === updatedConversation.id) {
+      setCurrentConversation(updatedConversation);
+    }
   };
 
   const getShareableUrl = (): string => {
@@ -193,8 +206,9 @@ const ConversationAIChatbot = () => {
               <button
                 onClick={handleNewChat}
                 className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                disabled={loading}
               >
-                New Chat
+                {loading ? 'Creating...' : 'New Chat'}
               </button>
             )}
 
@@ -259,6 +273,7 @@ const ConversationAIChatbot = () => {
           onCopyLink={handleCopyLink}
           onNewChat={handleNewChat}
           showMobileSidebarToggle={isMobile}
+          onConversationUpdate={handleConversationUpdate} // Add this prop
         />
       </div>
     </div>
