@@ -3,6 +3,8 @@ import { useAuth } from "../context/authContext";
 import { useState } from "react";
 import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut, MessageCircle, Heart, Sparkles } from "lucide-react";
 import MainLoading from "./MainLoading";
+import { Smile } from "lucide-react";
+import LogMood from "./LogMood";
 
 const Header = () => {
   const { logout, accessToken, user } = useAuth();
@@ -12,6 +14,10 @@ const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState<boolean>(false);
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [isLogMoodOpen, setIsLogMoodOpen] = useState(false);
+
+  const iconButtonClass = "w-12 h-12 flex items-center justify-center text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group";
+
 
   if (!accessToken) {
     return <MainLoading />;
@@ -128,7 +134,7 @@ const Header = () => {
 
             {/* AI Assistant Icon */}
             <div className="relative">
-              <Link to='/ai-assistant' className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
+              <Link to='/ai-assistant' className={iconButtonClass}>
                 <Sparkles className="w-5 h-5" />
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                   AI Assistant
@@ -137,24 +143,23 @@ const Header = () => {
               </Link>
             </div>
 
-            {/* Messages Icon */}
+            {/* Log Mood Icon */}
             <div className="relative">
-              <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
-                <MessageCircle className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
-                  3
-                </span>
-                <span className="absolute -top-1 -right-1 h-5 w-5 bg-blue-400 rounded-full animate-ping opacity-75"></span>
+              <button
+                onClick={() => setIsLogMoodOpen(true)}
+                className={iconButtonClass}>
+                <Smile className="w-5 h-5" />
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                  Messages
+                  Log Mood
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
                 </div>
               </button>
             </div>
 
+
             {/* Notifications Icon */}
             <div className="relative">
-              <button className="p-3 text-gray-600 hover:text-[#e5989b] transition-colors duration-200 rounded-xl hover:bg-[#fceaea] shadow-sm relative group">
+              <button className={iconButtonClass}>
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
                   2
@@ -287,6 +292,30 @@ const Header = () => {
           onClick={() => setIsProfileMenuOpen(false)}
         />
       )}
+      {isLogMoodOpen && (
+      <>
+        {/* Blurred backdrop */}
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+          onClick={() => setIsLogMoodOpen(false)}
+        />
+
+        {/* Modal */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setIsLogMoodOpen(false)}
+              className="absolute -top-4 -right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 z-10"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+            <LogMood onClose={() => setIsLogMoodOpen(false)} />
+          </div>
+        </div>
+      </>
+    )}
+
     </header>
   );
 };
