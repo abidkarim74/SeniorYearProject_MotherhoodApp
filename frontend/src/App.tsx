@@ -19,6 +19,7 @@ import Settings from "./pages/Settings";
 import ImportantVaccines from "./pages/ImportantVaccines";
 import ChildDetail from "./pages/ChildDetail";
 import ChildGrowthTracking from "./pages/ChildGrowthTracking";
+import Tutorials from "./pages/Tutorials";
 
 function App() {
   return (
@@ -62,6 +63,8 @@ function App() {
 
           <Route path="/child-detail/:id" element={<ChildDetail />} />
           <Route path="/child/:childId/growth" element={<ChildGrowthTracking />} />
+          <Route path="/tutorials" element={<Tutorials />} />
+
 
           {/* AI Assistant */}
           <Route path="/ai-assistant" element={<AIChatbotBorder></AIChatbotBorder>}></Route>
