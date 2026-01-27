@@ -34,3 +34,15 @@ class User(Base):
         return f"<User(id={self.id}, email={self.email}, type={self.type})>"
     
 
+
+class UserArchivePost(Base):
+    __tablename__ = 'user_archives'
+
+    id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), default=uuid4)
+    post_id: Mapped[u] = mapped_column(UUID(as_uuid=True), default=uuid4)
+
+
+
+    
+
