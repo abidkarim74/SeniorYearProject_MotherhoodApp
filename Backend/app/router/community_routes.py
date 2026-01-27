@@ -173,3 +173,28 @@ async def delete_report_route(
     db: AsyncSession = Depends(connect_db)
 ):
     return await PostReportControllers.delete(UUID(report_id), payload['id'], db)
+
+
+from fastapi import Query
+from typing import Optional
+
+
+@community_router.get('/search', response_model=List[PostResponse])
+async def search_posts_route(
+    q: str = Query(..., min_length=1),
+    post_type: Optional[str] = None,
+    category: Optional[str] = None,
+    limit: int = 20,
+    offset: int = 0,
+    payload = Depends(verify_authentication),
+    db: AsyncSession = Depends(connect_db),
+):
+    return await PostControllers.search(
+        auth_id=payload['id'],
+        q=q,
+        db=db,
+        post_type=post_type,
+        category=category,
+        limit=limit,
+        offset=offset,
+    )
