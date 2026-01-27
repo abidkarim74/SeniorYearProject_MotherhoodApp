@@ -6,6 +6,8 @@ from sqlalchemy import select, and_, update, or_
 from sqlalchemy.orm import selectinload
 from app.schemas.community_schemas import PostCreate, PostUpdate, PostChangeVisiblity, PostResponse
 from app.models.community import Post, PostLike
+from app.models.community import PostType
+
 from typing import List
 from datetime import date, timedelta, datetime
 from app.models.user import User
@@ -274,171 +276,6 @@ class PostControllers():
             )
     
     
-    
-    @staticmethod
-    async def search(
-        auth_id: UUID,
-        q: str,
-        db: AsyncSession,
-        post_type: str | None = None,
-        category: str | None = None,
-        limit: int = 20,
-        offset: int = 0,
-    ):
-        try:
-            keyword = (q or "").strip()
-            if not keyword:
-                return []
-
-            # Build search conditions (basic but solid)
-            like = f"%{keyword}%"
-
-            search_conditions = [
-                Post.title.ilike(like),
-                Post.description.ilike(like),
-                Post.post_category.ilike(like),
-            ]
-
-            # Also match tags if the keyword exactly equals one tag
-            # (Array text match; simple + reliable)
-            # If tags is null, this will just not match.
-            search_conditions.append(Post.tags.contains([keyword]))
-
-
-            filters = []
-
-            # Visibility rule:
-            # - Other people's posts must be visible
-            # - Your own posts can show even if not visible (optional but usually helpful)
-            visibility_rule = or_(
-                Post.visible == True,
-                Post.user_id == auth_id
-            )
-            filters.append(visibility_rule)
-
-            # Optional category filter
-            if category is not None and category.strip():
-                filters.append(Post.post_category.ilike(f"%{category.strip()}%"))
-
-            # Optional post_type filter
-            if post_type is not None and post_type.strip():
-                # Validate against enum values: Advice / Discussion / Support
-                allowed = {e.value for e in PostType}
-                if post_type not in allowed:
-                    # If you prefer not to error, just ignore the filter instead
-                    # but error is cleaner for backend correctness
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid post_type. Allowed: {sorted(list(allowed))}"
-                    )
-                filters.append(Post.post_type == PostType(post_type))
-
-            query = (
-                select(Post, User)
-                .join(User, Post.user_id == User.id)
-                .where(and_(*filters, or_(*search_conditions)))
-                .order_by(Post.created_at.desc())
-                .limit(limit)
-                .offset(offset)
-            )
-
-            result = await db.execute(query)
-            rows = result.all()
-
-            if not rows:
-                return []
-
-            post_ids = [post.id for post, _ in rows]
-
-            likes_query = select(PostLike).where(PostLike.post_id.in_(post_ids))
-            likes_result = await db.execute(likes_query)
-            all_likes = likes_result.scalars().all()
-
-            likes_by_post = {}
-            for like_obj in all_likes:
-                likes_by_post.setdefault(like_obj.post_id, []).append(like_obj.user_id)
-
-            post_responses = []
-
-            for post, user in rows:
-                likers = likes_by_post.get(post.id, [])
-                like_count = len(likers)
-
-                mini_user = MiniUserSchema(
-                    firstname=user.firstname,
-                    lastname=user.lastname,
-                    username=user.username,
-                    profile_pic=user.profile_pic
-                )
-
-                post_response = PostResponse(
-                    id=post.id,
-                    post_type=post.post_type.value if post.post_type else None,
-                    visible=post.visible,
-                    post_category=post.post_category,
-                    like_count=like_count,
-                    tags=post.tags,
-                    images=post.images,
-                    title=post.title,
-                    created_at=post.created_at,
-                    description=post.description,
-                    user_id=post.user_id,
-                    user=mini_user,
-                    likers=likers
-                )
-
-                post_responses.append(post_response)
-
-            return post_responses
-
-        except SQLAlchemyError:
-            await db.rollback()
-            raise HTTPException(status_code=500, detail="Database error!")
-
-        except HTTPException:
-            raise
-
-        except Exception as e:
-            await db.rollback()
-            error_dict = e.__dict__
-            raise HTTPException(
-                status_code=error_dict.get("status_code", 500),
-                detail=error_dict.get("detail", "Internal server error!")
-            )
-    @staticmethod
-    async def delete(post_id: UUID, auth_id: UUID, db: AsyncSession):
-        try:
-            query = select(Post).where(
-                and_(
-                    Post.id == post_id,
-                    Post.user_id == auth_id
-                )
-            )
-            
-            result = await db.execute(query)
-            post = result.scalar_one_or_none()
-            
-            if not post:
-                raise HTTPException(status_code=404, detail='Post not found or you do not have permission to delete it')
-            
-            await db.delete(post)
-            await db.commit()
-            
-            return {"message": "Post deleted successfully"}
-        
-        except SQLAlchemyError:
-            await db.rollback()
-            
-            raise HTTPException(status_code=500, detail='Database error!')
-        
-        except Exception as e:
-            await db.rollback()
-            error_dict = e.__dict__
-            
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500), 
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
     @staticmethod
     async def update(post_id: UUID, auth_id: UUID, update_data: PostUpdate, db: AsyncSession):
         try:
@@ -585,6 +422,136 @@ class PostControllers():
                 detail=error_dict.get('detail', 'Internal server error!')
             )
     
+    @staticmethod
+    async def search(
+        auth_id: UUID,
+        q: str,
+        db: AsyncSession,
+        post_type: str | None = None,
+        category: str | None = None,
+        limit: int = 20,
+        offset: int = 0,
+    ):
+        try:
+            keyword = (q or "").strip()
+            if not keyword:
+                return []
+
+            # Build search conditions (basic but solid)
+            like = f"%{keyword}%"
+
+            search_conditions = [
+                Post.title.ilike(like),
+                Post.description.ilike(like),
+                Post.post_category.ilike(like),
+            ]
+
+            # Also match tags if the keyword exactly equals one tag
+            # (Array text match; simple + reliable)
+            # If tags is null, this will just not match.
+            search_conditions.append(Post.tags.contains([keyword]))
+
+
+            filters = []
+
+            # Visibility rule:
+            # - Other people's posts must be visible
+            # - Your own posts can show even if not visible (optional but usually helpful)
+            visibility_rule = or_(
+                Post.visible == True,
+                Post.user_id == auth_id
+            )
+            filters.append(visibility_rule)
+
+            # Optional category filter
+            if category is not None and category.strip():
+                filters.append(Post.post_category.ilike(f"%{category.strip()}%"))
+
+            # Optional post_type filter
+            if post_type is not None and post_type.strip():
+                # Validate against enum values: Advice / Discussion / Support
+                allowed = {e.value for e in PostType}
+                if post_type not in allowed:
+                    # If you prefer not to error, just ignore the filter instead
+                    # but error is cleaner for backend correctness
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid post_type. Allowed: {sorted(list(allowed))}"
+                    )
+                filters.append(Post.post_type == PostType(post_type))
+
+            query = (
+                select(Post, User)
+                .join(User, Post.user_id == User.id)
+                .where(and_(*filters, or_(*search_conditions)))
+                .order_by(Post.created_at.desc())
+                .limit(limit)
+                .offset(offset)
+            )
+
+            result = await db.execute(query)
+            rows = result.all()
+
+            if not rows:
+                return []
+
+            post_ids = [post.id for post, _ in rows]
+
+            likes_query = select(PostLike).where(PostLike.post_id.in_(post_ids))
+            likes_result = await db.execute(likes_query)
+            all_likes = likes_result.scalars().all()
+
+            likes_by_post = {}
+            for like_obj in all_likes:
+                likes_by_post.setdefault(like_obj.post_id, []).append(like_obj.user_id)
+
+            post_responses = []
+
+            for post, user in rows:
+                likers = likes_by_post.get(post.id, [])
+                like_count = len(likers)
+
+                mini_user = MiniUserSchema(
+                    firstname=user.firstname,
+                    lastname=user.lastname,
+                    username=user.username,
+                    profile_pic=user.profile_pic
+                )
+
+                post_response = PostResponse(
+                    id=post.id,
+                    post_type=post.post_type.value if post.post_type else None,
+                    visible=post.visible,
+                    post_category=post.post_category,
+                    like_count=like_count,
+                    tags=post.tags,
+                    images=post.images,
+                    title=post.title,
+                    created_at=post.created_at,
+                    description=post.description,
+                    user_id=post.user_id,
+                    user=mini_user,
+                    likers=likers
+                )
+
+                post_responses.append(post_response)
+
+            return post_responses
+
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail="Database error!")
+
+        except HTTPException:
+            raise
+
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get("status_code", 500),
+                detail=error_dict.get("detail", "Internal server error!")
+            )
     
     @staticmethod
     async def delete(post_id: UUID, auth_id: UUID, db: AsyncSession):
@@ -749,7 +716,8 @@ class CommentControllers():
             new_comment = Comment(
                 post_id=post_id,
                 user_id=auth_id,
-                content=data.content
+                content=data.content,
+                updated_at=datetime.utcnow()
             )
             
             db.add(new_comment)
@@ -784,6 +752,9 @@ class CommentControllers():
         
         except SQLAlchemyError as e:
             await db.rollback()
+            print("SQLAlchemyError (create comment):", repr(e))
+            if hasattr(e, "orig"):
+                print("DB driver error:", repr(e.orig))
             raise HTTPException(status_code=500, detail='Database error!')
         
         except Exception as e:
@@ -1090,7 +1061,6 @@ class PostReportControllers():
             )
     
     
-    @staticmethod
     async def get_user_reports(auth_id: UUID, db: AsyncSession):
         try:
             # Get all reports made by the user
