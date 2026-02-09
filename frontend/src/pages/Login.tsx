@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import MotherBaby from "../assets/motherbaby.jpg";
 import Family from "../assets/fam.jpg";
-import { Eye, EyeOff, Heart } from "lucide-react";
+import { Eye, EyeOff, Heart, AlertCircle, Check, Smartphone } from "lucide-react";
+import UnAuthHeader from "../components/UnAuthHeader";
+
 
 interface LoginFormData {
   email: string;
@@ -100,10 +102,6 @@ const Login = () => {
       const response = await postRequest("/auth/login", formData);
       if (formData.rememberMe) localStorage.setItem("rememberMe", "true");
       setAccessToken(response);
-
-      window.location.assign("/");
-
-      
       navigate("/");
     } catch (err: any) {
       const errorMessage =
@@ -117,243 +115,288 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff6f6] to-[#fceaea] px-4 py-8">
-      <div className="flex flex-col lg:flex-row items-center justify-center w-full max-w-7xl gap-8 lg:gap-16">
-        {/* Left Side - Family Image - Hidden on mobile */}
-        <div className="hidden md:flex flex-1 items-center justify-center">
-          <div className="relative w-full max-w-2xl">
-            <div className="rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
-              <img
-                src={Family}
-                alt="Happy family"
-                className="w-full h-auto object-cover"
-              />
+    <div className="min-h-screen flex flex-col">
+      <UnAuthHeader />
+
+      <div className="flex flex-1 flex-col lg:flex-row">
+        {/* Left side - Image/Info Section */}
+        <div 
+          className="hidden lg:flex lg:w-1/2 relative bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${Family})` }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/40 to-black/30" />
+          
+          <div className="relative z-10 flex flex-col justify-center p-8 xl:p-12 text-white">
+            <div className="max-w-md mx-auto">
+              <div className="flex items-center gap-3 mb-6 md:mb-8">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Heart className="w-5 h-5 md:w-7 md:h-7" />
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold">Nurtura</h2>
+              </div>
+              
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 leading-tight">
+                Your Compassionate<br />Parenting Companion
+              </h1>
+              
+              <p className="text-white/90 text-base md:text-lg mb-6 md:mb-10">
+                Join thousands of parents who trust Nurtura to guide them through every precious moment of their child's early years.
+              </p>
+              
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
+                    <Check className="w-3 h-3 md:w-4 md:h-4" />
+                  </div>
+                  <span className="text-white/95 text-sm md:text-base">AI-powered health insights</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
+                    <Check className="w-3 h-3 md:w-4 md:h-4" />
+                  </div>
+                  <span className="text-white/95 text-sm md:text-base">Personalized developmental tracking</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
+                    <Check className="w-3 h-3 md:w-4 md:h-4" />
+                  </div>
+                  <span className="text-white/95 text-sm md:text-base">Supportive community of parents</span>
+                </div>
+              </div>
             </div>
-            <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#e5989b] rounded-full opacity-20 animate-pulse"></div>
-            <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-[#e5989b] rounded-full opacity-15 animate-pulse delay-1000"></div>
-            <div className="absolute top-1/2 -right-6 w-6 h-6 bg-[#e5989b] rounded-full opacity-25 animate-pulse delay-500"></div>
+            
+            <div className="absolute -top-4 -left-4 w-6 h-6 md:w-8 md:h-8 bg-[#e5989b] rounded-full opacity-20 animate-pulse"></div>
           </div>
         </div>
 
-        <div className="flex-1 max-w-sm w-full md:mr-10">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 relative">
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-              <div className="w-14 h-14 rounded-xl overflow-hidden border-3 border-white shadow-md">
-                <img
-                  src={MotherBaby}
-                  alt="Mother and baby"
-                  className="w-full h-full object-cover"
-                />
+        {/* Mobile Hero Section - Shows on small screens */}
+        <div className="lg:hidden relative min-h-[300px] bg-cover bg-center bg-no-repeat"
+             style={{ backgroundImage: `url(${Family})` }}>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/30" />
+          
+          <div className="relative z-10 h-full flex flex-col justify-center p-6 text-white">
+            <div className="max-w-md mx-auto text-center">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <Heart className="w-5 h-5" />
+                </div>
+                <h2 className="text-2xl font-bold">Nurtura</h2>
               </div>
-            </div>
-
-            <div className="text-center mb-6 pt-3">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Welcome to{" "}
-                <span className="bg-gradient-to-r from-[#e5989b] to-[#d88a8d] bg-clip-text text-transparent">
-                  Nurtura
-                </span>
+              
+              <h1 className="text-2xl font-bold mb-4">
+                Your Compassionate Parenting Companion
               </h1>
-              <p className="text-gray-600 text-sm">
+              
+              <p className="text-white/95 text-sm mb-6">
                 Sign in to continue your parenting journey
               </p>
+              
+              <div className="flex flex-wrap justify-center gap-4 mb-4">
+                <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                  <Check className="w-3 h-3" />
+                  <span>AI Health Insights</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                  <Smartphone className="w-3 h-3" />
+                  <span>On all devices</span>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 flex items-center gap-2 text-sm">
-                <svg
-                  className="w-4 h-4 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        {/* Right side - Login Form */}
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[#fff6f6] via-[#fef2f2] to-[#fceaea] p-4 sm:p-6 md:p-8 lg:p-12">
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 relative lg:-mt-4">
+              {/* Decorative elements - hidden on smallest screens */}
+              <div className="absolute -top-6 -right-6 w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-bl from-[#e5989b]/5 to-transparent rounded-full opacity-50 hidden sm:block"></div>
+              
+              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden border-2 sm:border-3 border-white shadow-md bg-white p-0.5">
+                  <img
+                    src={MotherBaby}
+                    alt="Mother and baby"
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-              {/* Email Field */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="Enter your email"
-                  required
-                  className={`w-full px-3 py-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
-                    errors.email && touched.email
-                      ? "border-red-300 focus:ring-red-200"
-                      : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]"
-                  }`}
-                />
-                {errors.email && touched.email && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {errors.email}
-                  </p>
-                )}
+                </div>
               </div>
 
-              {/* Password Field */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <div className="relative">
+              <div className="text-center mb-6 pt-4 sm:pt-6">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5">
+                  Welcome back
+                </h1>
+                <p className="text-gray-600 text-xs sm:text-sm">
+                  Sign in to continue your parenting journey
+                </p>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-lg mb-4 flex items-center gap-2 text-xs sm:text-sm">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="email"
+                    className="block text-xs sm:text-sm font-medium text-gray-700"
+                  >
+                    Email Address
+                  </label>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    placeholder="Enter your password"
+                    placeholder="you@example.com"
                     required
-                    className={`w-full px-3 py-2.5 pr-10 border rounded-lg bg-white focus:outline-none focus:ring-2 transition-all duration-200 text-sm ${
-                      errors.password && touched.password
+                    className={`w-full px-3.5 py-2.5 sm:py-3 text-sm sm:text-base border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 placeholder-gray-400 ${
+                      errors.email && touched.email
                         ? "border-red-300 focus:ring-red-200"
-                        : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b]"
+                        : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b] hover:border-[#e5989b]"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
+                  {errors.email && touched.email && (
+                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1.5">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
-                {errors.password && touched.password && (
-                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    {errors.password}
-                  </p>
-                )}
-              </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleChange}
-                    className="hidden"
-                  />
-                  <div
-                    className={`w-4 h-4 border-2 rounded mr-2 flex items-center justify-center transition-all duration-200 ${
-                      formData.rememberMe
-                        ? "bg-[#e5989b] border-[#e5989b]"
-                        : "border-gray-300 group-hover:border-[#e5989b]"
-                    }`}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="password"
+                    className="block text-xs sm:text-sm font-medium text-gray-700"
                   >
-                    {formData.rememberMe && (
-                      <svg
-                        className="w-2.5 h-2.5 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="Enter your password"
+                      required
+                      className={`w-full px-3.5 py-2.5 sm:py-3 text-sm sm:text-base pr-12 border rounded-xl bg-white focus:outline-none focus:ring-2 transition-all duration-200 placeholder-gray-400 ${
+                        errors.password && touched.password
+                          ? "border-red-300 focus:ring-red-200"
+                          : "border-gray-300 focus:ring-[#e5989b]/20 focus:border-[#e5989b] hover:border-[#e5989b]"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-50 rounded-lg"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ) : (
+                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </button>
                   </div>
-                  <span className="text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
-                    Remember me
-                  </span>
-                </label>
-                <a
-                  href="/forgot-password"
-                  className="text-[#e5989b] hover:text-[#d88a8d] font-medium transition-colors duration-200"
+                  {errors.password && touched.password && (
+                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1.5">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <label className="flex items-center cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      name="rememberMe"
+                      checked={formData.rememberMe}
+                      onChange={handleChange}
+                      className="hidden"
+                    />
+                    <div
+                      className={`w-4 h-4 border-2 rounded-md mr-2 flex items-center justify-center transition-all duration-200 ${
+                        formData.rememberMe
+                          ? "bg-[#e5989b] border-[#e5989b]"
+                          : "border-gray-300 group-hover:border-[#e5989b] bg-white"
+                      }`}
+                    >
+                      {formData.rememberMe && (
+                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
+                      Remember me
+                    </span>
+                  </label>
+                  <a
+                    href="/forgot-password"
+                    className="text-xs text-[#e5989b] hover:text-[#d88a8d] font-medium transition-colors duration-200 hover:underline text-right"
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/50 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none text-sm sm:text-base"
                 >
-                  Forgot password?
-                </a>
+                  {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Signing In...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1.5"> 
+                      <Heart className="w-4 h-4" />
+                      Sign In
+                    </span>
+                  )}
+                </button>
+              </form>
+
+              <div className="text-center mt-6 pt-4 border-t border-gray-100">
+                <p className="text-gray-600 text-xs sm:text-sm">
+                  New to Nurtura?{" "}
+                  <a
+                    href="/signup"
+                    className="text-[#e5989b] hover:text-[#d88a8d] font-semibold transition-colors duration-200 hover:underline"
+                  >
+                    Create an account
+                  </a>
+                </p>
               </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Signing In...
-                  </div>
-                ) : (
-                  "Sign In"
-                )}
-              </button>
-            </form>
-
-            {/* Sign Up Link */}
-            <div className="text-center mt-6 pt-4 border-t border-gray-200">
-              <p className="text-gray-600 text-sm">
-                Don't have an account?{" "}
-                <a
-                  href="/signup"
-                  className="text-[#e5989b] hover:text-[#d88a8d] font-semibold transition-colors duration-200"
-                >
-                  Create one here
-                </a>
-              </p>
             </div>
 
-            
+            {/* Mobile-only features */}
+            <div className="mt-6 text-center lg:hidden">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200">
+                  <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-[#e5989b]" />
+                  </div>
+                  <p className="text-xs text-gray-600">AI Health Insights</p>
+                </div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200">
+                  <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-[#e5989b]" />
+                  </div>
+                  <p className="text-xs text-gray-600">Progress Tracking</p>
+                </div>
+              </div>
+              <p className="text-gray-500 text-xs">
+                Your parenting journey, beautifully supported on any device
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ import ConversationAIChatbot from "./pages/ConversationBot";
 import AddVaccination from "./pages/AddVaccination";
 import Settings from "./pages/Settings";
 import ImportantVaccines from "./pages/ImportantVaccines";
-import ChildDetail from "./pages/ChildDetail";
+// import ChildDetail from "./pages/ChildDetail";
 import ChildGrowthTracking from "./pages/ChildGrowthTracking";
 
 function App() {
@@ -60,7 +60,7 @@ function App() {
 
           <Route path="/mother/:id" element={<UserProfile />} />
 
-          <Route path="/child-detail/:id" element={<ChildDetail />} />
+          {/* <Route path="/child-detail/:id" element={<ChildDetail />} /> */}
           <Route path="/child/:childId/growth" element={<ChildGrowthTracking />} />
 
           {/* AI Assistant */}
