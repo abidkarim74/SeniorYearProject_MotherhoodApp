@@ -127,55 +127,15 @@ const Login = () => {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#d88a8d]/10 rounded-full blur-3xl"></div>
           </div>
 
-          <div className="relative z-10 flex flex-col items-center text-center">
-
+          <div className="relative z-10 flex flex-col items-center justify-center h-full">
             {/* Circular Image */}
-            <div className="w-64 h-64 rounded-full border-8 border-white shadow-xl overflow-hidden mb-8 relative">
+            <div className="w-80 h-80 rounded-full border-8 border-white shadow-xl overflow-hidden">
               <img
                 src={MotherBaby}
                 alt="Mother and Baby"
                 className="w-full h-full object-cover"
               />
             </div>
-
-            <div className="max-w-md mx-auto">
-              <div className="flex items-center justifying-center gap-3 mb-6 justify-center">
-                <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                  <Heart className="w-7 h-7 text-[#e5989b]" />
-                </div>
-                <h2 className="text-3xl font-bold text-gray-800">Nurtura</h2>
-              </div>
-
-              <h1 className="text-3xl font-bold mb-6 leading-tight text-gray-900">
-                Your Compassionate<br />Parenting Companion
-              </h1>
-
-              <p className="text-gray-600 text-lg mb-10">
-                Join thousands of parents who trust Nurtura to guide them through every precious moment of their child's early years.
-              </p>
-
-              <div className="space-y-4 text-left inline-block">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-[#e5989b]" />
-                  </div>
-                  <span className="text-gray-700 font-medium">AI-powered health insights</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-[#e5989b]" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Personalized developmental tracking</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-[#e5989b]" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Supportive community of parents</span>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
 
@@ -183,42 +143,13 @@ const Login = () => {
         <div className="lg:hidden relative min-h-[300px] bg-[#fff5f7] flex items-center justify-center">
           <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-[#e5989b]/10 rounded-full blur-2xl"></div>
 
-          <div className="relative z-10 h-full flex flex-col justify-center p-6 text-center">
-
-            <div className="w-32 h-32 mx-auto rounded-full border-4 border-white shadow-lg overflow-hidden mb-6">
+          <div className="relative z-10 flex flex-col justify-center items-center">
+            <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden">
               <img
                 src={MotherBaby}
                 alt="Mother and Baby"
                 className="w-full h-full object-cover"
               />
-            </div>
-
-            <div className="max-w-md mx-auto relative z-10">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                  <Heart className="w-5 h-5 text-[#e5989b]" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800">Nurtura</h2>
-              </div>
-
-              <h1 className="text-2xl font-bold mb-3 text-gray-900">
-                Your Parenting Companion
-              </h1>
-
-              <p className="text-gray-600 text-sm mb-6">
-                Sign in to continue your parenting journey
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-4 mb-4">
-                <div className="flex items-center gap-2 text-sm bg-white rounded-full px-4 py-2 border border-blue-50 text-gray-700 shadow-sm">
-                  <Check className="w-3 h-3 text-[#e5989b]" />
-                  <span>AI Health Insights</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm bg-white rounded-full px-4 py-2 border border-blue-50 text-gray-700 shadow-sm">
-                  <Smartphone className="w-3 h-3 text-[#e5989b]" />
-                  <span>On all devices</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
