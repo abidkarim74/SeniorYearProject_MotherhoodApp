@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Users, 
-  Calendar, 
+import {
+  Home,
+  Users,
+  Calendar,
   MessageCircle,
   Baby,
   Settings,
@@ -19,7 +19,7 @@ const LeftBar = () => {
   const navigationItems = [
     { path: "/", icon: Home, label: "Dashboard" },
     { path: "/children", icon: Users, label: "My Children" },
-    { path: "/vaccinations", icon: Calendar, label: "Vaccinations" },
+    { path: "/immunizations", icon: Calendar, label: "Immunizations" },
     { path: "/community", icon: MessageCircle, label: "Community" },
   ];
 
@@ -39,23 +39,22 @@ const LeftBar = () => {
   };
 
   return (
-    <div className="h-full bg-white shadow-lg border-r border-gray-200 flex flex-col w-20 hover:w-64 transition-all duration-300 group">
-     
+    <div data-sidebar className="h-full bg-white shadow-lg border-r border-gray-200 flex flex-col w-20 hover:w-64 transition-all duration-300 group">
+
       {/* Navigation Items */}
       <nav className="flex-1 px-3 py-4 space-y-2">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center p-4 rounded-xl transition-all duration-200 relative ${
-                active 
-                  ? "bg-[#fceaea] text-[#e5989b] shadow-sm" 
+              className={`flex items-center p-4 rounded-xl transition-all duration-200 relative ${active
+                  ? "bg-[#fceaea] text-[#e5989b] shadow-sm"
                   : "text-gray-600 hover:bg-[#fceaea] hover:text-[#e5989b]"
-              }`}
+                }`}
               title={item.label}
             >
               <Icon className={`w-7 h-7 ${active ? 'text-[#e5989b]' : 'text-gray-400 hover:text-[#e5989b]'}`} />
@@ -84,11 +83,10 @@ const LeftBar = () => {
         {/* Settings */}
         <Link
           to="/settings"
-          className={`flex items-center p-4 rounded-xl transition-all duration-200 relative ${
-            isActive("/settings") 
-              ? "bg-[#fceaea] text-[#e5989b]" 
+          className={`flex items-center p-4 rounded-xl transition-all duration-200 relative ${isActive("/settings")
+              ? "bg-[#fceaea] text-[#e5989b]"
               : "text-gray-600 hover:bg-[#fceaea] hover:text-[#e5989b]"
-          }`}
+            }`}
           title="Settings"
         >
           <Settings className={`w-7 h-7 ${isActive("/settings") ? 'text-[#e5989b]' : 'text-gray-400 hover:text-[#e5989b]'}`} />
