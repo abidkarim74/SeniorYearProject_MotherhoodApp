@@ -32,6 +32,21 @@ const Children = () => {
     fetchChildren();
   }, [accessToken]);
 
+  // Apply blur effect to header and sidebar when popup is open
+  useEffect(() => {
+    if (activeMenu) {
+      const header = document.querySelector('header');
+      const sidebar = document.querySelector('[data-sidebar]');
+      if (header) header.classList.add('blur-sm');
+      if (sidebar) sidebar.classList.add('blur-sm');
+
+      return () => {
+        if (header) header.classList.remove('blur-sm');
+        if (sidebar) sidebar.classList.remove('blur-sm');
+      };
+    }
+  }, [activeMenu]);
+
   const toggleMenu = (childId: string) => {
     setActiveMenu(activeMenu === childId ? null : childId);
   };

@@ -10,7 +10,7 @@ import StatCard from "../components/home/StatCard";
 import ChildrenSection from "../components/home/ChildrenSection";
 import RemindersSection from "../components/home/ReminderSection";
 import QuickActionsSection from "../components/home/QuickActionsSection";
-import HomeMother from "../assets/home_mother.jpg";
+
 
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
@@ -21,7 +21,7 @@ import { getRequest } from "../api/requests";
 const Home = () => {
   const { accessToken, user } = useAuth();
 
-  
+
   const [reminders, setReminders] = useState<any[]>([]);
   const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
   const [activeChild, setActiveChild] = useState(0);
@@ -32,19 +32,19 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-       
-        
+
+
         // Fetch other data
         const [remindersData, vaccineOptionsData] = await Promise.all([
           getRequest("/vaccination-reminders/"),
           getRequest("/vaccination-options/all")
         ]);
-        
+
         setReminders(remindersData || []);
         setVaccineOptions(vaccineOptionsData || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        
+
       } finally {
         setRemindersLoading(false);
       }
@@ -63,7 +63,7 @@ const Home = () => {
     return vaccine?.vaccine_name || "Vaccination";
   };
 
- 
+
 
   // Helper function to sort reminders
   const getReminderStatus = (reminderDate: string) => {
@@ -71,7 +71,7 @@ const Home = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const reminderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
+
     const diffTime = reminderDay.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -84,66 +84,58 @@ const Home = () => {
   const sortedReminders = [...reminders].sort((a, b) => {
     const statusA = getReminderStatus(a.reminder);
     const statusB = getReminderStatus(b.reminder);
-    
+
     const priority = { overdue: 0, today: 1, upcoming: 2 };
     if (priority[statusA] !== priority[statusB]) {
       return priority[statusA] - priority[statusB];
     }
-    
+
     return new Date(a.reminder).getTime() - new Date(b.reminder).getTime();
   });
 
-  
+
 
   return (
     <div className="min-h-screen overflow-x-hidden">
       {/* Hero Section with Background Image - Covers top area until Children Section */}
       <div className="relative">
         {/* Background Image Container - Covers welcome section and stats */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center z-0 h-[500px] sm:h-[550px]"
-          style={{
-            backgroundImage: `url(${HomeMother})`,
-            backgroundPosition: 'center top',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat'
-          }}
-        >
+        <div className="absolute inset-0 bg-[#fff5f7] z-0 h-[500px] sm:h-[550px]">
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white"></div>
         </div>
-        
+
         {/* Content Container */}
         <div className="relative z-10">
           <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 w-full pt-8 pb-8">
             {/* Welcome Section */}
             <WelcomeSection firstName={user?.firstname} />
-            
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <StatCard 
-                title="My Children" 
-                value={childrenLength} 
+              <StatCard
+                title="My Children"
+                value={childrenLength}
                 icon={Baby}
                 description="Total registered"
               />
-              <StatCard 
-                title="Vaccination Reminders" 
-                value={reminders.length || 0} 
+              <StatCard
+                title="Vaccination Reminders"
+                value={reminders.length || 0}
                 icon={Bell}
                 description="Active reminders"
                 trend={reminders.length > 0 ? "up" : "down"}
                 change={reminders.length > 0 ? 100 : 0}
               />
-              <StatCard 
-                title="Community Messages" 
-                value={5} 
+              <StatCard
+                title="Community Messages"
+                value={5}
                 icon={MessageCircle}
                 description="Unread messages"
               />
-              <StatCard 
-                title="Milestones Completed" 
-                value="8/12" 
+              <StatCard
+                title="Milestones Completed"
+                value="8/12"
                 icon={TrendingUp}
                 description="This month"
                 trend="up"
@@ -174,7 +166,7 @@ const Home = () => {
                 loading={remindersLoading}
                 getVaccineName={getVaccineName}
               />
-              
+
               <QuickActionsSection />
             </div>
           </div>

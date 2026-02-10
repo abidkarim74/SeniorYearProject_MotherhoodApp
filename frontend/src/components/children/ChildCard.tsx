@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Edit,
@@ -47,6 +47,38 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
 
   // Type guard to safely access optional properties
   const safeChild = child as ChildWithComputed;
+
+  // Apply blur effect to header and sidebar when popup opens
+  useEffect(() => {
+    if (showVaccinationPopup) {
+      const header = document.querySelector('header');
+      const sidebar = document.querySelector('[data-sidebar]');
+      
+      if (header) {
+        header.classList.add('blur-sm');
+        header.style.pointerEvents = 'none';
+        header.style.zIndex = '0';
+      }
+      if (sidebar) {
+        sidebar.classList.add('blur-sm');
+        sidebar.style.pointerEvents = 'none';
+        sidebar.style.zIndex = '0';
+      }
+
+      return () => {
+        if (header) {
+          header.classList.remove('blur-sm');
+          header.style.pointerEvents = 'auto';
+          header.style.zIndex = '40';
+        }
+        if (sidebar) {
+          sidebar.classList.remove('blur-sm');
+          sidebar.style.pointerEvents = 'auto';
+          sidebar.style.zIndex = 'auto';
+        }
+      };
+    }
+  }, [showVaccinationPopup]);
 
   // Calculate age in days
   const calculateAgeInDays = (birthDate: string) => {
@@ -121,13 +153,13 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
 
   return (
     <>
-      {/* Blur overlay for the entire page */}
+      {/* Backdrop blur - covers entire screen */}
       {showVaccinationPopup && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 z-[60] animate-in fade-in duration-200" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] animate-in fade-in duration-200" onClick={handleCloseVaccination} />
       )}
 
-      <div className={`${showVaccinationPopup ? 'relative z-50' : ''}`}>
-        <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-[#e5989b]/30 ${showVaccinationPopup ? 'pointer-events-none' : ''}`}>
+      <div>
+        <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:border-[#e5989b]/30 ${showVaccinationPopup ? 'pointer-events-none opacity-50' : ''}`}>
           {/* Header Section */}
           <div className="flex justify-between items-start mb-4">
             <Link
@@ -373,14 +405,15 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
         </div>
       </div>
 
+      {/* Vaccination Modal Popup */}
       {showVaccinationPopup && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-16">
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden animate-in slide-in-from-bottom-2 duration-300"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[calc(100vh-120px)] flex flex-col overflow-hidden animate-in slide-in-from-bottom-2 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Popup Header with Close Button */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+            {/* Popup Header with Close Button - Fixed at top */}
+            <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-xl flex items-center justify-center">
                   <Syringe className="w-5 h-5 text-white" />
@@ -394,14 +427,15 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
               </div>
               <button
                 onClick={handleCloseVaccination}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
                 aria-label="Close"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            <div className="overflow-y-auto h-full max-h-[calc(90vh-80px)]">
+            {/* Scrollable Content Area */}
+            <div className="overflow-y-auto scrollbar-cute flex-1 min-h-0">
               <ChildVaccination
                 child_id={child.id}
                 fullname={childFullName}
