@@ -35,22 +35,22 @@ async def vaccines_required(child_id: UUID, data: ChildAge, payload = Depends(ve
 
 
 @vaccine_router.post('/create-vaccine-option', status_code=201)
-async def create_vaccine(data: VaccinationOptionCreateSchema, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    auth_id = payload['id']
+async def create_vaccine(data: VaccinationOptionCreateSchema, db: AsyncSession = Depends(connect_db)):
+    # auth_id = payload['id']
 
-    if not auth_id:
-        raise HTTPException(status_code=401, detail='You are not authorized!')
+    # if not auth_id:
+    #     raise HTTPException(status_code=401, detail='You are not authorized!')
     
     return await VaccinationOptionControllers.create_option_record(data, db)
 
 #kjhk
 
 @vaccine_router.get('/retrive-vaccine-options', response_model=List[VaccinationOptionResponseSchema])
-async def vaccine_options_list(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
-    auth_id = payload['id']
+async def vaccine_options_list(db: AsyncSession = Depends(connect_db)):
+    # auth_id = payload['id']
 
-    if not auth_id:
-        raise HTTPException(status_code=401, detail='You are not authorized!')
+    # if not auth_id:
+    #     raise HTTPException(status_code=401, detail='You are not authorized!')
     
     return await VaccinationOptionControllers.retrive_vaccine_options(db)
 
@@ -68,11 +68,11 @@ async def vaccine_options_details(vaccine_id: UUID, payload = Depends(verify_aut
 
 
 @vaccine_router.post('/create-vaccine-schedule', status_code=201)
-async def vaccine_schedule_create(data: VaccinationScheduleCreateSchema, payload = Depends(verify_authentication) , db: AsyncSession = Depends(connect_db)):
-    auth_id = payload['id']
+async def vaccine_schedule_create(data: VaccinationScheduleCreateSchema, db: AsyncSession = Depends(connect_db)):
+    # auth_id = payload['id']
 
-    if not auth_id:
-        raise HTTPException(status_code=401, detail='You are not authorized!')
+    # if not auth_id:
+    #     raise HTTPException(status_code=401, detail='You are not authorized!')
     
     return await VaccinationScheduleControllers.create_schedule_record(data, db)
 
