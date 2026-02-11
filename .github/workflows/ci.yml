@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Backend  # Changed from 'backend' to 'Backend'
+        working-directory: Backend
 
     steps:
       - uses: actions/checkout@v4
@@ -24,19 +24,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        working-directory: Backend  # Added this line too
 
       - name: Run tests (skip if none exist)
         run: |
-          # Run pytest but don't fail if no tests found
           python -m pytest --disable-warnings 2>/dev/null || echo "No tests found - continuing"
-        working-directory: Backend  # And this line
 
   frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend  # Check if this is also capitalized?
+        working-directory: frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -47,16 +44,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: frontend  # Add this to be safe
 
       - name: Type check (don't fail on errors)
         run: |
-          # Run type check but don't fail the build
           npx tsc --noEmit --skipLibCheck || echo "TypeScript errors found - will fix later"
-        working-directory: frontend  # And this
 
       - name: Build project (allow failures for now)
         run: |
-          # Try to build, but don't fail if there are TypeScript errors
           npm run build 2>/dev/null || echo "Build failed due to TypeScript errors - will fix in development"
-        working-directory: frontend  # And this
