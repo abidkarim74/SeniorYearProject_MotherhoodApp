@@ -10,7 +10,7 @@ interface DotBarProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
-  onSave?: () => void;
+  onSave?: (e?: React.MouseEvent<HTMLButtonElement>) => void; // More specific type
   onHide?: () => void;
   onCopyLink?: () => void;
 }
@@ -72,9 +72,9 @@ const DotBar = ({
     setTimeout(() => onClose(), 500);
   };
 
-  const handleAction = (callback?: () => void) => {
+  const handleAction = (callback?: (e?: React.MouseEvent<HTMLButtonElement>) => void, e?: React.MouseEvent<HTMLButtonElement>) => {
     if (callback) {
-      callback();
+      callback(e);
     }
     onClose();
   };
@@ -113,14 +113,14 @@ const DotBar = ({
         {isOwner && (
           <>
             <button
-              onClick={() => handleAction(onEdit)}
+              onClick={(e) => handleAction(onEdit, e)}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <Edit className="w-4 h-4" />
               Edit Post
             </button>
             <button
-              onClick={() => handleAction(onDelete)}
+              onClick={(e) => handleAction(onDelete, e)}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
@@ -132,7 +132,7 @@ const DotBar = ({
 
         {/* General Actions */}
         <button
-          onClick={() => handleAction(onSave)}
+          onClick={(e) => handleAction(onSave, e)}
           className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <Bookmark className="w-4 h-4" />
@@ -140,7 +140,7 @@ const DotBar = ({
         </button>
 
         <button
-          onClick={() => handleAction(onHide)}
+          onClick={(e) => handleAction(onHide, e)}
           className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <EyeOff className="w-4 h-4" />
@@ -160,7 +160,7 @@ const DotBar = ({
           <>
             <div className="border-t border-gray-100 my-2" />
             <button
-              onClick={() => handleAction(onReport)}
+              onClick={(e) => handleAction(onReport, e)}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
             >
               <Flag className="w-4 h-4" />

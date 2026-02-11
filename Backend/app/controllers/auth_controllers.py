@@ -26,9 +26,7 @@ class AuthController():
                         
             if user:
                 raise HTTPException(status_code=400, detail='Email or username already exist!')
-            
-            print("Hello world")
-            
+                        
             hashed_password = hash_password_func(data.password)
             
             new_user = User(email=data.email, username=data.username, firstname=data.firstname, lastname=data.lastname, password=hashed_password)
@@ -45,6 +43,7 @@ class AuthController():
             
             signed_refresh_token = AuthController.signer.sign(refresh_token.encode()).decode()
             
+            
             res.set_cookie(
                 key='refreshToken', 
                 value=signed_refresh_token,
@@ -53,7 +52,7 @@ class AuthController():
                 samesite='Strict',
                 max_age=60*60*24*7
             )
-            return access_token
+            return {'access_token': access_token, 'user': new_user}
                                 
         except SQLAlchemyError as e:
             await db.rollback()
@@ -79,12 +78,12 @@ class AuthController():
             exisiting_user = result.scalar_one_or_none()
             
             if not exisiting_user:
-                raise HTTPException(status_code=404, detail='User does not exist!')
+                raise HTTPException(status_code=404, detail='Username or password incorrect!')
             
             is_match = verify_password(data.password, exisiting_user.password)
             
             if not is_match:
-                raise HTTPException(status_code=400, detail='Incorrect password!')
+                raise HTTPException(status_code=400, detail='Username or password incorrect!')
             
             access_token = generate_access_token({'id': exisiting_user.id})
             
@@ -100,7 +99,7 @@ class AuthController():
                 samesite='Strict',
                 max_age=60*60*24*7
             )
-            return access_token
+            return {'access_token': access_token, 'user': exisiting_user}
                 
         except SQLAlchemyError as e:
             await db.rollback()

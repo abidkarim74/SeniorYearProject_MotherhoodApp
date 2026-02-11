@@ -6,6 +6,8 @@ from app.database.postgres import connect_db
 from app.controllers.profile_controllers import ProfileController
 from app.schemas.child_schemas import ChildMiniResponseSchema
 from typing import List
+from uuid import UUID
+from fastapi import HTTPException
 
 
 profile_router = APIRouter(
@@ -32,6 +34,33 @@ async def mother_profile_update(data: MotherProfileUpdate ,payload = Depends(ver
 @profile_router.delete('/delete')
 async def delete_route(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
     return await ProfileController.delete(payload['id'], db)
+
+
+
+@profile_router.post('/save-post/{post_id}', status_code=201)
+async def save_post(post_id: UUID, payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    auth_id = payload['id']
+
+    if not auth_id:
+        raise HTTPException(status_code=401, detail='Unauthorized request!')
+
+    return await ProfileController.archive_post_create(post_id, auth_id, db)
+
+
+
+@profile_router.get('/archive-posts', status_code=201)
+async def archive(payload = Depends(verify_authentication), db: AsyncSession = Depends(connect_db)):
+    auth_id = payload['id']
+
+    if not auth_id:
+        raise HTTPException(status_code=401, detail='Unauthorized request!')
+
+    return await ProfileController.archive_post(post_id, auth_id)
+
+
+
+
+
 
 
 

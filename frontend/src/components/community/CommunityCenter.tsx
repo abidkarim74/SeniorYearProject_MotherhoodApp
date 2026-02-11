@@ -7,13 +7,52 @@ import {
   AlertCircle,
   TrendingUp,
   Users,
-  Plus
+  Plus,
+  Bookmark
 } from "lucide-react";
 import SuccessToast from "./SuccessToast";
 import CreatePostModal from "./CreatePost";
 import SinglePost from "./SinglePost";
 import type { Post, PostFormData, PostType } from "../../interfaces/CommunityInterfaces";
 
+// Define a cute notification component
+const CuteNotification = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed top-6 right-6 z-50 animate-fade-in-up">
+      <div className="bg-gradient-to-r from-[#ffb3b3] to-[#ffccd5] border-2 border-[#ff8fa3] rounded-xl shadow-lg p-4 max-w-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+              <Bookmark className="w-5 h-5 text-[#ff4d6d]" fill="#ff4d6d" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-[#590d22] font-medium">Saved! ✨</p>
+            <p className="text-[#800f2f] text-sm">{message}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[#ff4d6d] hover:text-[#c9184a] transition-colors"
+          >
+            <span className="text-lg">×</span>
+          </button>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-2 h-1 w-full bg-white rounded-full overflow-hidden">
+          <div className="h-full bg-[#ff4d6d] animate-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CommunityCenter = () => {
   const { user } = useAuth();
@@ -24,8 +63,9 @@ const CommunityCenter = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [createdPostId, setCreatedPostId] = useState<string | null>(null);
-
-  console.log(posts);
+  const [showSaveNotification, setShowSaveNotification] = useState<boolean>(false);
+  const [saveNotificationMessage, setSaveNotificationMessage] = useState<string>("");
+  const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
 
   // Fetch posts
   const fetchPosts = async () => {
@@ -50,6 +90,8 @@ const CommunityCenter = () => {
   const handleCreatePost = async (postData: PostFormData) => {
     try {
       const response = await postRequest("/community/create-post/", postData);
+
+      console.log(response);
       
       if (response && response.id) {
         setCreatedPostId(response.id);
@@ -66,9 +108,47 @@ const CommunityCenter = () => {
         
         return response;
       }
+      
     } catch (error) {
       console.error("Error creating post:", error);
       throw error;
+    }
+  };
+
+  // Handle save post
+  const handleSavePost = async (postId: string) => {
+    try {
+      // Prevent multiple clicks
+      if (isSaving[postId]) return;
+      
+      setIsSaving(prev => ({ ...prev, [postId]: true }));
+      
+      const response = await postRequest(`/user-profile/save-post/${postId}/`, {});
+      
+      if (response) {
+        // Show cute notification
+        const postTitle = posts.find(p => p.id === postId)?.title || "Post";
+        setSaveNotificationMessage(`${postTitle} has been saved to your collection! 📚`);
+        setShowSaveNotification(true);
+        
+        // Update local state to show saved status
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return { 
+              ...post, 
+              is_saved: true
+            };
+          }
+          return post;
+        }));
+      }
+    } catch (error) {
+      console.error("Error saving post:", error);
+      // Show error notification
+      setSaveNotificationMessage("Failed to save post. Please try again! 😢");
+      setShowSaveNotification(true);
+    } finally {
+      setIsSaving(prev => ({ ...prev, [postId]: false }));
     }
   };
 
@@ -79,21 +159,6 @@ const CommunityCenter = () => {
       setShowToast(false);
     }
   };
-
-  // Handle like
-  // const handleLike = async (postId: string) => {
-  //   try {
-  //     // Update local state for now
-  //     setPosts(posts.map(post => {
-  //       if (post.id === postId) {
-  //         return { ...post, like_count: post.like_count + 1 };
-  //       }
-  //       return post;
-  //     }));
-  //   } catch (error) {
-  //     console.error("Error liking post:", error);
-  //   }
-  // };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -207,6 +272,8 @@ const CommunityCenter = () => {
                 post={post}
                 getPostTypeStyle={getPostTypeStyle}
                 formatDate={formatDate}
+                onSavePost={handleSavePost}
+                isSaving={isSaving[post.id]}
               />
             ))
           )}
@@ -229,6 +296,14 @@ const CommunityCenter = () => {
           showViewButton={!!createdPostId}
           onViewClick={handleViewPost}
           duration={5000}
+        />
+      )}
+
+      {/* Cute Save Notification */}
+      {showSaveNotification && (
+        <CuteNotification
+          message={saveNotificationMessage}
+          onClose={() => setShowSaveNotification(false)}
         />
       )}
     </>

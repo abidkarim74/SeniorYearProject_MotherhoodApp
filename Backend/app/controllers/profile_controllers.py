@@ -8,6 +8,7 @@ from sqlalchemy import select, inspect
 from uuid import UUID
 from typing import Dict, Any, Optional
 from app.models.child import Child
+from app.models.user import UserArchivePost
 
 
 
@@ -139,3 +140,63 @@ class ProfileController():
                 detail=error_dict.get('detail', 'Internal server error!')
             )
         
+    
+    @staticmethod
+    async def archive_post_create(post_id: UUID, auth_id: UUID, db: AsyncSession):
+        try:
+            statement = select(UserArchivePost).where(
+                UserArchivePost.post_id == post_id,
+                UserArchivePost.user_id == auth_id
+            )
+
+            result = await db.execute(statement)
+            archive_post = result.scalar_one_or_none()  
+
+            if archive_post:
+                raise HTTPException(status_code=400, detail='Post is already saved!')
+            
+            new_archive = UserArchivePost(post_id=post_id, user_id=auth_id)
+
+            db.add(new_archive)
+
+            await db.commit()
+            await db.refresh(new_archive)
+
+            return True
+
+        except SQLAlchemyError:
+            await db.rollback()
+
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+
+            error_dict = e.__dict__
+            raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
+    
+
+    @staticmethod
+    async def archive_posts_all(auth_id: UUID, db: AsyncSession):
+        try:
+            statement = select(UserArchivePost).where(
+                UserArchivePost.user_id == auth_id
+            )
+            
+            result = await db.execute(statement)
+            archived_posts = result.scalars().all() 
+            
+            return archived_posts
+
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail='Database error!')
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', 'Internal server error!')
+            )
