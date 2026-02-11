@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import MyChildren from "./pages/Children";
 import AIChatbotBorder from "./pages/AIChatbotBorder";
 import Vaccinations from "./pages/Vaccinations";
+import Immunizations from "./pages/Immunizations";
 import Community from "./pages/Community";
 import AddChild from "./pages/AddChild";
 import UserProfile from "./pages/UserProfile";
@@ -50,12 +51,13 @@ function App() {
           <Route path="/children" element={<MyChildren />} />
           <Route path="/add-child" element={<AddChild />} />
 
+          <Route path="/immunizations" element={<Immunizations />} />
           <Route path="/vaccinations" element={<Vaccinations />} />
           <Route path="/add-vaccination" element={<AddVaccination />} />
           <Route path="/important-vaccines" element={<ImportantVaccines />} />
 
           <Route path="/community" element={<Community />} />
-          
+
           <Route path="/settings" element={<Settings />} />
 
           <Route path="/mother/:id" element={<UserProfile />} />
