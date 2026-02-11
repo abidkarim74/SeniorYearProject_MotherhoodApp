@@ -491,7 +491,6 @@ const Signup = () => {
                   </div>
                 )}
 
-                {/* Terms and Conditions */}
                 <div className="flex items-start space-x-2 pt-1">
                   <div className="flex items-center h-4 mt-0.5">
                     <input

@@ -85,12 +85,16 @@ class VaccinationScheduleControllers():
     @staticmethod
     async def create_schedule_record(data: VaccinationScheduleCreateSchema, db: AsyncSession):
         try:
+            print(data)
             vaccine_schedule = VaccinationSchedule(dose_num=data.dose_num, vaccine_id=data.vaccine_id, min_age_days=data.min_age_days, max_age_days=data.max_age_days)
 
             db.add(vaccine_schedule)
 
             await db.commit()
+            print("dasd")
             await db.refresh(vaccine_schedule)
+
+            print("Hello")
 
             return True
 
@@ -101,6 +105,8 @@ class VaccinationScheduleControllers():
         except Exception as e:
             await db.rollback()
             error_dict = e.__dict__
+
+            print(e)
 
             raise HTTPException(status_code=error_dict.get('status_code', 500), detail=error_dict.get('detail', 'Internal server error!'))
         
