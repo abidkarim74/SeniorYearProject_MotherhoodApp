@@ -21,6 +21,7 @@ class UserLoginSchema(BaseModel):
 
 class UserResponseSchema(UserBaseSchema):
     id: UUID
+    profile_pic: str | None = None
 
     class Config:
         orm_mode = True  
@@ -33,3 +34,8 @@ class TokenPayload(BaseModel):
 class ChangePassword(BaseModel):
     password: str
     new_password: str
+
+
+class AuthResponseModel(BaseModel):
+    access_token: str
+    user: UserResponseSchema

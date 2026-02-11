@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context # type: ignore
 
 from app.database.postgres import Base
-from app.models.user import User
+from app.models.user import User, UserArchivePost
 from app.models.ai import AIChatbot
 from app.models.child import Child
 from app.models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule

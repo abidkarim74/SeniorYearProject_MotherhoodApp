@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import CommunityCenter from "../components/community/CommunityCenter";
 import CommunityLeftSidebar from "../components/community/CommunityLeftBar";
 import CommunityRightSidebar from "../components/community/CommunityRightBar";
-import { X, Search, ArrowLeft, Loader2, Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+import { X, Search, ArrowLeft, Loader2, Heart, MessageCircle } from "lucide-react";
 import { getRequest } from "../api/requests";
 
 const Community = () => {
@@ -14,28 +14,103 @@ const Community = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
 
-  // Search Logic
-  const handleSearch = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery.trim().length > 0) {
+  // Refs for debounce timer
+  const debounceTimerRef = useRef<number | null>(null);
+  const searchAbortControllerRef = useRef<AbortController | null>(null);
+
+  // Debounce function to handle typing
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      window.clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set a new timer
+    debounceTimerRef.current = window.setTimeout(() => {
+      setDebouncedQuery(value.trim());
+    }, 500); // 500ms debounce delay
+  };
+
+  // Perform search when debounced query changes
+  useEffect(() => {
+    const performSearch = async () => {
+      const query = debouncedQuery;
+      
+      if (!query || query.length === 0) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      // Cancel previous request if exists
+      if (searchAbortControllerRef.current) {
+        searchAbortControllerRef.current.abort();
+      }
+
+      // Create new abort controller for this request
+      searchAbortControllerRef.current = new AbortController();
+      
       setIsLoading(true);
       setIsSearching(true);
+      
       try {
-        const data = await getRequest(`/community/search?q=${encodeURIComponent(searchQuery)}`);
+        const data = await getRequest(
+          `/community/search?q=${encodeURIComponent(query)}`);
         setSearchResults(data);
-      } catch (error) {
-        console.error("Search API failed:", error);
-        setSearchResults([]);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error("Search API failed:", error);
+          setSearchResults([]);
+        }
       } finally {
         setIsLoading(false);
+        searchAbortControllerRef.current = null;
       }
+    };
+
+    performSearch();
+
+    // Cleanup function
+    return () => {
+      if (searchAbortControllerRef.current) {
+        searchAbortControllerRef.current.abort();
+      }
+    };
+  }, [debouncedQuery]);
+
+  // Handle Enter key for immediate search (optional)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim().length > 0) {
+      // Clear any pending debounce
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+      // Trigger immediate search
+      setDebouncedQuery(searchQuery.trim());
     }
   };
 
   const clearSearch = () => {
-    setIsSearching(false);
     setSearchQuery("");
+    setDebouncedQuery("");
     setSearchResults([]);
+    setIsSearching(false);
+    
+    // Clear debounce timer
+    if (debounceTimerRef.current) {
+      window.clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    
+    // Cancel any pending request
+    if (searchAbortControllerRef.current) {
+      searchAbortControllerRef.current.abort();
+      searchAbortControllerRef.current = null;
+    }
   };
 
   // Prevent scrolling when sidebar is open
@@ -70,6 +145,18 @@ const Community = () => {
 
     document.addEventListener("keydown", handleEscKey);
     return () => document.removeEventListener("keydown", handleEscKey);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        window.clearTimeout(debounceTimerRef.current);
+      }
+      if (searchAbortControllerRef.current) {
+        searchAbortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   return (
@@ -139,8 +226,8 @@ const Community = () => {
                 type="text"
                 placeholder="Search posts"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearch}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full pl-14 pr-5 py-3.5 bg-white border border-gray-200 rounded-full shadow-md focus:ring-2 focus:ring-[#e5989b]/30 focus:border-transparent outline-none transition-all placeholder:text-gray-400 text-gray-700 font-medium"
               />
               {searchQuery && (
@@ -150,6 +237,11 @@ const Community = () => {
                 >
                   <X className="w-5 h-5" />
                 </button>
+              )}
+              {isLoading && searchQuery && (
+                <div className="absolute inset-y-0 right-0 pr-12 flex items-center">
+                  <Loader2 className="w-4 h-4 text-[#e5989b] animate-spin" />
+                </div>
               )}
             </div>
 

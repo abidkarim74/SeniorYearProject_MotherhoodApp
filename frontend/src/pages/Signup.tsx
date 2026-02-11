@@ -8,9 +8,10 @@ import { type SignupFormData, type SignupErrors } from '../interfaces/AuthInterf
 import { Eye, EyeOff, Heart, AlertCircle, Check, Smartphone } from 'lucide-react';
 import UnAuthHeader from '../components/UnAuthHeader';
 
+
 const Signup = () => {
   const navigate = useNavigate();
-  const { setAccessToken } = useAuth();
+  const { setAccessToken, setUser } = useAuth();
 
   const [formData, setFormData] = useState<SignupFormData>({
     firstname: '',
@@ -44,29 +45,38 @@ const Signup = () => {
         if (!value.toString().trim()) return 'First name is required';
         if (value.toString().length < 2) return 'First name must be at least 2 characters';
         return null;
+
       case 'lastname':
         if (!value.toString().trim()) return 'Last name is required';
         if (value.toString().length < 2) return 'Last name must be at least 2 characters';
         return null;
+
       case 'username':
         if (!value.toString().trim()) return 'Username is required';
         if (value.toString().length < 3) return 'Username must be at least 3 characters';
         if (!/^[a-zA-Z0-9_]+$/.test(value.toString()))
           return 'Username can only contain letters, numbers, and underscores';
+
         return null;
+
       case 'email':
         if (!value.toString().trim()) return 'Email is required';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.toString()))
           return 'Please enter a valid email address';
+
         return null;
+
       case 'password':
         return validatePassword(value.toString());
+
       case 'confirmPassword':
         if (value !== formData.password) return "Passwords don't match";
         return null;
+
       case 'agreeToTerms':
         if (!value) return 'You must agree to the terms and conditions';
         return null;
+
       default:
         return null;
     }
@@ -74,16 +84,22 @@ const Signup = () => {
 
   const validateForm = (): boolean => {
     const newErrors: SignupErrors = {};
+
     (Object.keys(formData) as Array<keyof SignupFormData>).forEach((key) => {
       const val = formData[key];
+
       const err = validateField(key, val as string | boolean);
+
       if (err) {
         newErrors[key] = err;
       }
     });
+
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -98,10 +114,12 @@ const Signup = () => {
 
     if (touched[fieldName]) {
       const fieldValue = type === 'checkbox' ? checked : value;
+
       const fieldError = validateField(fieldName, fieldValue);
 
       if (fieldError) {
         setErrors((prev) => ({ ...prev, [fieldName]: fieldError }));
+
       } else {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -115,6 +133,7 @@ const Signup = () => {
   const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     const fieldName = name as keyof SignupFormData;
+
     const fieldValue = type === 'checkbox' ? checked : value;
 
     setTouched((prev) => ({ ...prev, [fieldName]: true }));
@@ -122,6 +141,7 @@ const Signup = () => {
 
     if (fieldError) {
       setErrors((prev) => ({ ...prev, [fieldName]: fieldError }));
+
     } else {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -150,6 +170,7 @@ const Signup = () => {
 
     try {
       const { confirmPassword, agreeToTerms, ...submitData } = formData;
+
       const response = await postRequest('/auth/signup', submitData);
       setIsSuccess(true);
 
@@ -157,7 +178,13 @@ const Signup = () => {
       setTimeout(() => window.location.assign('/'));
 
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Signup failed. Please try again.');
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+
+      } else {
+        setError("Network error!")
+      }
+
     } finally {
       setLoading(false);
     }

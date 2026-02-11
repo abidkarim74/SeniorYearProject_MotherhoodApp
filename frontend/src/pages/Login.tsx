@@ -21,7 +21,7 @@ interface LoginErrors {
 }
 
 const Login = () => {
-  const { setAccessToken } = useAuth();
+  const { setAccessToken, setUser } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<LoginFormData>({
@@ -58,6 +58,7 @@ const Login = () => {
 
   const validateForm = (): boolean => {
     const newErrors: LoginErrors = {};
+
     (Object.keys(formData) as Array<keyof LoginFormData>).forEach((key) => {
       if (key !== "rememberMe") {
         const value = formData[key];
@@ -65,31 +66,40 @@ const Login = () => {
         if (error) newErrors[key] = error;
       }
     });
+
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === "checkbox" ? checked : value;
+
     setFormData((prev) => ({ ...prev, [name]: fieldValue }));
+
     if (errors[name as keyof LoginErrors])
       setErrors((prev) => ({ ...prev, [name]: undefined }));
+
     if (error) setError(null);
   };
 
   const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     const fieldValue = type === "checkbox" ? checked : value;
+
     setTouched((prev) => ({ ...prev, [name]: true }));
     const fieldError = validateField(name, fieldValue);
+
     if (fieldError) setErrors((prev) => ({ ...prev, [name]: fieldError }));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const allTouched = { email: true, password: true, rememberMe: true };
     setTouched(allTouched);
+
     if (!validateForm()) {
       setError("Please fix the errors above");
       return;
@@ -100,15 +110,20 @@ const Login = () => {
 
     try {
       const response = await postRequest("/auth/login", formData);
+
       if (formData.rememberMe) localStorage.setItem("rememberMe", "true");
-      setAccessToken(response);
+
+      setAccessToken(response.access_token);
+      setUser(response.user);
+
       navigate("/");
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.message ||
-        "Login failed. Please try again.";
-      setError(errorMessage);
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError("Network error!");
+      }
+      
     } finally {
       setLoading(false);
     }
@@ -166,32 +181,32 @@ const Login = () => {
                   <img
                     src={MotherBaby}
                     alt="Mother and baby"
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-cover rounded-md transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </div>
 
-              <div className="text-center mb-6 pt-4 sm:pt-6">
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5">
+              <div className="text-center mb-4 pt-5 transition-all duration-500">
+                <h1 className="text-base sm:text-lg font-bold text-gray-900 mb-1 transition-all duration-500">
                   Welcome back
                 </h1>
-                <p className="text-gray-600 text-xs sm:text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm transition-all duration-500">
                   Sign in to continue your parenting journey
                 </p>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-lg mb-4 flex items-center gap-2 text-xs sm:text-sm">
-                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg mb-4 flex items-center gap-2 text-xs transition-all duration-300">
+                  <AlertCircle className="w-3 h-3 sm:w-3 sm:h-3 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
-                <div className="space-y-1.5">
+              <form onSubmit={handleSubmit} className="space-y-4 transition-all duration-500" noValidate>
+                <div className="space-y-1.5 transition-all duration-500">
                   <label
                     htmlFor="email"
-                    className="block text-xs sm:text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700 transition-all duration-500"
                   >
                     Email Address
                   </label>
@@ -210,21 +225,21 @@ const Login = () => {
                       }`}
                   />
                   {errors.email && touched.email && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1.5">
-                      <AlertCircle className="w-3 h-3" />
+                    <p className="text-red-500 text-xs mt-0.5 flex items-center gap-1 transition-all duration-300">
+                      <AlertCircle className="w-2.5 h-2.5 sm:w-2.5 sm:h-2.5" />
                       {errors.email}
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 transition-all duration-500">
                   <label
                     htmlFor="password"
-                    className="block text-xs sm:text-sm font-medium text-gray-700"
+                    className="block text-xs font-medium text-gray-700 transition-all duration-500"
                   >
                     Password
                   </label>
-                  <div className="relative">
+                  <div className="relative transition-all duration-500">
                     <input
                       type={showPassword ? "text" : "password"}
                       id="password"
@@ -242,26 +257,26 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-50 rounded-lg"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-300 p-0.5 hover:bg-gray-50 rounded-md"
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
                       {showPassword ? (
-                        <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300" />
                       ) : (
-                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-all duration-300" />
                       )}
                     </button>
                   </div>
                   {errors.password && touched.password && (
-                    <p className="text-red-500 text-xs mt-1 flex items-center gap-1.5">
-                      <AlertCircle className="w-3 h-3" />
+                    <p className="text-red-500 text-xs mt-0.5 flex items-center gap-1 transition-all duration-300">
+                      <AlertCircle className="w-2.5 h-2.5 sm:w-2.5 sm:h-2.5" />
                       {errors.password}
                     </p>
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <label className="flex items-center cursor-pointer group">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 transition-all duration-500">
+                  <label className="flex items-center cursor-pointer group transition-all duration-300">
                     <input
                       type="checkbox"
                       name="rememberMe"
@@ -276,16 +291,16 @@ const Login = () => {
                         }`}
                     >
                       {formData.rememberMe && (
-                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                        <Check className="w-2 h-2 text-white transition-transform duration-300" strokeWidth={3} />
                       )}
                     </div>
-                    <span className="text-xs text-gray-700 font-medium group-hover:text-gray-900 transition-colors">
+                    <span className="text-xs text-gray-700 font-medium group-hover:text-gray-900 transition-colors duration-300">
                       Remember me
                     </span>
                   </label>
                   <a
                     href="/forgot-password"
-                    className="text-xs text-[#e5989b] hover:text-[#d88a8d] font-medium transition-colors duration-200 hover:underline text-right"
+                    className="text-xs text-[#e5989b] hover:text-[#d88a8d] font-medium transition-all duration-300 hover:underline text-right"
                   >
                     Forgot password?
                   </a>
@@ -294,11 +309,11 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/50 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none text-sm sm:text-base"
+                  className="w-full bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white py-2.5 rounded-lg font-medium shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#e5989b]/30 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none text-xs active:scale-95"
                 >
                   {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="flex items-center justify-center gap-1.5 transition-all duration-300">
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Signing In...</span>
                     </div>
                   ) : (
@@ -310,12 +325,12 @@ const Login = () => {
                 </button>
               </form>
 
-              <div className="text-center mt-6 pt-4 border-t border-gray-100">
-                <p className="text-gray-600 text-xs sm:text-sm">
+              <div className="text-center mt-4 pt-4 border-t border-gray-100 transition-all duration-500">
+                <p className="text-gray-600 text-xs transition-all duration-500">
                   New to Nurtura?{" "}
                   <a
                     href="/signup"
-                    className="text-[#e5989b] hover:text-[#d88a8d] font-semibold transition-colors duration-200 hover:underline"
+                    className="text-[#e5989b] hover:text-[#d88a8d] font-medium transition-all duration-300 hover:underline text-xs"
                   >
                     Create an account
                   </a>
@@ -324,22 +339,22 @@ const Login = () => {
             </div>
 
             {/* Mobile-only features */}
-            <div className="mt-6 text-center lg:hidden">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200">
-                  <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
-                    <Heart className="w-4 h-4 text-[#e5989b]" />
+            <div className="mt-6 text-center lg:hidden transition-all duration-500">
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200 transition-all duration-300 hover:shadow-md">
+                  <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-[#e5989b]/10 flex items-center justify-center transition-all duration-300 hover:bg-[#e5989b]/20">
+                    <Heart className="w-4 h-4 text-[#e5989b] transition-transform duration-300 hover:scale-110" />
                   </div>
                   <p className="text-xs text-gray-600">AI Health Insights</p>
                 </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200">
-                  <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-[#e5989b]/10 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-[#e5989b]" />
+                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200 transition-all duration-300 hover:shadow-md">
+                  <div className="w-8 h-8 mx-auto mb-1.5 rounded-full bg-[#e5989b]/10 flex items-center justify-center transition-all duration-300 hover:bg-[#e5989b]/20">
+                    <Check className="w-4 h-4 text-[#e5989b] transition-transform duration-300 hover:scale-110" />
                   </div>
                   <p className="text-xs text-gray-600">Progress Tracking</p>
                 </div>
               </div>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-500 text-xs transition-all duration-500">
                 Your parenting journey, beautifully supported on any device
               </p>
             </div>

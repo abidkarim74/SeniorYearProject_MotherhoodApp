@@ -35,8 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshInProgress = useRef(false); 
   const initialized = useRef(false); 
 
-  console.log(accessToken);
-
   const refreshAccessToken = async (): Promise<string | null> => {
     if (refreshInProgress.current) {
       return null;
@@ -56,8 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return token;
       }
       return null;
+
     } catch (err:any) {
-      console.error("Failed to refresh token:", err);
       return null;
 
     } finally {
@@ -71,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return response;
 
     } catch (error:any) {
-      console.error("Failed to fetch authenticated user:", error);
+
       return null;
     }
   };
@@ -81,7 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.post("/auth/logout");
 
     } catch (error) {
-      console.error("Logout API call failed:", error);
 
     } finally {
       setAccessToken(null);
@@ -146,8 +143,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const token = await refreshAccessToken();
 
-        console.log("Came here...", token);
-
         if (token) {
           const userData = await fetchAuthenticatedUser();
           setUser(userData);
@@ -156,8 +151,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await logout();
         }
       } catch (error) {
-        console.error("Auth initialization failed:", error);
         await logout();
+
       } finally {
         setLoading(false);
       }
