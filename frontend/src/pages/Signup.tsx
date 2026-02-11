@@ -3,7 +3,7 @@ import { postRequest } from '../api/requests';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import MotherBaby from '../assets/motherbaby.jpg';
-import Family from '../assets/fam.jpg';
+
 import { type SignupFormData, type SignupErrors } from '../interfaces/AuthInterfaces';
 import { Eye, EyeOff, Heart, AlertCircle, Check, Smartphone } from 'lucide-react';
 import UnAuthHeader from '../components/UnAuthHeader';
@@ -153,7 +153,6 @@ const Signup = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const allTouched = (Object.keys(formData) as Array<keyof SignupFormData>).reduce((acc, key) => ({
       ...acc,
       [key]: true
