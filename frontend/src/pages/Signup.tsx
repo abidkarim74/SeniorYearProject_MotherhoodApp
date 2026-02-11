@@ -3,7 +3,7 @@ import { postRequest } from '../api/requests';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 import MotherBaby from '../assets/motherbaby.jpg';
-import Family from '../assets/fam.jpg';
+
 import { type SignupFormData, type SignupErrors } from '../interfaces/AuthInterfaces';
 import { Eye, EyeOff, Heart, AlertCircle, Check, Smartphone } from 'lucide-react';
 import UnAuthHeader from '../components/UnAuthHeader';
@@ -153,7 +153,6 @@ const Signup = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     const allTouched = (Object.keys(formData) as Array<keyof SignupFormData>).reduce((acc, key) => ({
       ...acc,
       [key]: true
@@ -175,10 +174,8 @@ const Signup = () => {
       const response = await postRequest('/auth/signup', submitData);
       setIsSuccess(true);
 
-      setAccessToken(response.access_token);
-      setUser(response.user);
-
-      navigate("/");
+      setAccessToken(response);
+      setTimeout(() => window.location.assign('/'));
 
     } catch (err: any) {
       if (err.response?.data?.detail) {
@@ -237,87 +234,36 @@ const Signup = () => {
 
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* Left side - Image/Info Section */}
-        <div
-          className="hidden lg:flex lg:w-1/2 relative bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${Family})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/40 to-black/30" />
+        <div className="hidden lg:flex lg:w-1/2 relative bg-[#fff5f7] items-center justify-center p-12">
+          {/* Decorative Background Elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#e5989b]/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#d88a8d]/10 rounded-full blur-3xl"></div>
+          </div>
 
-          <div className="relative z-10 flex flex-col justify-center p-8 xl:p-12 text-white">
-            <div className="max-w-md mx-auto">
-              <div className="flex items-center gap-3 mb-6 md:mb-8">
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Heart className="w-5 h-5 md:w-7 md:h-7" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold">Nurtura</h2>
-              </div>
-
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 leading-tight">
-                Begin Your Parenting<br />Journey With Us
-              </h1>
-
-              <p className="text-white/90 text-base md:text-lg mb-6 md:mb-10">
-                Join thousands of parents who trust Nurtura to guide them through every precious moment of their child's early years.
-              </p>
-
-              <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 md:w-4 md:h-4" />
-                  </div>
-                  <span className="text-white/95 text-sm md:text-base">AI-powered health insights</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 md:w-4 md:h-4" />
-                  </div>
-                  <span className="text-white/95 text-sm md:text-base">Personalized developmental tracking</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 md:w-4 md:h-4" />
-                  </div>
-                  <span className="text-white/95 text-sm md:text-base">Supportive community of parents</span>
-                </div>
-              </div>
+          <div className="relative z-10 flex flex-col items-center justify-center h-full">
+            {/* Circular Image */}
+            <div className="w-80 h-80 rounded-full border-8 border-white shadow-xl overflow-hidden">
+              <img
+                src={MotherBaby}
+                alt="Mother and Baby"
+                className="w-full h-full object-cover"
+              />
             </div>
-
-            <div className="absolute -top-4 -left-4 w-6 h-6 md:w-8 md:h-8 bg-[#e5989b] rounded-full opacity-20 animate-pulse"></div>
           </div>
         </div>
 
         {/* Mobile Hero Section - Shows on small screens */}
-        <div className="lg:hidden relative min-h-[280px] bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${Family})` }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/30" />
+        <div className="lg:hidden relative min-h-[300px] bg-[#fff5f7] flex items-center justify-center">
+          <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-[#e5989b]/10 rounded-full blur-2xl"></div>
 
-          <div className="relative z-10 h-full flex flex-col justify-center p-6 text-white">
-            <div className="max-w-md mx-auto text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Heart className="w-4 h-4" />
-                </div>
-                <h2 className="text-xl font-bold">Nurtura</h2>
-              </div>
-
-              <h1 className="text-xl font-bold mb-3">
-                Begin Your Parenting Journey
-              </h1>
-
-              <p className="text-white/95 text-xs mb-4">
-                Create your account and start your parenting journey
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-3 mb-2">
-                <div className="flex items-center gap-2 text-xs bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-                  <Check className="w-2.5 h-2.5" />
-                  <span>AI Health Insights</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5">
-                  <Smartphone className="w-2.5 h-2.5" />
-                  <span>On all devices</span>
-                </div>
-              </div>
+          <div className="relative z-10 flex flex-col justify-center items-center">
+            <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg overflow-hidden">
+              <img
+                src={MotherBaby}
+                alt="Mother and Baby"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
