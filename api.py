@@ -232,7 +232,9 @@ headers = {
     "Authorization": "Bearer YOUR_TOKEN_HERE"  # remove if not needed
 }
 
+
 print("{Das}")
+
 for v in vaccines:
     response = requests.post(API_URL, json=v, headers=headers)
     
