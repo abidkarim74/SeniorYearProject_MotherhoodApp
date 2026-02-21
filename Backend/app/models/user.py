@@ -2,9 +2,16 @@ from app.database.postgres import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from uuid import UUID as u, uuid4
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String, Integer
+from sqlalchemy import String,  Enum as SQLAlchemyEnum,Integer
 from datetime import datetime
+import enum
 
+
+class UserRole(str, enum.Enum):
+    ADMIN = "admin"
+    USER = "user"
+
+  
 
 class User(Base):
     __tablename__ = 'users'
@@ -30,9 +37,8 @@ class User(Base):
     preferred_language: Mapped[str | None] = mapped_column(String, nullable=True)
     account_created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     
-    def __repr__(self):
-        return f"<User(id={self.id}, email={self.email}, type={self.type})>"
-    
+    role: Mapped[str] = mapped_column(SQLAlchemyEnum(UserRole), default=UserRole.USER, nullable=True)
+
 
 
 class UserArchivePost(Base):
