@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Menu, 
   User, 
   Settings, 
   LogOut,
-  Shield,
   ChevronDown,
   Heart,
   Users,
@@ -16,9 +16,15 @@ import {
 const AdminHeader = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
-    <header className="bg-gradient-to-r from-white to-[#fff6f6] border-b border-[#e5989b]/20 sticky top-0 z-50 shadow-sm">
+    <header className="bg-gradient-to-r from-white to-[#fff6f6] border-b border-[#e5989b]/20 sticky top-0 z-40 shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
@@ -33,7 +39,10 @@ const AdminHeader = () => {
             </button>
 
             {/* Logo & App Name */}
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => handleNavigation("/admin/dashboard")}
+            >
               <div className="w-10 h-10 bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-xl flex items-center justify-center shadow-md">
                 <Heart className="w-5 h-5 text-white" fill="white" />
               </div>
@@ -47,34 +56,34 @@ const AdminHeader = () => {
 
           {/* Center Section - Navigation Links (Desktop) */}
           <div className="hidden lg:flex items-center gap-2">
-            <a 
-              href="/admin/dashboard" 
+            <button 
+              onClick={() => handleNavigation("/admin/dashboard")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <LayoutDashboard className="w-4 h-4" />
               Dashboard
-            </a>
-            <a 
-              href="/admin/users" 
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-users")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <Users className="w-4 h-4" />
               Manage Users
-            </a>
-            <a 
-              href="/admin/community" 
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-community")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <MessageCircle className="w-4 h-4" />
               Manage Community
-            </a>
-            <a 
-              href="/admin/vaccinations" 
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-vaccinations")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <Syringe className="w-4 h-4" />
               Manage Vaccinations
-            </a>
+            </button>
           </div>
 
           {/* Right Section - Admin Actions */}
@@ -139,30 +148,42 @@ const AdminHeader = () => {
         <div className="lg:hidden border-t border-[#e5989b]/20 bg-white p-4 animate-slide-down">
           {/* Mobile Navigation */}
           <nav className="space-y-1">
-            <a href="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors">
+            <button 
+              onClick={() => handleNavigation("/admin/dashboard")}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors"
+            >
               <div className="w-8 h-8 bg-[#fceaea] rounded-full flex items-center justify-center">
                 <LayoutDashboard className="w-4 h-4 text-[#e5989b]" />
               </div>
               <span>Dashboard</span>
-            </a>
-            <a href="/admin/users" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors">
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-users")}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors"
+            >
               <div className="w-8 h-8 bg-[#fceaea] rounded-full flex items-center justify-center">
                 <Users className="w-4 h-4 text-[#e5989b]" />
               </div>
               <span>Manage Users</span>
-            </a>
-            <a href="/admin/community" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors">
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-community")}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors"
+            >
               <div className="w-8 h-8 bg-[#fceaea] rounded-full flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-[#e5989b]" />
               </div>
               <span>Manage Community</span>
-            </a>
-            <a href="/admin/vaccinations" className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors">
+            </button>
+            <button 
+              onClick={() => handleNavigation("/admin/manage-vaccinations")}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-[#fff6f6] rounded-lg transition-colors"
+            >
               <div className="w-8 h-8 bg-[#fceaea] rounded-full flex items-center justify-center">
                 <Syringe className="w-4 h-4 text-[#e5989b]" />
               </div>
               <span>Manage Vaccinations</span>
-            </a>
+            </button>
           </nav>
         </div>
       )}
