@@ -48,6 +48,11 @@ async def reset_password(data: ChangePassword, db: AsyncSession = Depends(connec
     id = payload['id']
     return await AuthController.reset_password(data, id, db)
 
-
+@auth_router.get('/users')
+async def get_all_users_route(
+    db: AsyncSession = Depends(connect_db),
+    payload = Depends(verify_authentication)  # keep protected
+):
+    return await AuthController.get_all_users_func(db)
 
     

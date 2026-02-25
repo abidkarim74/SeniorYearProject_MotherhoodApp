@@ -44,24 +44,22 @@ const AdminManageUsers = () => {
   const usersPerPage = 10;
 
   // Fetch users
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const response = await getRequest('/admin/users');
-      if (response.data) {
-        setUsers(response.data);
-        setFilteredUsers(response.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchUsers = async () => {
+  setLoading(true);
+  try {
+    const usersList = await getRequest("/auth/users");
+    setUsers(usersList);
+    setFilteredUsers(usersList);
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+useEffect(() => {
+  fetchUsers();
+}, []);
 
   // Filter users
   useEffect(() => {

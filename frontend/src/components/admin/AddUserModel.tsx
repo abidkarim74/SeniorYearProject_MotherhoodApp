@@ -24,21 +24,29 @@ const AddUserModal = ({ isOpen, onClose, onSuccess, showSuccess }: Props) => {
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const response = await postRequest('/admin/users', formData);
-      if (!response.error) {
-        showSuccess('User added successfully');
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Error adding user:', error);
-    } finally {
-      setLoading(false);
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    // role is UI-only for now, don't send it to backend
+    const { role, ...signupPayload } = formData;
+
+    const response = await postRequest("/auth/signup", signupPayload);
+
+    // adjust this condition based on how your postRequest returns errors
+    if (!response?.error) {
+      showSuccess("User added successfully");
+      onSuccess();
+      onClose(); // optional: close modal after success
+    } else {
+      console.error("Signup failed:", response);
     }
-  };
+  } catch (error) {
+    console.error("Error adding user:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

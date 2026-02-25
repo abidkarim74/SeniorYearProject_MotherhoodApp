@@ -19,19 +19,19 @@ const DeleteConfirmModal = ({ user, isOpen, onClose, onSuccess, showSuccess }: P
   if (!isOpen || !user) return null;
 
   const handleDelete = async () => {
-    setLoading(true);
-    try {
-      const response = await deleteRequest(`/admin/users/${user.id}`);
-      if (!response.error) {
-        showSuccess('User deleted successfully');
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const response = await deleteRequest("/user-profile/delete");
+    if (!response?.error) {
+      showSuccess("User deleted successfully");
+      onSuccess();
     }
-  };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

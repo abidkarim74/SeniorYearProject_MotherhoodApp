@@ -231,3 +231,46 @@ class AuthController():
                 status_code=error_dict.get('status_code', 500),
                 detail=error_dict.get('detail', 'Internal server error!')
             )
+            
+    @staticmethod
+    async def get_all_users_func(db: AsyncSession):
+        try:
+            statement = select(
+                User.id,
+                User.firstname,
+                User.lastname,
+                User.email,
+                User.username,
+                User.profile_pic,
+                User.role
+            ).order_by(User.created_at.desc() if hasattr(User, "created_at") else User.email.asc())
+
+            result = await db.execute(statement)
+            rows = result.all()
+
+            users = []
+            for row in rows:
+                user_id, firstname, lastname, email, username, profile_pic, role = row
+
+                users.append({
+                    "id": user_id,
+                    "firstname": firstname,
+                    "lastname": lastname,
+                    "email": email,
+                    "username": username,
+                    "profile_pic": profile_pic,
+                    "role": role
+                })
+
+            return users
+
+        except SQLAlchemyError:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail="Database error!")
+
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__
+            raise HTTPException(
+                status_code=error_dict.get("status_code", 500),
+                detail=error_dict.get("detail", "Internal server error!"))
