@@ -51,7 +51,7 @@ function App() {
       <Route element={<ProtectedRoutes />}>
         <Route element={<DashboardLayout />}>
           <Route path='/admin/dashboard' element={<AdminHome></AdminHome>}></Route>
-          <Route path='/admin/manage-users' element={<AdminManageUsers></AdminManageUsers>}></Route>
+          <Route path='/admin/manage/users' element={<AdminManageUsers></AdminManageUsers>}></Route>
 
 
           <Route path="/" element={<Home />} />

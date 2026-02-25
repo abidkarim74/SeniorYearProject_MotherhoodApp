@@ -47,3 +47,7 @@ from app.schemas.auth_schemas import ChangePassword
 async def reset_password(data: ChangePassword, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
     id = payload['id']
     return await AuthController.reset_password(data, id, db)
+
+
+
+    
