@@ -215,24 +215,28 @@
 #     }
 # ]
 
-# import requests
+import requests
 
-# API_URL = "http://localhost:8000/api/vaccines/create-vaccine-schedule"  # <-- change this
-
-# headers = {
-#     "Content-Type": "application/json",
-#     "Authorization": "Bearer YOUR_TOKEN_HERE"  # remove if not needed
-# }
-
-# print("{Das}")
-# for s in schedules:
-#     response = requests.post(API_URL, json=s, headers=headers)
+tutorials = [
     
-#     if response.status_code in (200, 201):
-#         print(f"✅ Created")
-#     else:
-#         print(f"❌ Failed: ")
-#         print(response.status_code, response.text)
+]
+
+API_URL = "http://localhost:8000/api/vaccines/create-vaccine-sched"  # <-- change this
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer YOUR_TOKEN_HERE"  # remove if not needed
+}
+
+print("{Das}")
+for s in tutorials:
+    response = requests.post(API_URL, json=s, headers=headers)
+    
+    if response.status_code in (200, 201):
+        print(f"✅ Created")
+    else:
+        print(f"❌ Failed: ")
+        print(response.status_code, response.text)
 
 
 

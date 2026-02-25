@@ -13,10 +13,14 @@ import {
   MessageCircle
 } from "lucide-react";
 
+import { useAuth } from "../../context/authContext";
+
 const AdminHeader = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  const {user} = useAuth();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -64,7 +68,7 @@ const AdminHeader = () => {
               Dashboard
             </button>
             <button 
-              onClick={() => handleNavigation("/admin/manage-users")}
+              onClick={() => handleNavigation("/admin/manage/users")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <Users className="w-4 h-4" />
@@ -98,7 +102,7 @@ const AdminHeader = () => {
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium text-gray-700">Sarah Johnson</p>
+                  <p className="text-sm font-medium text-gray-700">{user?.firstname} {user?.lastname}</p>
                   <p className="text-xs text-[#e5989b]">Super Admin</p>
                 </div>
                 <ChevronDown className="hidden lg:block w-4 h-4 text-[#d88a8d]" />
@@ -116,8 +120,8 @@ const AdminHeader = () => {
                   {/* Dropdown */}
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-[#e5989b]/20 py-2 z-50 animate-fade-in-up">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-800">Sarah Johnson</p>
-                      <p className="text-xs text-[#e5989b] mt-1">sarah@nurtura.com</p>
+                      <p className="text-sm font-medium text-gray-800">{user?.firstname} {user?.lastname}</p>
+                      <p className="text-xs text-[#e5989b] mt-1">{user?.email}</p>
                     </div>
                     
                     <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#fff6f6] transition-colors">

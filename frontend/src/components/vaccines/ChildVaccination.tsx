@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { postRequest } from "../../api/requests";
 import type { RequiredVaccination } from "../../interfaces/VaccinationInterfaces";
 import { useAuth } from "../../context/authContext";
-import { 
-  Calendar, 
-  Shield, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock, 
-  Syringe, 
-  ChevronDown, 
+import {
+  Calendar,
+  Shield,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Syringe,
+  ChevronDown,
   ChevronUp,
   Info,
   Zap,
@@ -90,18 +90,36 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
       return;
     }
 
+    // Find the vaccine details to get schedule_id
+    const vaccine = vaccinations.find(v => v.vaccine_id === vaccineId);
+    if (!vaccine) {
+      alert("Vaccine not found!");
+      return;
+    }
+
     try {
       setRecording(prev => ({ ...prev, [vaccineId]: true }));
-      // Make API call to record vaccine
-      await postRequest(`/vaccines/record/${child_id}`, {
+
+      // Call your record create endpoint
+       await postRequest(`/vaccines/create-record/${child_id}`, {
+        given_date: date,
         vaccine_id: vaccineId,
-        date_administered: date
+        child_id: child_id,
+        schedule_id: vaccine.schedule_id || null // Include schedule_id if available
       });
-      
+
       alert("Vaccine recorded successfully!");
+
+      // Clear the date input
       setRecordingDates(prev => ({ ...prev, [vaccineId]: "" }));
-    } catch (error) {
-      alert("Failed to record vaccine. Please try again.");
+
+      // Optionally refresh the required vaccines list
+      const updatedVaccines = await postRequest('/vaccines/required-vaccines/' + child_id, { 'child_age': age });
+      setVaccinations(updatedVaccines || []);
+
+    } catch (error: any) {
+      console.error("Error recording vaccine:", error);
+      alert(error.response?.data?.detail || "Failed to record vaccine. Please try again.");
     } finally {
       setRecording(prev => ({ ...prev, [vaccineId]: false }));
     }
@@ -142,13 +160,13 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Vaccinations</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="px-6 py-2 bg-[#e5989b] text-white rounded-lg hover:bg-[#d88a8d] transition-colors"
             >
               Try Again
             </button>
-            <button 
+            <button
               onClick={onClose}
               className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
@@ -165,8 +183,6 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
       <div className="max-w-4xl mx-auto px-3 sm:px-4">
         {/* Header with Close Button */}
         <div className="mb-6 md:mb-8">
-          
-
           {/* Stats Summary - Responsive Grid */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 max-w-md mx-auto">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg md:rounded-xl p-3 md:p-4 text-center">
@@ -199,7 +215,7 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
               </div>
               <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">No Vaccinations Required</h3>
               <p className="text-sm md:text-base text-gray-600">All vaccinations are up to date!</p>
-              <button 
+              <button
                 onClick={onClose}
                 className="mt-4 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
               >
@@ -212,25 +228,23 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
               const isExpanded = expandedVaccine === vaccine.vaccine_id;
 
               return (
-                <div 
-                  key={vaccine.vaccine_id} 
+                <div
+                  key={vaccine.vaccine_id}
                   className="bg-white rounded-lg md:rounded-2xl shadow-md md:shadow-lg border border-gray-200 overflow-hidden hover:shadow-lg md:hover:shadow-xl transition-all duration-300"
                 >
                   {/* Vaccine Header - Mobile Optimized */}
-                  <div 
+                  <div
                     className="p-4 md:p-6 cursor-pointer"
                     onClick={() => setExpandedVaccine(isExpanded ? null : vaccine.vaccine_id)}
                   >
                     <div className="flex items-start md:items-center justify-between">
                       <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
-                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          vaccine.is_mandatory 
-                            ? "bg-gradient-to-br from-red-100 to-red-50 border border-red-200" 
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0 ${vaccine.is_mandatory
+                            ? "bg-gradient-to-br from-red-100 to-red-50 border border-red-200"
                             : "bg-gradient-to-br from-blue-100 to-blue-50 border border-blue-200"
-                        }`}>
-                          <Shield className={`w-5 h-5 md:w-6 md:h-6 ${
-                            vaccine.is_mandatory ? "text-red-600" : "text-blue-600"
-                          }`} />
+                          }`}>
+                          <Shield className={`w-5 h-5 md:w-6 md:h-6 ${vaccine.is_mandatory ? "text-red-600" : "text-blue-600"
+                            }`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -251,7 +265,7 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2 md:space-x-4 ml-2">
                         {/* Status badge - simplified on mobile */}
                         <span className={`hidden sm:inline-flex items-center space-x-1.5 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-medium border ${getStatusColor(status)}`}>
@@ -281,7 +295,7 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                             <h4 className="text-sm md:text-base font-semibold text-gray-900">Vaccine Details</h4>
                           </div>
                           <p className="text-xs md:text-sm text-gray-700 mb-3 md:mb-4">{vaccine.description}</p>
-                          
+
                           <div className="space-y-2">
                             <div className="flex items-start space-x-2">
                               <Zap className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
@@ -290,9 +304,9 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                               </span>
                             </div>
                             <div className="text-xs md:text-sm text-gray-600">
-                              <span className="font-medium">Status:</span> {status === "overdue" ? " Urgent action needed" : 
-                                status === "due" ? "Ready to administer" : 
-                                "⏰ Scheduled for future"}
+                              <span className="font-medium">Status:</span> {status === "overdue" ? " Urgent action needed" :
+                                status === "due" ? "Ready to administer" :
+                                  "⏰ Scheduled for future"}
                             </div>
                           </div>
                         </div>
@@ -303,7 +317,7 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                             <Calendar className="w-4 h-4 md:w-5 md:h-5 text-[#e5989b]" />
                             <span>Record This Vaccine</span>
                           </h4>
-                          
+
                           <div className="space-y-3 md:space-y-4">
                             <div>
                               <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
@@ -317,15 +331,14 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                                 max={new Date().toISOString().split('T')[0]}
                               />
                             </div>
-                            
+
                             <button
                               onClick={() => handleRecordVaccine(vaccine.vaccine_id)}
                               disabled={recording[vaccine.vaccine_id] || !recordingDates[vaccine.vaccine_id]}
-                              className={`w-full flex items-center justify-center space-x-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium transition-all ${
-                                recording[vaccine.vaccine_id] || !recordingDates[vaccine.vaccine_id]
+                              className={`w-full flex items-center justify-center space-x-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium transition-all ${recording[vaccine.vaccine_id] || !recordingDates[vaccine.vaccine_id]
                                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                   : "bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white hover:shadow-lg hover:scale-[1.02]"
-                              }`}
+                                }`}
                             >
                               {recording[vaccine.vaccine_id] ? (
                                 <>
@@ -339,7 +352,7 @@ const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
                                 </>
                               )}
                             </button>
-                            
+
                             {status === "overdue" && (
                               <div className="text-xs md:text-sm text-red-600 bg-red-50 p-2 md:p-3 rounded-lg border border-red-200">
                                 <AlertCircle className="w-3 h-3 md:w-4 md:h-4 inline mr-1" />

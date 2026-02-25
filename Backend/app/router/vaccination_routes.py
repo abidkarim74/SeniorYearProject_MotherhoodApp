@@ -9,6 +9,8 @@ from datetime import date
 from app.database.postgres import connect_db
 from app.middleware.protect_endpoints import verify_authentication
 
+from app.controllers.final_vaccination_controllers import VaccinationRecordControllers
+
 
 
 from app.schemas.final_vaccination_schemas import VaccineRecordRequest, VaccinationOptionCreateSchema, VaccinationOptionResponseSchema, VaccinationScheduleCreateSchema, VaccinationUserViewSchema, VaccinationSchema, ChildAge
@@ -88,6 +90,37 @@ async def vaccine_user_list(payload = Depends(verify_authentication), db: AsyncS
     return await VaccinationUserViewControllers.vaccination_list_view(db)
 
 
+
+
+@vaccine_router.post('/create-record/{child_id}')
+async def create_vaccination_record(
+    child_id: UUID,
+    data: VaccineRecordRequest,
+    payload = Depends(verify_authentication),
+    db: AsyncSession = Depends(connect_db)
+):
+    auth_id = payload['id']
+
+    return "he"
+    
+    if not auth_id:
+        raise HTTPException(status_code=401, detail='You are not authorized!')
+    
+    return await VaccinationRecordControllers.record_create(data, child_id, db)
+
+
+@vaccine_router.get('/child/{child_id}/medical-report')
+async def get_child_medical_report(
+    child_id: UUID,
+    payload = Depends(verify_authentication),
+    db: AsyncSession = Depends(connect_db)
+):
+    auth_id = payload['id']
+    
+    if not auth_id:
+        raise HTTPException(status_code=401, detail='You are not authorized!')
+    
+    return await VaccinationRecordControllers.get_child_medical_report(child_id, db)
 
 # 
 

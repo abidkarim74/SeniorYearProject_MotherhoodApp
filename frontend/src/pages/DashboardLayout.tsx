@@ -16,9 +16,9 @@ const DashboardLayout = () => {
     <div className="flex flex-col min-h-screen bg-[#fff6f6]">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        {user?.role === 'user' && <AdminHeader></AdminHeader>}
+        {user?.role === 'admin' && <AdminHeader></AdminHeader>}
 
-        {user?.role === 'admin' && <Header></Header>}
+        {user?.role === 'user' && <Header></Header>}
       </div>
 
       {/* Body */}
@@ -34,7 +34,7 @@ const DashboardLayout = () => {
             <Outlet />
           </main>
 
-          {user?.role !== 'user' &&
+          {user?.role === 'user' &&
 
             <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
               <BottomBar />
