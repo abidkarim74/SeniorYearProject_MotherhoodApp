@@ -2,10 +2,12 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { postRequest } from "../api/requests";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import MotherBaby from "../assets/fam.jpg";
 
-import { Eye, EyeOff, Heart, AlertCircle, Check, Sparkles, Baby, Flower2 } from "lucide-react";
+import { Eye, EyeOff, Heart, AlertCircle, Check } from "lucide-react";
 import UnAuthHeader from "../components/UnAuthHeader";
+
+// Import the logo asset
+import motherBabyLogo from "../assets/motherbaby.jpg";
 
 interface LoginFormData {
   email: string;
@@ -129,108 +131,30 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col relative overflow-hidden">
-      {/* Full background image with overlay - fixed positioning */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: `url(${MotherBaby})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        {/* Lighter overlay for more transparency */}
-        <div className="absolute inset-0 bg-black/20"></div>
-      </div>
-
-      {/* Header - fixed at top with higher z-index */}
+    <div className="h-screen flex flex-col relative overflow-hidden" style={{ backgroundColor: '#fce4ec' }}>
+      {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20">
         <UnAuthHeader />
       </div>
 
-      {/* Main content - split into left and right sections */}
+      {/* Main content */}
       <div className="flex-1 flex relative z-10 mt-16 lg:mt-20">
-        {/* Left side - Cute text section */}
-        <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-8 text-white">
-          <div className="max-w-md space-y-6">
-            {/* Floating hearts animation */}
-            <div className="relative">
-              <div className="absolute -top-10 -left-10 animate-bounce opacity-60">
-                <Heart className="w-6 h-6 text-pink-300" fill="#f9a8d4" />
-              </div>
-              <div className="absolute top-20 -right-10 animate-pulse opacity-60">
-                <Heart className="w-8 h-8 text-pink-300" fill="#f9a8d4" />
-              </div>
-              <div className="absolute bottom-0 left-20 animate-float opacity-60">
-                <Heart className="w-5 h-5 text-pink-300" fill="#f9a8d4" />
-              </div>
-            </div>
-
-            {/* Main welcome message */}
-            <div className="text-center lg:text-left space-y-4">
-              <div className="flex items-center gap-2 justify-center lg:justify-start">
-                <Sparkles className="w-6 h-6 text-yellow-300" />
-                <h1 className="text-3xl font-bold">Welcome to Nurtura</h1>
-                <Sparkles className="w-6 h-6 text-yellow-300" />
-              </div>
-              
-              <p className="text-xl text-white/90 leading-relaxed">
-                Where every tiny heartbeat matters 💕
-              </p>
-            </div>
-
-            {/* Cute quotes */}
-            <div className="space-y-4 mt-8">
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <Baby className="w-5 h-5 text-pink-300 flex-shrink-0 mt-1" />
-                <p className="text-sm text-white/90">
-                  "The littlest feet make the biggest footprints in our hearts."
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <Flower2 className="w-5 h-5 text-pink-300 flex-shrink-0 mt-1" />
-                <p className="text-sm text-white/90">
-                  "You're not just growing a baby, you're growing a miracle."
-                </p>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <Heart className="w-5 h-5 text-pink-300 flex-shrink-0 mt-1" fill="#f9a8d4" />
-                <p className="text-sm text-white/90">
-                  "Every kick, every flutter, every moment - pure magic."
-                </p>
-              </div>
-            </div>
-
-            {/* Stats or features */}
-            <div className="grid grid-cols-2 gap-4 mt-8">
-              <div className="text-center bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <div className="text-2xl font-bold text-pink-300">10K+</div>
-                <div className="text-xs text-white/80">Happy Moms</div>
-              </div>
-              <div className="text-center bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <div className="text-2xl font-bold text-pink-300">5K+</div>
-                <div className="text-xs text-white/80">Healthy Babies</div>
-              </div>
-            </div>
-
-            {/* Sweet closing line */}
-            <p className="text-sm text-white/70 italic mt-8 text-center">
-              Join our community of loving parents 💝
-            </p>
+        
+        {/* Left side - Centered Circle Logo */}
+        <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-8">
+          <div className="w-64 h-64 xl:w-80 xl:h-80 rounded-full overflow-hidden shadow-2xl border-4 border-white">
+            <img 
+              src={motherBabyLogo} 
+              alt="Nurtura Logo" 
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
 
         {/* Right side - Login Form */}
-        <div className="flex-1 flex items-center justify-end relative z-10 px-4 lg:px-8 xl:px-16">
-          <div className="w-full max-w-[340px] mr-4 sm:mr-8 md:mr-12 lg:mr-16">
+        <div className="flex-1 flex items-center justify-center lg:justify-end relative z-10 px-4 lg:px-8 xl:px-16">
+          <div className="w-full max-w-[340px] lg:mr-16">
             <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-2xl border border-white/30 p-6 relative">
-              {/* Decorative elements */}
-              <div className="absolute -top-4 -right-4 w-14 h-14 bg-gradient-to-bl from-white/30 to-transparent rounded-full opacity-50 hidden sm:block"></div>
-              <div className="absolute -bottom-4 -left-4 w-14 h-14 bg-gradient-to-tr from-white/30 to-transparent rounded-full opacity-50 hidden sm:block"></div>
-
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden border-2 border-white shadow-md bg-white/90 p-0.5">
                   <div className="w-full h-full bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-md flex items-center justify-center">
@@ -257,10 +181,7 @@ const Login = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 <div className="space-y-1.5">
-                  <label
-                    htmlFor="email"
-                    className="block text-xs font-medium text-gray-700"
-                  >
+                  <label htmlFor="email" className="block text-xs font-medium text-gray-700">
                     Email
                   </label>
                   <input
@@ -286,10 +207,7 @@ const Login = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label
-                    htmlFor="password"
-                    className="block text-xs font-medium text-gray-700"
-                  >
+                  <label htmlFor="password" className="block text-xs font-medium text-gray-700">
                     Password
                   </label>
                   <div className="relative">
@@ -311,13 +229,8 @@ const Login = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {errors.password && touched.password && (
@@ -379,7 +292,6 @@ const Login = () => {
                 </button>
               </form>
 
-              {/* Create account link */}
               <div className="text-center mt-5">
                 <p className="text-gray-600 text-xs">
                   New to Nurtura?{" "}
@@ -395,17 +307,6 @@ const Login = () => {
           </div>
         </div>
       </div>
-
-      {/* Add animation styles in a style tag */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };
