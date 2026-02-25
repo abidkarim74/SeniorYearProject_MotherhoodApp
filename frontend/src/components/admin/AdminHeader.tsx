@@ -68,7 +68,7 @@ const AdminHeader = () => {
               Dashboard
             </button>
             <button 
-              onClick={() => handleNavigation("/admin/manage-users")}
+              onClick={() => handleNavigation("/admin/manage/users")}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-[#d88a8d] hover:bg-[#fceaea] rounded-full transition-colors"
             >
               <Users className="w-4 h-4" />
