@@ -54,7 +54,8 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path='/admin/dashboard' element={<AdminHome></AdminHome>}></Route>
           <Route path='/admin/manage/users' element={<AdminManageUsers></AdminManageUsers>}></Route>
-
+          <Route path='/admin/manage-vaccinations' element={<ManageVaccinations></ManageVaccinations>}></Route>
+          <Route path='/admin/manage-community' element={<ManageCommunity></ManageCommunity>}></Route>
 
           <Route path="/" element={<Home />} />
 
