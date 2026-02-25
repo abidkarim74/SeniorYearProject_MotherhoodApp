@@ -80,34 +80,44 @@ class ProfileController():
             )
             
     
+    from sqlalchemy.exc import SQLAlchemyError
+    from fastapi import HTTPException
+    import traceback
+
     @staticmethod
     async def delete(auth_id: str, db: AsyncSession):
         try:
+            print(f"Attempting to delete user with ID: {auth_id}")
             user = await db.get(User, auth_id)
-            
-            if user:
-                await db.delete(user)
-                await db.commit()
-                
-                return "User profile delete successfully!"
-            
-            raise HTTPException(status_code=404, detail='User profile not found!')
-        
-        except SQLAlchemyError:
+            print(f"User found: {user}")
+
+            if not user:
+                raise HTTPException(status_code=404, detail="User profile not found!")
+
+            await db.delete(user)
+
+            print("About to commit delete...")
+            await db.commit()
+            print("Commit done.")
+
+            return {"message": "User profile deleted successfully!"}
+
+        except SQLAlchemyError as e:
             await db.rollback()
-            
-            raise HTTPException(status_code=500, detail='Database error!')
+            print("SQLAlchemyError during delete/commit:", str(e))
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+        except HTTPException:
+            raise
 
         except Exception as e:
             await db.rollback()
-            error_dict = e.__dict__
-            
-            raise HTTPException(
-                status_code=error_dict.get('status_code', 500),
-                detail=error_dict.get('detail', 'Internal server error!')
-            )
-            
-    
+            print("Unexpected error:", str(e))
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail="Internal server error!")
+                
+        
     @staticmethod
     async def get_children(auth_id: UUID, db: AsyncSession):
         try:
