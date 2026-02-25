@@ -155,14 +155,14 @@ class AuthController():
     @staticmethod 
     async def authenticated_user_func(auth_id: str, db: AsyncSession):
         try:
-            statement = select(User.email, User.id, User.firstname, User.lastname, User.username, User.profile_pic).where(User.id==auth_id)
+            statement = select(User.email, User.id, User.firstname, User.lastname, User.username, User.profile_pic, User.role).where(User.id==auth_id)
             
             result = await db.execute(statement)
             
             row = result.first()
         
             if row:
-                email, user_id, firstname, lastname, username, profile_pic = row  
+                email, user_id, firstname, lastname, username, profile_pic, role = row  
                 
                 return {
                     "email": email, 
@@ -170,7 +170,8 @@ class AuthController():
                     "firstname": firstname, 
                     "lastname": lastname, 
                     "username": username, 
-                    "profile_pic": profile_pic 
+                    "profile_pic": profile_pic,
+                    "role": role
                 }
             
             raise HTTPException(status_code=404, detail='User not found!')

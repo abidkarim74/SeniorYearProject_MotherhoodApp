@@ -20,11 +20,15 @@ import Settings from "./pages/Settings";
 import ImportantVaccines from "./pages/ImportantVaccines";
 // import ChildDetail from "./pages/ChildDetail";
 import ChildGrowthTracking from "./pages/ChildGrowthTracking";
+import AdminHome from "./pages/AdminHome";
+import AdminManageUsers from "./pages/AdminManageUsers";
 
 function App() {
   return (
     <Routes>
       {/* ================= GUEST ROUTES ================= */}
+
+
       <Route
         path="/login"
         element={
@@ -46,7 +50,12 @@ function App() {
       {/* ================ PROTECTED ROUTES ================ */}
       <Route element={<ProtectedRoutes />}>
         <Route element={<DashboardLayout />}>
+          <Route path='/admin/dashboard' element={<AdminHome></AdminHome>}></Route>
+          <Route path='/admin/manage-users' element={<AdminManageUsers></AdminManageUsers>}></Route>
+
+
           <Route path="/" element={<Home />} />
+
 
           <Route path="/children" element={<MyChildren />} />
           <Route path="/add-child" element={<AddChild />} />

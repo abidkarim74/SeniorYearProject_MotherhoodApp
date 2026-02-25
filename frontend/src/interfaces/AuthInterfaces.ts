@@ -5,6 +5,7 @@ export interface AuthUser {
   lastname: string,
   email: string,
   profile_pic: string
+  role: string
 }
 
 

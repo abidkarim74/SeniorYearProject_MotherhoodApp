@@ -3,13 +3,22 @@ import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 import LeftBar from "../components/LeftBar";
 import BottomBar from "../components/BottomBar";
+import AdminHeader from "../components/admin/AdminHeader";
+
+import { useAuth } from "../context/authContext";
+
 
 const DashboardLayout = () => {
+  const { user } = useAuth();
+
+
   return (
     <div className="flex flex-col min-h-screen bg-[#fff6f6]">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <Header />
+        {user?.role === 'user' && <AdminHeader></AdminHeader>}
+
+        {user?.role === 'admin' && <Header></Header>}
       </div>
 
       {/* Body */}
@@ -25,10 +34,12 @@ const DashboardLayout = () => {
             <Outlet />
           </main>
 
-          {/* Bottom bar (mobile) */}
-          <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
-            <BottomBar />
-          </div>
+          {user?.role !== 'user' &&
+
+            <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+              <BottomBar />
+            </div>
+          }
         </div>
       </div>
     </div>
