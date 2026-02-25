@@ -10,6 +10,13 @@ from app.schemas.final_vaccination_schemas import VaccinationMiniSchedule, Vacci
 from sqlalchemy import select, and_
 
 
+ # Check if child exists
+            # from models.child import Child
+            # from models.vaccine_record import VaccineRecord
+            # from models.vaccine import Vaccine
+            # from models.schedule import Schedule
+
+from app.models.child import Child
 
 
 
@@ -261,3 +268,130 @@ class VaccinationMainControllers():
             error_dict = e.__dict__
             raise HTTPException(status_code=error_dict.get('status_code', 500), 
                             detail=error_dict.get('detail', 'Internal server error!'))
+
+
+
+from app.schemas.final_vaccination_schemas import VaccineRecordRequest
+
+
+class VaccinationRecordControllers():
+    @staticmethod
+    async def record_create(data: VaccineRecordRequest, child_id: UUID, db: AsyncSession):
+        try:
+            child = await db.get(Child, child_id)
+            if not child:
+                print("fuck")
+                raise HTTPException(status_code=404, detail='Child not found!')
+            
+            vaccine = await db.get(VaccinationOption, data.vaccine_id)
+            if not vaccine:
+                print("damn")
+                raise HTTPException(status_code=404, detail='Vaccine not found!')
+            
+            schedule = await db.get(VaccinationSchedule, data.schedule_id)
+            if not schedule:
+                print("how")
+                raise HTTPException(status_code=404, detail='Schedule not found!')
+            
+            new_record = VaccinationRecord(
+                given_date=data.given_date,
+                child_id=child_id,
+                vaccine_id=data.vaccine_id,
+                schedule_id=data.schedule_id
+            )
+            
+            db.add(new_record)
+            await db.commit()
+            await db.refresh(new_record)
+            
+            return new_record
+
+        except SQLAlchemyError as e:
+            await db.rollback()
+            raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
+        
+        except HTTPException:
+            await db.rollback()
+            raise
+        
+        except Exception as e:
+            await db.rollback()
+            error_dict = e.__dict__ if hasattr(e, '__dict__') else {}
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', f'Internal server error: {str(e)}')
+            )
+        
+
+    @staticmethod
+    async def get_child_medical_report(child_id: UUID, db: AsyncSession):
+        try:
+            from sqlalchemy.orm import selectinload
+            from datetime import date
+            
+            child = await db.get(Child, child_id)
+            if not child:
+                raise HTTPException(status_code=404, detail='Child not found!')
+            
+            today = date.today()
+            age_years = today.year - child.date_of_birth.year
+            age_months = age_years * 12 + (today.month - child.date_of_birth.month)
+            
+            # Format age string
+            if age_years > 0:
+                age_str = f"{age_years} years"
+            elif age_months > 0:
+                age_str = f"{age_months} months"
+            else:
+                age_days = (today - child.date_of_birth).days
+                age_str = f"{age_days} days"
+            
+            # Get all vaccination records for the child
+            query = (
+                select(VaccinationRecord)
+                .where(VaccinationRecord.child_id == child_id)
+                .options(
+                    selectinload(VaccinationRecord.vaccine),
+                    selectinload(VaccinationRecord.schedule)
+                )
+                .order_by(VaccinationRecord.date_given)
+            )
+            
+            result = await db.execute(query)
+            records = result.scalars().all()
+            
+            # Basic report structure
+            report = {
+                "child_info": {
+                    "name": f"{child.first_name} {child.last_name}" if hasattr(child, 'first_name') else child.name,
+                    "date_of_birth": child.date_of_birth.strftime("%Y-%m-%d"),
+                    "age": age_str
+                },
+                "report_date": today.strftime("%Y-%m-%d"),
+                "total_vaccinations": len(records),
+                "vaccination_history": []
+            }
+            
+            # Add vaccination history
+            for record in records:
+                report["vaccination_history"].append({
+                    "date_given": record.date_given.strftime("%Y-%m-%d") if record.date_given else "Not recorded",
+                    "vaccine_name": record.vaccine.vaccine_name if record.vaccine else "Unknown",
+                    "dose_number": record.schedule.dose_num if record.schedule else 1,
+                    "protect_against": record.vaccine.protect_against if record.vaccine else "N/A"
+                })
+            
+            return report
+            
+        except SQLAlchemyError as e:
+            raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
+        
+        except HTTPException:
+            raise
+        
+        except Exception as e:
+            error_dict = e.__dict__ if hasattr(e, '__dict__') else {}
+            raise HTTPException(
+                status_code=error_dict.get('status_code', 500), 
+                detail=error_dict.get('detail', f'Internal server error: {str(e)}')
+        )
