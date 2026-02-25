@@ -19,6 +19,7 @@ class VideoTutorialControllers:
         db.add(tutorial)
         await db.commit()
         await db.refresh(tutorial)
+        
         return tutorial
 
     @staticmethod
@@ -27,6 +28,7 @@ class VideoTutorialControllers:
             select(VideoTutorial)
         )
         return result.scalars().all()
+    
 
     @staticmethod
     async def get_by_id(tutorial_id: UUID, db: AsyncSession):

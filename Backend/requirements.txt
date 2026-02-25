@@ -9,6 +9,7 @@ email-validator
 python-multipart
 imap-tools
 alembic
+psutil
 asyncpg 
 psycopg2
 

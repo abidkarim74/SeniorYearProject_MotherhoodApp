@@ -11,6 +11,7 @@ from app.middleware.protect_endpoints import verify_authentication
 from fastapi.middleware.cors import CORSMiddleware
 from app.router.child_routes import child_router
 from app.router.profile_routes import profile_router
+from app.router.admin_routes import admin_router
 from app.router.ai_chatbot_routes import ai_chatbot_router
 from app.router.child_growth_routes import child_growth_router
 from app.router.vaccination_reminder_routes import vaccination_reminder_router
@@ -54,6 +55,7 @@ app.include_router(community_router)
 app.include_router(vaccine_router)
 app.include_router(child_growth_router)
 app.include_router(video_tutorial_router)
+app.include_router(admin_router)
 
 
 async def reset_database_and_migrations():

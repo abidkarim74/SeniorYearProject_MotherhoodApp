@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from uuid import UUID
 from typing import Optional
+from app.models.user import UserRole
 
 
 class UserBaseSchema(BaseModel):
@@ -22,6 +23,7 @@ class UserLoginSchema(BaseModel):
 class UserResponseSchema(UserBaseSchema):
     id: UUID
     profile_pic: str | None = None
+    role: UserRole
 
     class Config:
         orm_mode = True  

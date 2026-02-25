@@ -8,10 +8,10 @@ from enum import Enum as PyEnum
 from sqlalchemy import Enum
 
 
-class VaccinationStatus(PyEnum):
-    PENDING = "Pending"
-    GIVEN = "Given"
-    MISSED = "Missed"
+# class VaccinationStatus(PyEnum):
+#     PENDING = "Pending"
+#     GIVEN = "Given"
+#     MISSED = "Missed"
 
 
 class VaccinationOption(Base):
