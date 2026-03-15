@@ -13,7 +13,6 @@ psutil
 asyncpg 
 psycopg2
 psutil
-qdrant-client
 
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]
@@ -24,3 +23,7 @@ pymongo
 
 redis
 websockets
+
+
+qdrant-client
+sentence-transformers

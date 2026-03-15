@@ -21,7 +21,12 @@ from app.router.mood_routes import router as mood_router
 from app.database.mongo import mongo_db
 from app.router.tutorial_routes import video_tutorial_router
 
+
+from app.llm_core.utils.vector_store import create_motherhood_collection
+from app.router.llm_routes import llm_router
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +39,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     try:
+        # create_motherhood_collection()
         await mongo_db.command("ping")
         
         async with SessionLocal() as session:
@@ -56,6 +62,8 @@ app.include_router(vaccine_router)
 app.include_router(child_growth_router)
 app.include_router(video_tutorial_router)
 app.include_router(admin_router)
+app.include_router(llm_router)
+
 
 
 async def reset_database_and_migrations():
@@ -146,6 +154,21 @@ async def reset_all_tables():
     # Uncomment if you want to add authentication
     # await verify_authentication(request)
     return await reset_database_and_migrations()
+
+
+
+from app.llm_core.utils.embeddings_service import create_embedding
+
+
+@app.post("/test")
+async def reset_all_tables():
+    text = "Child has completed vaccination schedule."
+    vector = create_embedding(text)
+
+    return {
+        "text": text,
+        "vector_size": len(vector)
+    }
 
 
 @app.post("/recreate-migrations")
