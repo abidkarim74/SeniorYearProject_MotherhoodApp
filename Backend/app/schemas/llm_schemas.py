@@ -48,3 +48,18 @@ class AIMessageResponseSchema(AIMessageBaseSchema):
 
 
 
+from enum import Enum
+
+
+class AIChatOption(str, Enum):
+    MEDICAL = "child_medical"
+    ALLERGY = "child_allergy"
+    FEEDING = "child_feeding"
+    GENERAL = "general_parent"
+
+
+
+# NEW SCHEMAS
+class UserPrompt(BaseModel):
+    conv_type: AIChatOption = AIChatOption.GENERAL
+    prompt: str

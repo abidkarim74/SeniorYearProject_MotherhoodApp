@@ -60,28 +60,19 @@ class AIChatbot(Base):
 class MessageType(PyEnum):
     HUMAN = "human"
     AI = "ai"
-    SYSTEM = "system"
 
 
 class ChatbotMessage(Base):
     __tablename__ = 'chatbot_messages'
 
     id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    chatbot_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('aibots.id'), nullable=True, index=True)
     conversation_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('ai_conversations.id'), nullable=False, index=True)
-    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False, index=True)
+
+    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
     
     message_type: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
     content: Mapped[str] = mapped_column(String, nullable=False)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, 
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
-        server_default=text('now()'),
-        nullable=False
-    )
     
     

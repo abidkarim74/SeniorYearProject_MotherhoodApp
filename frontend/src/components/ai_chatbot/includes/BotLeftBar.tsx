@@ -5,7 +5,6 @@ import type { AiConversation } from "../../../interfaces/AIBotInterfaces";
 
 interface BotLeftBarProps {
   onSelectConversation?: (conversationId: string) => void;
-  onNewChat?: () => void;
   currentChatId?: string;
   conversations: AiConversation[];
   setConversations: (conversations: AiConversation[]) => void;
@@ -17,7 +16,6 @@ const BotLeftBar = ({
   conversations,
   setConversations,
   onSelectConversation,
-  onNewChat,
   currentChatId,
   loading: parentLoading,
   error: parentError
@@ -25,7 +23,6 @@ const BotLeftBar = ({
   const [localLoading, setLocalLoading] = useState<boolean>(true);
   const [localError, setLocalError] = useState<string | null>(null);
   const [bot, setBot] = useState<AIBot | null>(null);
-  const [newChatLoading, setNewChatLoading] = useState<boolean>(false);
   const [showContent, setShowContent] = useState<boolean>(false);
 
   const fetchConversations = async () => {
@@ -70,22 +67,6 @@ const BotLeftBar = ({
 
     loadData();
   }, []);
-
-  const handleNewChatClick = async (): Promise<void> => {
-    if (onNewChat) {
-      setNewChatLoading(true);
-      try {
-        await onNewChat();
-      } catch (error) {
-        console.error('Error creating new chat:', error);
-      } finally {
-        setNewChatLoading(false);
-      }
-    } else {
-      const newId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
-      onSelectConversation?.(newId);
-    }
-  };
 
   const handleConversationClick = (e: React.MouseEvent<HTMLButtonElement>, conversationId: string): void => {
     e.stopPropagation();
@@ -165,39 +146,20 @@ const BotLeftBar = ({
 
       {/* Main Content - Blurred when loading */}
       <div className={`h-full flex flex-col transition-all duration-300 ${isLoading ? 'opacity-50 blur-sm pointer-events-none' : 'opacity-100 blur-0'}`}>
-        {/* Header */}
+        {/* Header - Simplified without new chat button */}
         <div className="flex-shrink-0 px-3 py-2.5 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-lg flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-gray-900 truncate">AI Assistant</h2>
-                <p className="text-xs text-gray-500 truncate">
-                  {localLoading ? 'Loading...' : `${conversations.length} conversation${conversations.length !== 1 ? 's' : ''}`}
-                </p>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-lg flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
             </div>
-            <button
-              onClick={handleNewChatClick}
-              disabled={parentLoading || newChatLoading}
-              className="flex-shrink-0 p-1.5 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-lg hover:shadow-sm transition-shadow duration-150 hover:shadow-[#e5989b]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="New Chat"
-              aria-label="Start new chat"
-            >
-              {parentLoading || newChatLoading ? (
-                <div className="w-3.5 h-3.5 flex items-center justify-center">
-                  <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              )}
-            </button>
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-gray-900 truncate">AI Assistant</h2>
+              <p className="text-xs text-gray-500 truncate">
+                {localLoading ? 'Loading...' : `${conversations.length} conversation${conversations.length !== 1 ? 's' : ''}`}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -254,34 +216,10 @@ const BotLeftBar = ({
                   </svg>
                 </div>
                 <p className="text-sm text-gray-600">No conversations yet</p>
-                <p className="text-xs text-gray-500 mt-1">Start a new chat with the AI Assistant</p>
+                <p className="text-xs text-gray-500 mt-1">Click "Start New Chat" in the main area to begin</p>
               </div>
             ) : (
               <div className="space-y-0.5">
-                {/* Show loading spinner when creating new chat */}
-                {(parentLoading || newChatLoading) && (
-                  <div className="p-2 border border-[#e5989b]/20 rounded-lg bg-[#fceaea] animate-pulse">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-[#fff1f1] flex items-center justify-center">
-                        <div className="w-3 h-3 border border-[#e5989b] border-t-transparent rounded-full animate-spin"></div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-medium text-[#e5989b] truncate">
-                            Creating new chat...
-                          </h3>
-                        </div>
-                        <p className="text-[11px] text-gray-600 truncate mt-0.5">
-                          Just a moment
-                        </p>
-                      </div>
-                      <span className="flex-shrink-0 text-[10px] text-gray-500 whitespace-nowrap ml-2 pl-2 border-l border-gray-200">
-                        Just now
-                      </span>
-                    </div>
-                  </div>
-                )}
-
                 {conversations.map((conversation: AiConversation) => {
                   if (!conversation || !conversation.id) {
                     console.warn('Invalid conversation object:', conversation);
@@ -292,7 +230,7 @@ const BotLeftBar = ({
                     <button
                       key={conversation.id}
                       onClick={(e) => handleConversationClick(e, conversation.id)}
-                      disabled={parentLoading || newChatLoading}
+                      disabled={parentLoading}
                       className={`w-full text-left rounded-lg transition-all duration-150 group focus:outline-none focus:ring-2 focus:ring-[#e5989b] focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed ${currentChatId === conversation.id
                         ? 'bg-[#fceaea] border border-[#e5989b]/30'
                         : 'hover:bg-[#fceaea] border border-transparent hover:border-[#e5989b]/20'
