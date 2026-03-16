@@ -1,15 +1,15 @@
-// layouts/DashboardLayout.tsx
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 import LeftBar from "../components/LeftBar";
 import BottomBar from "../components/BottomBar";
 import AdminHeader from "../components/admin/AdminHeader";
-
+import { useUIContext } from "../context/uiContext";
 import { useAuth } from "../context/authContext";
 
 
 const DashboardLayout = () => {
   const { user } = useAuth();
+  const { isBotOpen } = useUIContext();
 
 
   return (
@@ -34,12 +34,11 @@ const DashboardLayout = () => {
             <Outlet />
           </main>
 
-          {user?.role === 'user' &&
-
+          {user?.role === "user" && !isBotOpen && (
             <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
               <BottomBar />
             </div>
-          }
+          )}
         </div>
       </div>
     </div>
