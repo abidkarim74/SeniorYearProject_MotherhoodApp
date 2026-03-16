@@ -12,7 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.router.child_routes import child_router
 from app.router.profile_routes import profile_router
 from app.router.admin_routes import admin_router
-from app.router.ai_chatbot_routes import ai_chatbot_router
 from app.router.child_growth_routes import child_growth_router
 from app.router.vaccination_reminder_routes import vaccination_reminder_router
 from app.router.community_routes import community_router
@@ -54,7 +53,6 @@ async def startup_event():
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(child_router)
-app.include_router(ai_chatbot_router)
 app.include_router(mood_router)  
 app.include_router(vaccination_reminder_router)
 app.include_router(community_router)

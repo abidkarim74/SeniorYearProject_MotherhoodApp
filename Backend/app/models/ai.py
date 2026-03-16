@@ -44,18 +44,6 @@ class AiConversation(Base):
     summary: Mapped[str] = mapped_column(String, nullable=True)
 
 
-class AIChatbot(Base):
-    __tablename__  = 'aibots'
-    
-    id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
-    
-    
-
-
-
 
 class MessageType(PyEnum):
     HUMAN = "human"

@@ -1,54 +1,62 @@
-
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 from datetime import datetime
 from app.models.ai import MessageType
+from enum import Enum
+from typing import Optional, List
+
+
+class AiConversationBase(BaseModel):
+    topic: str = Field(..., min_length=1)
+    messages_exist: Optional[bool] = False
+    last_messages: Optional[List[str]] = None
+    summary: Optional[str] = None
 
 
 
-class ConversationSummarySchema(BaseModel):
-    topic: str
-    last_messages: list[str]
-
-
-class AiConversationBaseSchema(BaseModel):
+class AiConversationCreate(AiConversationBase):
     user_id: UUID
-    topic: str
-    created_at: datetime
-    updated_at: datetime
-    
-    
-class AiConversationResponseSchema(AiConversationBaseSchema):
-    id: UUID
-    model_config = ConfigDict(from_attributes=True)
+
 
 
 class AiConversationUpdate(BaseModel):
-    con_id: UUID
-    message: str
+    messages_exist: Optional[bool] = None
+    last_messages: Optional[List[str]] = None
+    summary: Optional[str] = None
 
 
 
-class AIMessageBaseSchema(BaseModel):
-    conversation_id: UUID
-    user_id: UUID
-    message_type: MessageType
-    content: str
-
-
-class AIMessageCreateSchema(AIMessageBaseSchema):
-    pass
-
-
-class AIMessageResponseSchema(AIMessageBaseSchema):
+class AiConversationResponse(AiConversationBase):
     id: UUID
+    user_id: UUID
     created_at: datetime
+    updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attributes = True  
 
 
 
-from enum import Enum
+
+# class MessageType(PyEnum):
+#     HUMAN = "human"
+#     AI = "ai"
+
+
+# class ChatbotMessage(Base):
+#     __tablename__ = 'chatbot_messages'
+
+#     id: Mapped[u] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+#     conversation_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('ai_conversations.id'), nullable=False, index=True)
+
+#     user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
+    
+#     message_type: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
+#     content: Mapped[str] = mapped_column(String, nullable=False)
+    
+#     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    
 
 
 class AIChatOption(str, Enum):
