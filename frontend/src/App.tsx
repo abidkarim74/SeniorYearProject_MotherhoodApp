@@ -21,7 +21,7 @@ import ManageVaccinations from "./pages/ManageVaccinations";
 import ManageCommunity from "./pages/ManageCommunity";
 import TutorialsPage from "./pages/TutorialsPage";
 import TutorialDetailPage from "./pages/TutorialDetailPage";
-
+import SocketTest from "./components/Sockettest";
 function App() {
   return (
     <Routes>
@@ -34,7 +34,7 @@ function App() {
           </GuestRoute>
         }
       />
-
+<Route path="/socket-test" element={<SocketTest />} />
       <Route
         path="/signup"
         element={

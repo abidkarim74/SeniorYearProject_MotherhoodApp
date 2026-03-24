@@ -23,6 +23,7 @@ from app.router.tutorial_routes import video_tutorial_router
 
 from app.llm_core.utils.vector_store import create_motherhood_collection
 from app.router.llm_routes import llm_router
+from app.router.socket_routes import router as socket_router
 
 app = FastAPI()
 
@@ -61,7 +62,7 @@ app.include_router(child_growth_router)
 app.include_router(video_tutorial_router)
 app.include_router(admin_router)
 app.include_router(llm_router)
-
+app.include_router(socket_router)
 
 
 async def reset_database_and_migrations():
@@ -155,7 +156,7 @@ async def reset_all_tables():
 
 
 
-from app.llm_core.utils.embeddings_service import create_embedding
+# from app.llm_core.utils.embeddings_service import create_embedding
 
 
 @app.post("/test")
