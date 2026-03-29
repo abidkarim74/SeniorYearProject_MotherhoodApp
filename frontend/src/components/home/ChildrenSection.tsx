@@ -24,25 +24,30 @@ const ChildrenSection = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const childrenData = await getRequest("/user-profile/get-children");
-        
-        setChildrenLength(childrenData.length);
-        setChildren(childrenData);
-        
-      } catch (err: any) {
-        setError("Please try again or contact the support team!");
-      } finally {
-        setLoading(false);
+  const fetchChildren = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const childrenData = await getRequest("/user-profile/get-children");
+      
+      setChildrenLength(childrenData.length);
+      setChildren(childrenData);
+      
+      // Auto-select the newly added child (last one)
+      if (childrenData.length > children.length) {
+        onSelectChild(childrenData.length - 1);
       }
-    };
+      
+    } catch (err: any) {
+      setError("Please try again or contact the support team!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (accessToken && user?.id) {
-      fetchData();
+      fetchChildren();
     } else {
       setChildren([]);
       setChildrenLength(0);
@@ -78,7 +83,7 @@ const ChildrenSection = ({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => fetchChildren()}
             className="inline-flex items-center bg-[#e5989b] hover:bg-[#d88a8d] text-white px-6 py-3 rounded-lg transition-colors font-medium shadow-md hover:shadow-lg"
           >
             Try Again
@@ -180,7 +185,7 @@ const ChildrenSection = ({
                     onSelectChild={onSelectChild}
                   />
                 ))}
-                <AddChildCard />
+                <AddChildCard onChildAdded={fetchChildren} />
               </div>
             </div>
 

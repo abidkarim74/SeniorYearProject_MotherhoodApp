@@ -47,18 +47,7 @@ class Child(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Need separate models for scalabilty
-    """
-    
-    sleep_schedule: Mapped[str | None] = mapped_column(String, nullable=True)
-    
-    # allergies: Mapped[str | None] = mapped_column(String, nullable=True)
-    
-    # medical_conditions: Mapped[str | None] = mapped_column(String, nullable=True)
-    """
-
-
-
+   
 
 class SleepSchedule(Base):
     __tablename__ = 'sleep_schedules'

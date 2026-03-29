@@ -2,8 +2,9 @@ from app.utils.validate_agents_response import validate_sql_agent_output
 
 from app.schemas.llm_schemas import AIChatOption
 
-from app.utils.ai_prompt_generate import generate_allergy_prompt, generate_child_medical_prompt
-
+from app.utils.ai_prompt_select_generate import generate_allergy_prompt, generate_child_medical_prompt, generate_child_prompt, generate_sleep_schedule_prompt
+from app.llm_core.utils.generate_prompts import generate_vaccination_prompt
+from app.schemas.llm_schemas import AIBotVaccinationOption
 
 
 class DatabaseAgent:
@@ -11,11 +12,11 @@ class DatabaseAgent:
     def __init__(self, llm_client):
         self.llm = llm_client
 
-    async def generate_query(self, mother_question: str, mother_id: str, query_type: AIChatOption):
+    async def generate_query(self, mother_question: str, mother_id: str, query_type: AIBotVaccinationOption):
 
-        if query_type.value == 'child_medical':
+        if query_type.value == 'vaccination_general':
             messages = [
-                {"role": "system", "content": generate_child_medical_prompt(mother_id)},
+                {"role": "system", "content": generate_vaccination_prompt()},
                 {"role": "user", "content": mother_question}
             ]
         elif query_type.value == 'child_allergy':
@@ -23,9 +24,20 @@ class DatabaseAgent:
                 {"role": "system", "content": generate_allergy_prompt(mother_id)},
                 {"role": "user", "content": mother_question}
             ]
+        elif query_type.value == 'child':
+            messages = [
+                {"role": "system", "content": generate_child_prompt(mother_id)},
+                {"role": "user", "content": mother_question}
+            ]
+        
+        elif query_type.value == 'child_sleep':
+            messages = [
+                {"role": "system", "content": generate_sleep_schedule_prompt(mother_id)},
+                {"role": "user", "content": mother_question}
+            ]
         else:
             return None
-
+        
         try:
             response = await self.llm.chat(messages)
 

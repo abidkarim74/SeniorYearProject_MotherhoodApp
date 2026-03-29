@@ -65,13 +65,11 @@ const Header = () => {
 
   const openChatbot = () => {
     setIsChatbotOpen(true);
-    // Prevent body scrolling when chatbot is open
     document.body.style.overflow = 'hidden';
   };
 
   const closeChatbot = () => {
     setIsChatbotOpen(false);
-    // Restore body scrolling
     document.body.style.overflow = 'unset';
   };
 
@@ -292,7 +290,7 @@ const Header = () => {
         </div>
 
         {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-[100]">
             <div className="bg-white p-6 rounded-xl shadow-2xl flex items-center space-x-3 border border-gray-100">
               <svg className="animate-spin h-6 w-6 text-[#e5989b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -311,31 +309,21 @@ const Header = () => {
         )}
       </header>
 
-      {/* Chatbot Modal */}
+      {/* Chatbot Modal - Updated z-index */}
       {isChatbotOpen && (
         <>
-          {/* Blurred backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[1000]"
             onClick={closeChatbot}
           />
-
-          {/* Chatbot Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 z-[1001] flex items-center justify-center">
             <div className="relative w-full h-full bg-white/95 backdrop-blur-sm overflow-hidden">
-              {/* Close button */}
               <button
                 onClick={closeChatbot}
                 className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 z-50 group"
               >
                 <X className="w-6 h-6 text-gray-600 group-hover:text-[#e5989b]" />
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-                  Close Assistant
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
-                </div>
               </button>
-
-              {/* Chatbot component */}
               <div className="h-full">
                 <Chatbot />
               </div>
@@ -344,14 +332,14 @@ const Header = () => {
         </>
       )}
 
-      {/* Log Mood Modal */}
+      {/* Log Mood Modal - Updated z-index */}
       {isLogMoodOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1000]"
             onClick={() => setIsLogMoodOpen(false)}
           />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4">
             <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setIsLogMoodOpen(false)}

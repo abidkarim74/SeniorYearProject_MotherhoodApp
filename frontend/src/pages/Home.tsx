@@ -24,7 +24,6 @@ const Home = () => {
 
 
   const [reminders, setReminders] = useState<any[]>([]);
-  const [vaccineOptions, setVaccineOptions] = useState<any[]>([]);
   const [activeChild, setActiveChild] = useState(0);
   const [remindersLoading, setRemindersLoading] = useState(true);
 
@@ -35,14 +34,11 @@ const Home = () => {
       try {
 
 
-        // Fetch other data
-        const [remindersData, vaccineOptionsData] = await Promise.all([
+        const [remindersData] = await Promise.all([
           getRequest("/vaccination-reminders/"),
-          getRequest("/vaccination-options/all")
         ]);
 
         setReminders(remindersData || []);
-        setVaccineOptions(vaccineOptionsData || []);
       } catch (error) {
         console.error("Error fetching data:", error);
 
@@ -54,19 +50,10 @@ const Home = () => {
     if (accessToken && user?.id) {
       fetchData();
     } else {
-      console.log("No accessToken or user.id, skipping fetch");
       setRemindersLoading(false);
     }
   }, [accessToken, user?.id]);
 
-  const getVaccineName = (vaccineId: string) => {
-    const vaccine = vaccineOptions.find(v => v.id === vaccineId);
-    return vaccine?.vaccine_name || "Vaccination";
-  };
-
-
-
-  // Helper function to sort reminders
   const getReminderStatus = (reminderDate: string) => {
     const date = new Date(reminderDate);
     const now = new Date();
@@ -161,12 +148,7 @@ const Home = () => {
             </div>
 
             <div className="space-y-4 sm:space-y-6">
-              <RemindersSection
-                reminders={reminders}
-                sortedReminders={sortedReminders}
-                loading={remindersLoading}
-                getVaccineName={getVaccineName}
-              />
+              {/* <RemindersSection/> */}
 
               <QuickActionsSection />
             </div>

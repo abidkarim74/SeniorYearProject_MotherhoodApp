@@ -7,10 +7,9 @@ from alembic import context # type: ignore
 
 from app.database.postgres import Base
 from app.models.user import User, UserArchivePost
-from app.models.ai import AIChatbot
 from app.models.child import Child, SleepSchedule, MedicalCondition, Allergy
 from app.models.vaccination import VaccinationRecord, VaccinationOption, VaccinationSchedule
-from app.models.ai import AIChatbot, AiConversation
+from app.models.ai import AiConversation, ChatbotMessage
 from app.models.community import Post, PostLike, PostComplain
 from app.models.child_growth import ChildGrowthRecord
 from app.models.notifications import Notification

@@ -21,7 +21,7 @@ from app.database.mongo import mongo_db
 from app.router.tutorial_routes import video_tutorial_router
 
 
-from app.llm_core.utils.vector_store import create_motherhood_collection
+# from app.llm_core.utils.vector_store import create_motherhood_collection
 from app.router.llm_routes import llm_router
 
 app = FastAPI()
@@ -155,7 +155,7 @@ async def reset_all_tables():
 
 
 
-from app.llm_core.utils.embeddings_service import create_embedding
+# from app.llm_core.utils.embeddings_service import create_embedding
 
 
 @app.post("/test")

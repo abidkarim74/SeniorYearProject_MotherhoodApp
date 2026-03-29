@@ -9,7 +9,7 @@ import MyChildren from "./pages/Children";
 import Vaccinations from "./pages/Vaccinations";
 import Immunizations from "./pages/Immunizations";
 import Community from "./pages/Community";
-import AddChild from "./pages/AddChild";
+// import AddChild from "./pages/AddChild";
 import UserProfile from "./pages/UserProfile";
 import AddVaccination from "./pages/AddVaccination";
 import Settings from "./pages/Settings";
@@ -58,7 +58,7 @@ function App() {
           <Route path="/tutorials/:id" element={<TutorialDetailPage />} />
 
           <Route path="/children" element={<MyChildren />} />
-          <Route path="/add-child" element={<AddChild />} />
+          {/* <Route path="/add-child" element={<AddChild />} /> */}
 
           <Route path="/immunizations" element={<Immunizations />} />
           <Route path="/vaccinations" element={<Vaccinations />} />
