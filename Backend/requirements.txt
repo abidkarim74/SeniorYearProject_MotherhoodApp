@@ -25,5 +25,5 @@ redis
 websockets
 
 
-qdrant-client
-sentence-transformers
+# qdrant-client
+# sentence-transformers

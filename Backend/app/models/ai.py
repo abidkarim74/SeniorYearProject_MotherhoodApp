@@ -58,9 +58,11 @@ class ChatbotMessage(Base):
 
     user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True, index=True)
     
-    message_type: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
+    message_type: Mapped[MessageType] = mapped_column(
+        Enum(MessageType, name="messagetype", create_type=False),
+        nullable=False
+    )
+
     content: Mapped[str] = mapped_column(String, nullable=False)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    
-    

@@ -1,27 +1,24 @@
-import json
+import re
+
+def extract_tables(query: str):
+    tables = re.findall(r"from\s+(\w+)|join\s+(\w+)", query, re.IGNORECASE)
+    return {t for pair in tables for t in pair if t}
 
 
 def validate_sql_agent_output(model_output: str):
-    print(model_output)
-    allowed_tables = {"children", "allergies", "sleep_schedules", "medical_conditions"}
-    
-    try:
-        data = json.loads(model_output)
+    allowed_tables = {"vaccination_options", "vaccination_schedules"}
 
-        query = data.get("query")
-        tables = data.get("tables_used", [])
-        confidence = data.get("confidence", 0)
+    query = model_output.strip()   
 
-        if not set(tables).issubset(allowed_tables):
-            return False, None
-
-        if not query or not query.strip().lower().startswith("select"):
-            return False, None
-
-        if confidence < 0.4:
-            return False, None
-
-        return True, query
-
-    except Exception:
+    if not query.lower().startswith("select"):
         return False, None
+
+    tables = extract_tables(query)
+
+    if not tables:
+        return False, None
+
+    if not tables.issubset(allowed_tables):
+        return False, None
+
+    return True, query
