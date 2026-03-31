@@ -173,7 +173,7 @@ const Header = () => {
               </div>
 
               {/* Notifications Icon */}
-              <div className="relative">
+              {/* <div className="relative">
                 <button className={iconButtonClass}>
                   <Bell className="w-5 h-5" />
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
@@ -185,7 +185,7 @@ const Header = () => {
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
                   </div>
                 </button>
-              </div>
+              </div> */}
 
               {/* Profile Menu */}
               <div className="relative">
