@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { postRequest, getRequest } from "../../api/requests";
-import { Shield, CheckCircle, ChevronDown, ChevronUp, Zap } from "lucide-react";
+import { Shield, CheckCircle, ChevronDown, ChevronUp} from "lucide-react";
 
-const ChildVaccination = ({ child_id, age, fullname, onClose }: any) => {
+const ChildVaccination = ({ child_id, age, }: any) => {
   const [vaccinations, setVaccinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedVaccine, setExpandedVaccine] = useState<string | null>(null);
