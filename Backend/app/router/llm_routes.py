@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.llm_schemas import UserPrompt, AIChatOption, AiConversationCreate,AiConversationResponse, AiConversationUpdate, AIBotVaccinationOption
+from app.schemas.llm_schemas import UserPrompt, AIChatOption, AiConversationCreate,AiConversationResponse, AiConversationUpdate, AIBotVaccinationOption, ChatbotMessageCreate
 from app.middleware.protect_endpoints import verify_authentication
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.postgres import connect_db
 from uuid import UUID
 
-from app.llm_core.utils.agents_response import generate_agent_response
-from app.controllers.llm_controllers import LLMConversationControllers
-from typing import List
-from fastapi.responses import StreamingResponse
 
+from app.controllers.llm_controllers import LLMConversationControllers, LLMMessageController
+from typing import List
 
 
 llm_router = APIRouter(prefix='/api/llm')
@@ -18,7 +16,7 @@ from sqlalchemy import text
 
 @llm_router.post('/chat', status_code=201)
 async def generate_ai_response(
-    data: UserPrompt,
+    data: ChatbotMessageCreate,
     db: AsyncSession = Depends(connect_db),
     payload = Depends(verify_authentication)
 ):
@@ -27,19 +25,8 @@ async def generate_ai_response(
     if not user_id:
         raise HTTPException(status_code=401, detail='Unauthorized request!')
 
-    # Get the async generator
-    response_generator = await generate_agent_response(data.conv_type, data.prompt, user_id, db)
+    return await LLMMessageController.chat_with_llm(user_id, data, db)
     
-    # Return as streaming response
-    return StreamingResponse(
-        response_generator,
-        media_type="text/plain",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Content-Type": "text/plain; charset=utf-8",
-        }
-    )
 
 @llm_router.post('/conversations', status_code=201, response_model=AiConversationResponse)
 async def create_conversation(data: AiConversationCreate, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
@@ -97,5 +84,18 @@ async def delete_conversation(conversation_id: UUID, db: AsyncSession = Depends(
         raise HTTPException(status_code=401, detail='Unauthorized request!')
     
     result = await LLMConversationControllers.delete_llm_conversation(conversation_id, user_id, db)
+    
+    return result
+
+
+
+@llm_router.get('/conversations/{conversation_id}/messages')
+async def delete_conversation(conversation_id: UUID, db: AsyncSession = Depends(connect_db), payload = Depends(verify_authentication)):
+    user_id = payload['id']
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail='Unauthorized request!')
+    
+    result = await LLMMessageController.get_conversation_messages(conversation_id, user_id, db)
     
     return result

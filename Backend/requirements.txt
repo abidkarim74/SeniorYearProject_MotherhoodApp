@@ -24,6 +24,6 @@ pymongo
 redis
 websockets
 
-
-# qdrant-client
-# sentence-transformers
+pymupdf 
+faiss-cpu 
+sentence-transformers

@@ -147,3 +147,39 @@
 .animate-slide-down {
   animation: slide-down 0.2s ease-out;
 }
+
+
+
+
+/* Add this to your global CSS file or create a CSS module */
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5989b;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d88a8d;
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e5989b transparent;
+}
+
+/* Optional: Smooth scrolling */
+.custom-scrollbar {
+  scroll-behavior: smooth;
+}

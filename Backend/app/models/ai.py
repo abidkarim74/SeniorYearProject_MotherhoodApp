@@ -11,6 +11,7 @@ from enum import Enum as PyEnum
 from sqlalchemy import Boolean
 from datetime import datetime
 from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy.dialects.postgresql import JSONB
 
 from sqlalchemy import text
 
@@ -23,6 +24,8 @@ class AiConversation(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id: Mapped[u] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     topic: Mapped[str] = mapped_column(String, nullable=False)
+    topic_message: Mapped[str] = mapped_column(String, nullable=True)
+
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     
@@ -38,9 +41,9 @@ class AiConversation(Base):
     
 
     last_messages: Mapped[list[str]] = mapped_column(
-        MutableList.as_mutable(ARRAY(String)),
-        nullable=True
-    )
+    MutableList.as_mutable(JSONB),
+    nullable=True
+)
     summary: Mapped[str] = mapped_column(String, nullable=True)
 
 
