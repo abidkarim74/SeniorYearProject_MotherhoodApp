@@ -100,12 +100,12 @@ async def create_vaccination_record(
     db: AsyncSession = Depends(connect_db)
 ):
     auth_id = payload['id']
-
-    return "he"
     
     if not auth_id:
         raise HTTPException(status_code=401, detail='You are not authorized!')
     
+    # REMOVED THE "return he" 
+    # Calling the controller properly
     return await VaccinationRecordControllers.record_create(data, child_id, db)
 
 
