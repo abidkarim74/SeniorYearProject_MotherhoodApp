@@ -1,245 +1,163 @@
-vaccines = [
-    {
-        "vaccine_name": "BCG",
-        "description": "Given at birth to protect infants from severe forms of tuberculosis.",
-        "protect_against": "Tuberculosis",
-        "doses_needed": 1,
-        "is_mandatory": True
-    },
-    {
-        "vaccine_name": "OPV (Oral Polio Vaccine)",
-        "description": "Oral vaccine that protects against poliovirus.",
-        "protect_against": "Polio",
-        "doses_needed": 4,
-        "is_mandatory": True
-    },
-    {
-        "vaccine_name": "Pentavalent (DTP-HepB-Hib)",
-        "description": "Combination vaccine protecting against 5 serious diseases.",
-        "protect_against": "Diphtheria, Tetanus, Pertussis, Hepatitis B, Hib",
-        "doses_needed": 3,
-        "is_mandatory": True
-    },
-    {
-        "vaccine_name": "PCV (Pneumococcal Conjugate Vaccine)",
-        "description": "Protects against pneumococcal infections like pneumonia and meningitis.",
-        "protect_against": "Pneumonia, Meningitis",
-        "doses_needed": 3,
-        "is_mandatory": True
-    },
-    {
-        "vaccine_name": "Rotavirus",
-        "description": "Oral vaccine to prevent severe diarrhea in infants.",
-        "protect_against": "Rotavirus diarrhea",
-        "doses_needed": 2,
-        "is_mandatory": False
-    },
-    {
-        "vaccine_name": "Measles / MR",
-        "description": "Protects against measles (and rubella in MR/MMR forms).",
-        "protect_against": "Measles, Rubella",
-        "doses_needed": 2,
-        "is_mandatory": True
-    },
-    {
-        "vaccine_name": "MMR",
-        "description": "Protects against measles, mumps, and rubella.",
-        "protect_against": "Measles, Mumps, Rubella",
-        "doses_needed": 2,
-        "is_mandatory": False
-    },
-    {
-        "vaccine_name": "Varicella",
-        "description": "Protects against chickenpox.",
-        "protect_against": "Chickenpox",
-        "doses_needed": 2,
-        "is_mandatory": False
-    },
-    {
-        "vaccine_name": "Hepatitis A",
-        "description": "Protects against Hepatitis A liver infection.",
-        "protect_against": "Hepatitis A",
-        "doses_needed": 2,
-        "is_mandatory": False
-    },
-    {
-        "vaccine_name": "HPV",
-        "description": "Prevents infections that can lead to cervical and other cancers.",
-        "protect_against": "Human Papillomavirus (HPV)",
-        "doses_needed": 2,
-        "is_mandatory": False
-    }
-]
-
-
-schedules = [
-  {
-    "vaccine_id": "35808979-4d3e-4afd-92ff-61ef484c6846",
-    "dose_num": 1,
-    "min_age_days": 0,
-    "max_age_days": 56
-  },
-
-  {
-    "vaccine_id": "9ce1e351-4bc8-43e3-91a6-13623d43ddc7",
-    "dose_num": 1,
-    "min_age_days": 0,
-    "max_age_days": 14
-  },
-  {
-    "vaccine_id": "9ce1e351-4bc8-43e3-91a6-13623d43ddc7",
-    "dose_num": 2,
-    "min_age_days": 42,
-    "max_age_days": 70
-  },
-  {
-    "vaccine_id": "9ce1e351-4bc8-43e3-91a6-13623d43ddc7",
-    "dose_num": 3,
-    "min_age_days": 70,
-    "max_age_days": 98
-  },
-  {
-    "vaccine_id": "9ce1e351-4bc8-43e3-91a6-13623d43ddc7",
-    "dose_num": 4,
-    "min_age_days": 98,
-    "max_age_days": 126
-  },
-
-  {
-    "vaccine_id": "1b449273-3f13-42bc-8ad5-12444db30cb1",
-    "dose_num": 1,
-    "min_age_days": 42,
-    "max_age_days": 70
-  },
-  {
-    "vaccine_id": "1b449273-3f13-42bc-8ad5-12444db30cb1",
-    "dose_num": 2,
-    "min_age_days": 70,
-    "max_age_days": 98
-  },
-  {
-    "vaccine_id": "1b449273-3f13-42bc-8ad5-12444db30cb1",
-    "dose_num": 3,
-    "min_age_days": 98,
-    "max_age_days": 126
-  },
-
-  {
-    "vaccine_id": "0ae85ad9-b948-423e-8c25-f3a8a9414652",
-    "dose_num": 1,
-    "min_age_days": 42,
-    "max_age_days": 70
-  },
-  {
-    "vaccine_id": "0ae85ad9-b948-423e-8c25-f3a8a9414652",
-    "dose_num": 2,
-    "min_age_days": 70,
-    "max_age_days": 98
-  },
-  {
-    "vaccine_id": "0ae85ad9-b948-423e-8c25-f3a8a9414652",
-    "dose_num": 3,
-    "min_age_days": 98,
-    "max_age_days": 126
-  },
-
-  {
-    "vaccine_id": "cf888f1e-7aa4-4328-9cc6-6e34fcb0a60f",
-    "dose_num": 1,
-    "min_age_days": 42,
-    "max_age_days": 70
-  },
-  {
-    "vaccine_id": "cf888f1e-7aa4-4328-9cc6-6e34fcb0a60f",
-    "dose_num": 2,
-    "min_age_days": 70,
-    "max_age_days": 112
-  },
-
-  {
-    "vaccine_id": "f1baf3e0-ab33-4dcc-851e-7e80d4781d53",
-    "dose_num": 1,
-    "min_age_days": 270,
-    "max_age_days": 365
-  },
-  {
-    "vaccine_id": "f1baf3e0-ab33-4dcc-851e-7e80d4781d53",
-    "dose_num": 2,
-    "min_age_days": 450,
-    "max_age_days": 540
-  },
-
-  {
-    "vaccine_id": "7b0df439-2c50-4a7a-85c2-fa058ab0448f",
-    "dose_num": 1,
-    "min_age_days": 365,
-    "max_age_days": 455
-  },
-  {
-    "vaccine_id": "7b0df439-2c50-4a7a-85c2-fa058ab0448f",
-    "dose_num": 2,
-    "min_age_days": 1460,
-    "max_age_days": 2190
-  },
-
-  {
-    "vaccine_id": "beaf068e-bb5b-465d-8167-c19c9ea1976d",
-    "dose_num": 1,
-    "min_age_days": 365,
-    "max_age_days": 455
-  },
-  {
-    "vaccine_id": "beaf068e-bb5b-465d-8167-c19c9ea1976d",
-    "dose_num": 2,
-    "min_age_days": 1460,
-    "max_age_days": 2190
-  },
-
-  {
-    "vaccine_id": "82ed04fe-1268-407d-a1f2-ce00eaaa0b99",
-    "dose_num": 1,
-    "min_age_days": 365,
-    "max_age_days": 455
-  },
-  {
-    "vaccine_id": "82ed04fe-1268-407d-a1f2-ce00eaaa0b99",
-    "dose_num": 2,
-    "min_age_days": 545,
-    "max_age_days": 730
-  },
-
-  {
-    "vaccine_id": "63e9de20-0ffb-418b-8dff-edd8191df35d",
-    "dose_num": 1,
-    "min_age_days": 3285,
-    "max_age_days": 4015
-  },
-  {
-    "vaccine_id": "63e9de20-0ffb-418b-8dff-edd8191df35d",
-    "dose_num": 2,
-    "min_age_days": 3465,
-    "max_age_days": 4380
-  }
-]
-
-
 import requests
 
-API_URL = "http://localhost:8000/api/vaccines/create-vaccine-option"  # <-- change this
+API_BASE = "http://localhost:8000/api"
+LOGIN_URL = f"{API_BASE}/auth/login"
+TUTORIALS_URL = f"{API_BASE}/video-tutorials/create"
+
+LOGIN_PAYLOAD = {
+    "email": "abid@gmail.com",
+    "password": "YS2b7kat"
+}
+
+tutorials = [
+    # FEEDING
+    {
+        "url": "https://www.youtube.com/watch?v=iKSSi5pi57I",
+        "name": "How to Bottle Feed your Baby: Paced Bottle Feeding",
+        "category": "FEEDING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=VCYWqni0TeM",
+        "name": "How to Bottle Feed Properly | Infant Care",
+        "category": "FEEDING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=4Rpl8H5V0pY",
+        "name": "Bottle feeding your baby.",
+        "category": "FEEDING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=ryq1Lse8LBA",
+        "name": "7 Must-Know Bottle Feeding Tips (Pediatrician's Guide!)",
+        "category": "FEEDING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=HUbgboXzaAk",
+        "name": "Tips on Bottlefeeding Your Newborn",
+        "category": "FEEDING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=KihSrKh0-4E",
+        "name": "Baby Refusing the Bottle? Here's What to Do!",
+        "category": "FEEDING"
+    },
+
+    # BATHING
+    {
+        "url": "https://www.youtube.com/watch?v=Jp4YIL4su3k",
+        "name": "Keep Your Baby Warm Video for parents",
+        "category": "BATHING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=7yxd25nZMaE",
+        "name": "Complete Guide to Bathing a Newborn Baby (Step-By-Step)",
+        "category": "BATHING"
+    },
+
+    # SLEEP_TRAINING
+    {
+        "url": "https://www.youtube.com/watch?v=LLqfRQdUP7k",
+        "name": "How to Hip-Healthy Swaddle your Baby - IHDI",
+        "category": "SLEEP_TRAINING"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=MIDlhWTYkBo",
+        "name": "Theory and Physiology of Skin-to-Skin",
+        "category": "SLEEP_TRAINING"
+    },
+
+    # HEALTH
+    {
+        "url": "https://www.youtube.com/watch?v=VvfvZcJLWNU",
+        "name": "7 Superfoods For Child's Brain Development And Intelligence",
+        "category": "HEALTH"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=MiMNbZstp68",
+        "name": "Newborn Care 101: Essential Tips for First-Time Parents",
+        "category": "HEALTH"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=ofa5xI86VyY",
+        "name": "Umbilical Cord Care for Newborns",
+        "category": "HEALTH"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=H-gOrAahQlY",
+        "name": "Instructional Videos for New Moms - Thermometers and Taking Your Baby's Temperature",
+        "category": "HEALTH"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=JgyV6VDlKaM",
+        "name": "10 Signs Your Baby is Healthy",
+        "category": "HEALTH"
+    },
+
+    # DEVELOPMENT
+    {
+        "url": "https://www.youtube.com/watch?v=NTze3C5juSQ",
+        "name": "How to Calm a Fussy Baby",
+        "category": "DEVELOPMENT"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=pmJSKlMG5Bs",
+        "name": "How to Hold a Newborn - Basic Holds",
+        "category": "DEVELOPMENT"
+    },
+
+    # SAFETY
+    {
+        "url": "https://www.youtube.com/watch?v=10o95KDJdpM",
+        "name": "BABY SLING - CRADLE CARRY",
+        "category": "SAFETY"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=gcpzr4kCP10",
+        "name": "Proper Baby Positioning in a Sling",
+        "category": "SAFETY"
+    },
+    {
+        "url": "https://www.youtube.com/watch?v=7K6arU5igAU",
+        "name": "Sling Safety",
+        "category": "SAFETY"
+    },
+]
+
+# ── Step 1: Login ─────────────────────────────────────────────────
+print("🔐 Logging in...")
+login_resp = requests.post(LOGIN_URL, json=LOGIN_PAYLOAD)
+
+if login_resp.status_code not in (200, 201):
+    print(f"❌ Login failed: {login_resp.status_code} {login_resp.text}")
+    exit(1)
+
+token = login_resp.json().get("access_token")
+if not token:
+    print(f"❌ No access_token in response: {login_resp.json()}")
+    exit(1)
+
+print(f"✅ Logged in. Token received.\n")
 
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer YOUR_TOKEN_HERE"  # remove if not needed
+    "Authorization": f"Bearer {token}"
 }
 
+# ── Step 2: Seed tutorials ────────────────────────────────────────
+inserted = 0
+failed = 0
 
-print("{Das}")
-
-for v in vaccines:
-    response = requests.post(API_URL, json=v, headers=headers)
-    
-    if response.status_code in (200, 201):
-        print(f"✅ Created")
+for t in tutorials:
+    resp = requests.post(TUTORIALS_URL, json=t, headers=headers)
+    if resp.status_code in (200, 201):
+        print(f"✅ Created: {t['name']}")
+        inserted += 1
     else:
-        print(f"❌ Failed: ")
-        # print(response.status_code, response.text)
+        print(f"❌ Failed:  {t['name']}")
+        print(f"   Status: {resp.status_code} | Response: {resp.text}")
+        failed += 1
+
+print(f"\n── Done ──────────────────────────────")
+print(f"✅ Inserted : {inserted}")
+print(f"❌ Failed   : {failed}")
+print(f"Total      : {len(tutorials)}")
