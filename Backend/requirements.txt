@@ -24,6 +24,6 @@ pymongo
 redis
 websockets
 
-pymupdf 
-faiss-cpu 
-sentence-transformers
+# pymupdf 
+# faiss-cpu 
+# sentence-transformers

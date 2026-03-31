@@ -11,17 +11,58 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowLeft, Weight, Ruler, Brain, Plus} from "lucide-react";
+import { ArrowLeft, Weight, Ruler, Brain, Plus } from "lucide-react";
+
+
+
+interface TransformedGrowthData {
+  date: string;
+  fullDate: string;
+  weight: number;
+  height: number;
+  headCircumference: number;
+  timestamp: number;
+}
+
+interface ChildInfo {
+  firstname: string;
+  lastname: string;
+  id: string;
+  // Add other child properties as needed
+}
+
+interface ChartStats {
+  min: number;
+  max: number;
+  latest: number;
+  change: number;
+}
+
+interface FormData {
+  recorded_at: string;
+  weight: string;
+  height: string;
+  head_circumference: string;
+  milestone_notes: string;
+}
+
+interface ChartCardProps {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  dataKey: keyof TransformedGrowthData;
+  unit: string;
+  stats: ChartStats;
+}
 
 const ChildGrowthTracking = () => {
-  const { childId } = useParams();
+  const { childId } = useParams<{ childId: string }>();
   const navigate = useNavigate();
-  const [growthData, setGrowthData] = useState([]);
+  const [growthData, setGrowthData] = useState<TransformedGrowthData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [childInfo, setChildInfo] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [childInfo, setChildInfo] = useState<ChildInfo | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     recorded_at: new Date().toISOString().split('T')[0],
     weight: "",
     height: "",
@@ -38,7 +79,7 @@ const ChildGrowthTracking = () => {
           `/child-growth/list/${childId}`
         );
 
-        const transformedData = (response || []).map((record) => ({
+        const transformedData: TransformedGrowthData[] = (response || []).map((record: any) => ({
           date: new Date(record.recorded_at).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
@@ -77,7 +118,7 @@ const ChildGrowthTracking = () => {
     }
   }, [childId]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -85,7 +126,7 @@ const ChildGrowthTracking = () => {
     }));
   };
 
-  const handleSubmitRecord = async (e) => {
+  const handleSubmitRecord = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!formData.recorded_at || !formData.weight || !formData.height || !formData.head_circumference) {
@@ -117,7 +158,7 @@ const ChildGrowthTracking = () => {
       setError(null);
       
       const response = await getRequest(`/child-growth/list/${childId}`);
-      const transformedData = (response || []).map((record) => ({
+      const transformedData: TransformedGrowthData[] = (response || []).map((record: any) => ({
         date: new Date(record.recorded_at).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
@@ -133,29 +174,32 @@ const ChildGrowthTracking = () => {
       setGrowthData(transformedData);
     } catch (err) {
       console.error("Error creating growth record:", err);
+      setError("Failed to create growth record. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getChartStats = (dataKey) => {
+  const getChartStats = (dataKey: keyof TransformedGrowthData): ChartStats => {
     if (growthData.length === 0) return { min: 0, max: 0, latest: 0, change: 0 };
 
-    const values = growthData.map((d) => d[dataKey]).filter((v) => v > 0);
+    const values = growthData
+      .map((d) => d[dataKey])
+      .filter((v): v is number => typeof v === 'number' && v > 0);
+    
     if (values.length === 0) return { min: 0, max: 0, latest: 0, change: 0 };
 
     return {
       min: Math.min(...values),
       max: Math.max(...values),
       latest: values[values.length - 1],
-      change:
-        values.length > 1
-          ? (values[values.length - 1] - values[0]).toFixed(2)
-          : 0,
+      change: values.length > 1
+        ? parseFloat((values[values.length - 1] - values[0]).toFixed(2))
+        : 0,
     };
   };
 
-  const ChartCard = ({ title, icon: Icon, dataKey, unit, stats }) => (
+  const ChartCard = ({ title, icon: Icon, dataKey, unit, stats }: ChartCardProps) => (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 md:p-6 hover:shadow-lg transition-all">
       <div className="flex items-center space-x-3 mb-4 md:mb-6">
         <div className="p-2 md:p-3 rounded-full bg-[#fceaea]">
@@ -206,7 +250,10 @@ const ChildGrowthTracking = () => {
               fontSize: "12px",
               padding: "8px",
             }}
-            formatter={(value) => [`${value} ${unit}`, title]}
+            formatter={(value: number | undefined) => {
+              if (value === undefined) return ['N/A', title];
+              return [`${value} ${unit}`, title];
+            }}
             labelStyle={{ color: "#374151", fontSize: "11px" }}
           />
           <Legend
@@ -220,7 +267,7 @@ const ChildGrowthTracking = () => {
           />
           <Line
             type="monotone"
-            dataKey={dataKey}
+            dataKey={dataKey as string}
             stroke="#e5989b"
             strokeWidth={2}
             dot={{ fill: "#e5989b", r: 3 }}
@@ -402,123 +449,123 @@ const ChildGrowthTracking = () => {
         )}
 
         {/* Add Record Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto mx-2">
-            <div className="p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Add Growth Record</h2>
-              
-              <form onSubmit={handleSubmitRecord} className="space-y-3 sm:space-y-4">
-                {/* Date Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Date <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="recorded_at"
-                    value={formData.recorded_at}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                    required
-                  />
-                </div>
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto mx-2">
+              <div className="p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Add Growth Record</h2>
+                
+                <form onSubmit={handleSubmitRecord} className="space-y-3 sm:space-y-4">
+                  {/* Date Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="recorded_at"
+                      value={formData.recorded_at}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                      required
+                    />
+                  </div>
 
-                {/* Weight Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Weight (kg) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="weight"
-                    step="0.1"
-                    value={formData.weight}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 5.5"
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                    required
-                  />
-                </div>
+                  {/* Weight Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Weight (kg) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="weight"
+                      step="0.1"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 5.5"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                      required
+                    />
+                  </div>
 
-                {/* Height Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Height (cm) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="height"
-                    step="0.1"
-                    value={formData.height}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 65.5"
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                    required
-                  />
-                </div>
+                  {/* Height Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Height (cm) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="height"
+                      step="0.1"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 65.5"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                      required
+                    />
+                  </div>
 
-                {/* Head Circumference Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Head Circumference (cm) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="head_circumference"
-                    step="0.1"
-                    value={formData.head_circumference}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 41.5"
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
-                    required
-                  />
-                </div>
+                  {/* Head Circumference Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Head Circumference (cm) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="head_circumference"
+                      step="0.1"
+                      value={formData.head_circumference}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 41.5"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all text-sm sm:text-base"
+                      required
+                    />
+                  </div>
 
-                {/* Milestone Notes Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Milestone Notes <span className="text-gray-500">(Optional)</span>
-                  </label>
-                  <textarea
-                    name="milestone_notes"
-                    value={formData.milestone_notes}
-                    onChange={handleInputChange}
-                    placeholder="Any notes about development or milestones..."
-                    rows={3}
-                    className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all resize-none text-sm sm:text-base"
-                  />
-                </div>
+                  {/* Milestone Notes Field */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                      Milestone Notes <span className="text-gray-500">(Optional)</span>
+                    </label>
+                    <textarea
+                      name="milestone_notes"
+                      value={formData.milestone_notes}
+                      onChange={handleInputChange}
+                      placeholder="Any notes about development or milestones..."
+                      rows={3}
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#e5989b] focus:border-transparent outline-none transition-all resize-none text-sm sm:text-base"
+                    />
+                  </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm sm:text-base"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 bg-[#e5989b] text-white py-2.5 rounded-lg font-medium hover:bg-[#d88a8d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base"
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <span>Add Record</span>
-                    )}
-                  </button>
-                </div>
-              </form>
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 pt-3 sm:pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 bg-[#e5989b] text-white py-2.5 rounded-lg font-medium hover:bg-[#d88a8d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <span>Add Record</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );

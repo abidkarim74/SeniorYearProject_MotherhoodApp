@@ -1,7 +1,7 @@
-import faiss
+# import faiss
 import json
 import numpy as np
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 from pathlib import Path
 from .config import BASE_DIR
 import sys
@@ -23,9 +23,9 @@ def check_and_load_resources():
 
 check_and_load_resources()
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# model = SentenceTransformer("all-MiniLM-L6-v2")
 
-index = faiss.read_index(str(FAISS_FLAT_PATH))
+# index = faiss.read_index(str(FAISS_FLAT_PATH))
 
 
 with open(METADATA_PATH, "r", encoding="utf-8") as f:
@@ -74,25 +74,26 @@ def preprocess_query(query: str) -> str:
 
 
 def search(query: str, k: int = 3, show_details: bool = True):
-    enhanced_query = preprocess_query(query)
+    # enhanced_query = preprocess_query(query)
     
-    query_vec = model.encode([enhanced_query], normalize_embeddings=True).astype("float32")
+    # query_vec = model.encode([enhanced_query], normalize_embeddings=True).astype("float32")
     
-    k = min(k, index.ntotal)
-    distances, indices = index.search(query_vec, k)
+    # k = min(k, index.ntotal)
+    # distances, indices = index.search(query_vec, k)
     
-    results = []
-    for i, idx in enumerate(indices[0]):
-        if idx >= 0 and idx < len(metadata):
-            chunk = metadata[idx]
-            results.append({
-                "content": chunk["content"],
-                "score": float(distances[0][i]),
-                "id": idx,
-                "metadata": chunk.get("metadata", {})
-            })
+    # results = []
+    # for i, idx in enumerate(indices[0]):
+    #     if idx >= 0 and idx < len(metadata):
+    #         chunk = metadata[idx]
+    #         results.append({
+    #             "content": chunk["content"],
+    #             "score": float(distances[0][i]),
+    #             "id": idx,
+    #             "metadata": chunk.get("metadata", {})
+    #         })
     
-    return results
+    # return results
+    pass
 
 
 def format_results(results, show_full_content=False):

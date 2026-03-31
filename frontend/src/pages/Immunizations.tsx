@@ -234,19 +234,27 @@ const Immunizations = () => {
                                                 <div className="mt-5 pt-4 border-t border-gray-50">
                                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 ml-1">Vaccination Schedule</h4>
                                                     <div className="flex flex-wrap gap-3">
-                                                        {vaccine.schedules.map((schedule) => (
-                                                            <div key={schedule.dose_num} className="flex items-center bg-[#fffafa] rounded-xl border border-[#e5989b]/10 px-3 py-2">
-                                                                <span className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-xs font-bold text-[#e5989b] border border-[#e5989b]/20 mr-2.5 shadow-sm">
-                                                                    {schedule.dose_num}
-                                                                </span>
-                                                                <div className="text-xs">
-                                                                    <span className="text-gray-500">Age Range:</span>
-                                                                    <div className="font-bold text-gray-800">
-                                                                        {Math.floor(schedule.min_days_age / 30)} - {Math.floor(schedule.max_days_age / 30)} months
+                                                        {vaccine.schedules.map((schedule) => {
+                                                            // Safely calculate age range with fallback values
+                                                            const minDays = (schedule as any).min_days_age || (schedule as any).min_age || 0;
+                                                            const maxDays = (schedule as any).max_days_age || (schedule as any).max_age || 0;
+                                                            const minMonths = minDays ? Math.floor(minDays / 30) : '?';
+                                                            const maxMonths = maxDays ? Math.floor(maxDays / 30) : '?';
+                                                            
+                                                            return (
+                                                                <div key={schedule.dose_num} className="flex items-center bg-[#fffafa] rounded-xl border border-[#e5989b]/10 px-3 py-2">
+                                                                    <span className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-xs font-bold text-[#e5989b] border border-[#e5989b]/20 mr-2.5 shadow-sm">
+                                                                        {schedule.dose_num}
+                                                                    </span>
+                                                                    <div className="text-xs">
+                                                                        <span className="text-gray-500">Age Range:</span>
+                                                                        <div className="font-bold text-gray-800">
+                                                                            {minMonths} - {maxMonths} months
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             )}

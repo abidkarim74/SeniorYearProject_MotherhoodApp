@@ -1,7 +1,6 @@
 import { useAuth } from "../context/authContext";
 import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
-import MainLoading from "../components/MainLoading";
 
 
 interface GuestRouteProps {
@@ -9,7 +8,7 @@ interface GuestRouteProps {
 }
 
 function GuestRoute({ children }: GuestRouteProps) {
-  const { accessToken, mainLoading } = useAuth();
+  const { accessToken } = useAuth();
 
   // if (mainLoading) {
   //   return (
