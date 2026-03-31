@@ -15,15 +15,14 @@ spec:
       labels:
         app: frontend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
       - name: frontend
         image: ghcr.io/abidkarim74/motherhood-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
-        env:
-        - name: VITE_API_URL
-          value: "http://backend-service:8000"
         resources:
           requests:
             memory: "128Mi"
