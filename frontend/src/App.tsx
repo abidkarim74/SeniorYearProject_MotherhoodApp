@@ -59,7 +59,7 @@ function App() {
 
           <Route path="/children" element={<MyChildren />} />
           {/* <Route path="/add-child" element={<AddChild />} /> */}
-
+          <Route path='profile' element={<UserProfile />} />
           <Route path="/immunizations" element={<Immunizations />} />
           <Route path="/vaccinations" element={<Vaccinations />} />
           <Route path="/add-vaccination" element={<AddVaccination />} />

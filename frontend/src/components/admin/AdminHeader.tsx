@@ -124,11 +124,11 @@ const AdminHeader = () => {
                       <p className="text-xs text-[#e5989b] mt-1">{user?.email}</p>
                     </div>
                     
-                    <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#fff6f6] transition-colors">
+                    <a href="/profile" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#fff6f6] transition-colors">
                       <User className="w-4 h-4 text-[#e5989b]" />
                       Profile
                     </a>
-                    <a href="#" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#fff6f6] transition-colors">
+                    <a href="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-[#fff6f6] transition-colors">
                       <Settings className="w-4 h-4 text-[#e5989b]" />
                       Settings
                     </a>
