@@ -1,7 +1,7 @@
 import { Save, X, Ruler } from "lucide-react";
 import { useState } from "react";
 
-import type { ChildPhysical as Child, UpdateChildPhysicalProps } from "../interfaces/ChildInterfaces";
+import type { UpdateChildPhysicalProps } from "../interfaces/ChildInterfaces";
 
 const UpdateChildPhysical = ({ 
   isOpen, 

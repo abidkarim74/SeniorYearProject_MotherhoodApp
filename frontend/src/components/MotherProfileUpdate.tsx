@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "../context/authContext";
 import { putRequest } from "../api/requests";
 import { 
   MapPin, 
@@ -353,7 +352,7 @@ const MotherProfileUpdate = ({ motherData, onClose, onSuccess }: MotherProfileUp
       </div>
 
       {/* Custom Scrollbar Styles */}
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
         }

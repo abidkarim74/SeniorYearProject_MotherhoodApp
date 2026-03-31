@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { postRequest, getRequest } from "../../api/requests";
 import { useAuth } from "../../context/authContext";
 import { useNavigate } from "react-router-dom";
+
 import { 
-  MessageCircle, AlertCircle, TrendingUp, Users, Plus, Bookmark, X, Clock, CheckCircle, ShieldAlert, FileText 
+  MessageCircle, AlertCircle, TrendingUp, Users, Plus, X, Clock, ShieldAlert, FileText 
 } from "lucide-react";
 import SuccessToast from "./SuccessToast";
 import CreatePostModal from "./CreatePost";
 import SinglePost from "./SinglePost";
-import type { Post, PostFormData, PostType } from "../../interfaces/CommunityInterfaces";
+import type { Post, PostType } from "../../interfaces/CommunityInterfaces";
 
 const CommunityCenter = () => {
   const { user } = useAuth();
@@ -32,8 +33,7 @@ const CommunityCenter = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [createdPostId, setCreatedPostId] = useState<string | null>(null);
-  const [showSaveNotification, setShowSaveNotification] = useState<boolean>(false);
-  const [saveNotificationMessage, setSaveNotificationMessage] = useState<string>("");
+  // const [showSaveNotification, setShowSaveNotification] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
 
   // Event Listeners for Sidebar
@@ -124,6 +124,53 @@ const CommunityCenter = () => {
     return styles[type] || { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-200", icon: <AlertCircle className="w-3 h-3" /> };
   };
 
+  const handleSavePost = async (postId: string) => {
+    try {
+      setIsSaving(prev => ({ ...prev, [postId]: true }));
+      await postRequest(`/community/save-post/${postId}`, {});
+      await fetchPosts();
+      // Optional: Show success toast for saving
+      setToastMessage("Post saved successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Error saving post:", error);
+      setToastMessage("Failed to save post");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      setIsSaving(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const handleCreatePost = async (data: any) => {
+    try {
+      const response = await postRequest("/community/create-post/", data);
+      // Assuming the response contains the created post with an id
+      const newPostId = response?.id || response?.post_id;
+      
+      if (newPostId) {
+        setCreatedPostId(newPostId);
+        setToastMessage("Post created successfully!");
+        setShowToast(true);
+        
+        // Auto-hide toast after 5 seconds
+        setTimeout(() => {
+          setShowToast(false);
+          setCreatedPostId(null);
+        }, 5000);
+      }
+      
+      await fetchPosts();
+      setShowModal(false);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      setToastMessage("Failed to create post");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e5989b]"></div></div>;
   }
@@ -141,7 +188,14 @@ const CommunityCenter = () => {
 
         <div className="space-y-4">
           {posts.map((post) => (
-            <SinglePost key={post?.id || Math.random()} post={post} getPostTypeStyle={getPostTypeStyle} formatDate={formatDate} onSavePost={() => {}} isSaving={false} />
+            <SinglePost 
+              key={post?.id || Math.random()} 
+              post={post} 
+              getPostTypeStyle={getPostTypeStyle} 
+              formatDate={formatDate} 
+              onSavePost={handleSavePost}
+              isSaving={isSaving[post?.id]} 
+            />
           ))}
         </div>
       </div>
@@ -252,16 +306,31 @@ const CommunityCenter = () => {
         </div>
       )}
 
-      <CreatePostModal isOpen={showModal} onClose={() => setShowModal(false)} onCreatePost={async (data: any) => {
-          await postRequest("/community/create-post/", data);
-          fetchPosts();
-          setShowModal(false);
-      }} user={user} />
+      <CreatePostModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+        onCreatePost={handleCreatePost}  // Use the new handler
+        user={user} 
+      />
       
       {showToast && (
-        <SuccessToast message={toastMessage} onClose={() => setShowToast(false)} showViewButton={!!createdPostId} onViewClick={() => navigate(`/community/post/${createdPostId}`)} duration={5000} />
+        <SuccessToast 
+          message={toastMessage} 
+          onClose={() => {
+            setShowToast(false);
+            setCreatedPostId(null);  // Reset createdPostId when toast closes
+          }} 
+          showViewButton={!!createdPostId} 
+          onViewClick={() => {
+            if (createdPostId) {
+              navigate(`/community/post/${createdPostId}`);
+              setShowToast(false);
+              setCreatedPostId(null);
+            }
+          }} 
+          duration={5000} 
+        />
       )}
-      {showSaveNotification && <CuteNotification message={saveNotificationMessage} onClose={() => setShowSaveNotification(false)} />}
     </>
   );
 };

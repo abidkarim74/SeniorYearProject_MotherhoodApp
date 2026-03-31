@@ -1,6 +1,6 @@
 // components/community/CreatePostModal.tsx
 import { useState, type FormEvent, useRef } from "react";
-import { X, Send, Image as ImageIcon, Tag, TrendingUp, MessageCircle, Users, Loader2, Upload, Trash2 } from "lucide-react";
+import { X, Send, Tag, TrendingUp, MessageCircle, Users, Loader2, Upload, Trash2 } from "lucide-react";
 import useImageUpload from "../../hooks/useImageUpload";
 
 interface CreatePostModalProps {
@@ -30,7 +30,6 @@ const CreatePostModal = ({ isOpen, onClose, onCreatePost, user }: CreatePostModa
 
   // Use the image upload hook
   const { 
-    imageUrl, 
     isLoading: isUploading, 
     error: uploadError, 
     progress, 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  MessageCircle, Plus, Search, Clock, Star, Trash2, 
+  MessageCircle, Plus, Search, Clock, Trash2, 
   MoreVertical, Check, X, Bot, Sun, ChevronLeft, Loader2
 } from 'lucide-react';
 import { deleteRequest } from '../../../api/requests';

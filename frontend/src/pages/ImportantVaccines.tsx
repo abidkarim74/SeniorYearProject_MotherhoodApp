@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/authContext";
 import type { VaccineUserView } from "../interfaces/VaccinationInterfaces";
 import { getRequest } from "../api/requests";
 import { 
@@ -11,7 +10,6 @@ import {
   Clock,
   ChevronRight,
   TrendingUp,
-  BookOpen,
   Heart,
   ShieldAlert,
   Pill,
@@ -32,7 +30,6 @@ import {
 import VaccineDetailModal from "../components/vaccines/ImportantVaccineDetail";
 
 const ImportantVaccines: React.FC = () => {
-  const { accessToken } = useAuth();
   const [vaccines, setVaccines] = useState<VaccineUserView[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);

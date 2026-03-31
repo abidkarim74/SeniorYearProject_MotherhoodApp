@@ -236,7 +236,7 @@ const ManageVaccinations = () => {
                       <p className="text-gray-600 text-sm mb-2">{vaccine.vaccine_description}</p>
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                          Protects against: {vaccine.protect_against || "Not specified"}
+                          Protects against: {"Not specified"}
                         </span>
                         <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">
                           {vaccine.doses_needed} dose{vaccine.doses_needed !== 1 ? "s" : ""} needed

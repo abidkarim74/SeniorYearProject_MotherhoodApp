@@ -1,6 +1,6 @@
 import { Save, X, User } from "lucide-react";
 import { useState } from "react";
-import type { ChildPersonal as Child, UpdateChildPersonalProps} from "../interfaces/ChildInterfaces";
+import type {UpdateChildPersonalProps} from "../interfaces/ChildInterfaces";
 
 const UpdateChildPersonal = ({ 
   isOpen, 

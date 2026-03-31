@@ -61,7 +61,7 @@ const SinglePost = ({
   const [isLiked, setIsLiked] = useState(post.likers?.includes(user?.id || "") || false);
   const [likeCount, setLikeCount] = useState(post.like_count);
   const [isLiking, setIsLiking] = useState(false);
-  const [isSaved, setIsSaved] = useState(post.is_saved || false); // Add this
+  const [isSaved, setIsSaved] = useState(post.is_saved || false); 
 
   // Comments state
   const [showComments, setShowComments] = useState(false);
@@ -333,7 +333,7 @@ const SinglePost = ({
       return;
     }
 
-    if (isSaving || isSaved) return;
+    if (isSaving || isSaved) {return;} else {setIsSaved(false)}
 
     if (onSavePost) {
       onSavePost(post.id);

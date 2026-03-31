@@ -76,7 +76,7 @@ const calculateWindow = (minDays: number | undefined | null, maxDays: number | u
   };
 };
 
-const VaccineDetailModal = ({ vaccine, daysToReadableAge, getVaccineIcon, onClose }: VaccineDetailModalProps) => {
+const VaccineDetailModal = ({ vaccine, getVaccineIcon, onClose }: VaccineDetailModalProps) => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -449,7 +449,7 @@ const VaccineDetailModal = ({ vaccine, daysToReadableAge, getVaccineIcon, onClos
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
         }
