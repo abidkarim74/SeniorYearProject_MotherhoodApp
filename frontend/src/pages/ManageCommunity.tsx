@@ -4,15 +4,12 @@ import {
   Loader2,
   AlertCircle,
   Flag,
-  User,
   Trash2,
   CheckCircle,
   Clock,
-  Users,
   Search,
   ChevronDown,
   X,
-  Shield,
   Calendar,
 } from "lucide-react";
 import { getRequest, putRequest, deleteRequest } from "../api/requests";
@@ -63,20 +60,9 @@ interface Report {
   post: Post;
 }
 
-interface Member {
-  id: string;
-  firstname: string;
-  lastname: string;
-  username: string;
-  profile_pic: string;
-  email?: string;
-  created_at?: string;
-}
-
 const ManageCommunity = () => {
   const [activeTab, setActiveTab] = useState<"reports" | "members">("reports");
   const [reports, setReports] = useState<Report[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -94,7 +80,6 @@ const ManageCommunity = () => {
     if (activeTab === "reports") {
       fetchReports();
     } else {
-      fetchMembers();
     }
   }, [activeTab]);
 
@@ -112,19 +97,7 @@ const ManageCommunity = () => {
     }
   };
 
-  const fetchMembers = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const data = await getRequest("/community/members/all");
-      setMembers(data || []);
-    } catch (err) {
-      console.error("Error fetching members:", err);
-      setError("Failed to load members. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ 
 
   const handleUpdateStatus = async (reportId: string, status: string) => {
     setUpdatingReportId(reportId);

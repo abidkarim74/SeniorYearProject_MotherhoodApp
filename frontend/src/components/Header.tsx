@@ -1,17 +1,14 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { useState } from "react";
-import { Bell, Search, Baby, X, ChevronDown, User, Settings, LogOut, MessageCircle, Heart, Sparkles } from "lucide-react";
+import { Search, Baby, X, ChevronDown, User, Settings, LogOut, Sparkles } from "lucide-react";
 import MainLoading from "./MainLoading";
 import { Smile } from "lucide-react";
 import LogMood from "./LogMood";
 import Chatbot from "./chatbot/Chatbot";
-import { useUIContext } from "../context/uiContext";
 
 const Header = () => {
   const { logout, accessToken, user } = useAuth();
-  const {setBotOpen} = useUIContext();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
@@ -29,10 +26,9 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      setError(null);
       await logout();
+      
     } catch (err) {
-      setError("Failed to log out. Please try again.");
       console.error("Logout error:", err);
     } finally {
       setLoading(false);

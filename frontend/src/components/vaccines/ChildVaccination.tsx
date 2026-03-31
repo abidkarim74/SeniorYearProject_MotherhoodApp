@@ -1,21 +1,17 @@
 import { useEffect, useState } from "react";
 import { postRequest } from "../../api/requests";
 import type { RequiredVaccination } from "../../interfaces/VaccinationInterfaces";
-import { useAuth } from "../../context/authContext";
 import {
   Calendar,
   Shield,
   AlertCircle,
   CheckCircle,
   Clock,
-  Syringe,
   ChevronDown,
   ChevronUp,
   Info,
   Zap,
   Plus,
-  X,
-  Phone
 } from "lucide-react";
 
 interface ChildInfo {
@@ -25,7 +21,7 @@ interface ChildInfo {
   age: number;
 }
 
-const ChildVaccination = ({ child_id, age, fullname, onClose }: ChildInfo) => {
+const ChildVaccination = ({ child_id, age, onClose }: ChildInfo) => {
   const [vaccinations, setVaccinations] = useState<RequiredVaccination[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

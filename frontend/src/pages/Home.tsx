@@ -8,7 +8,6 @@ import {
 import WelcomeSection from "../components/home/WelcomeSection";
 import StatCard from "../components/home/StatCard";
 import ChildrenSection from "../components/home/ChildrenSection";
-import RemindersSection from "../components/home/ReminderSection";
 import QuickActionsSection from "../components/home/QuickActionsSection";
 
 
@@ -25,7 +24,6 @@ const Home = () => {
 
   const [reminders, setReminders] = useState<any[]>([]);
   const [activeChild, setActiveChild] = useState(0);
-  const [remindersLoading, setRemindersLoading] = useState(true);
 
   const [childrenLength, setChildrenLength] = useState<number>(0);
 
@@ -43,43 +41,17 @@ const Home = () => {
         console.error("Error fetching data:", error);
 
       } finally {
-        setRemindersLoading(false);
       }
     };
 
     if (accessToken && user?.id) {
       fetchData();
     } else {
-      setRemindersLoading(false);
     }
   }, [accessToken, user?.id]);
 
-  const getReminderStatus = (reminderDate: string) => {
-    const date = new Date(reminderDate);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const reminderDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-    const diffTime = reminderDay.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return "today";
-    if (diffDays < 0) return "overdue";
-    return "upcoming";
-  };
-
-  // Sort reminders by date
-  const sortedReminders = [...reminders].sort((a, b) => {
-    const statusA = getReminderStatus(a.reminder);
-    const statusB = getReminderStatus(b.reminder);
-
-    const priority = { overdue: 0, today: 1, upcoming: 2 };
-    if (priority[statusA] !== priority[statusB]) {
-      return priority[statusA] - priority[statusB];
-    }
-
-    return new Date(a.reminder).getTime() - new Date(b.reminder).getTime();
-  });
+  
+  
 
 
 

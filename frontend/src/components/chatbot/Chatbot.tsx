@@ -60,11 +60,7 @@ const Chatbot = () => {
     if (isMobile) setIsSidebarOpen(false);
   };
 
-  const handleTopicSelect = async (topic: {
-    id: string;
-    title: string;
-    greeting: string;
-  }) => {
+  const handleTopicSelect = async () => {
     setShowTopicsPopup(false);
     if (!user?.id) return;
     setLoadingConversations(true);

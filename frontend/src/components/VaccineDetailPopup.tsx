@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Syringe,
   Calendar,
@@ -11,7 +10,6 @@ import {
   Save,
   Bell,
   BellOff,
-  User,
   AlertCircle,
   Shield,
   Plus,
@@ -19,7 +17,6 @@ import {
   ShieldAlert,
   HeartPulse,
   Pill,
-  Stethoscope,
   CalendarDays,
   FileText
 } from "lucide-react";

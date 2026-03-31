@@ -52,18 +52,18 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
   useEffect(() => {
     if (showVaccinationPopup) {
       const header = document.querySelector('header');
-      const sidebar = document.querySelector('[data-sidebar]');
+      // const sidebar = document.querySelector('[data-sidebar]');
       
       if (header) {
         header.classList.add('blur-sm');
         header.style.pointerEvents = 'none';
         header.style.zIndex = '0';
       }
-      if (sidebar) {
-        sidebar.classList.add('blur-sm');
-        sidebar.style.pointerEvents = 'none';
-        sidebar.style.zIndex = '0';
-      }
+      // if (sidebar) {
+      //   sidebar.classList.add('blur-sm');
+      //   sidebar.style.pointerEvents = 'none';
+      //   sidebar.style.zIndex = '0';
+      // }
 
       return () => {
         if (header) {
@@ -71,11 +71,11 @@ const ChildCardChildrenPage = ({ child, activeMenu, onToggleMenu }: ChildCardPro
           header.style.pointerEvents = 'auto';
           header.style.zIndex = '40';
         }
-        if (sidebar) {
-          sidebar.classList.remove('blur-sm');
-          sidebar.style.pointerEvents = 'auto';
-          sidebar.style.zIndex = 'auto';
-        }
+        // if (sidebar) {
+        //   sidebar.classList.remove('blur-sm');
+        //   sidebar.style.pointerEvents = 'auto';
+        //   sidebar.style.zIndex = 'auto';
+        // }
       };
     }
   }, [showVaccinationPopup]);

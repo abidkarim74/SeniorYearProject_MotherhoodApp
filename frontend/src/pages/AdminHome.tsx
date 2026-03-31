@@ -2,20 +2,13 @@ import { useState, useEffect } from "react";
 import { 
   Users, 
   Syringe, 
-  MessageCircle, 
   Heart, 
-  Calendar,
   TrendingUp,
   Activity,
-  Clock,
   CheckCircle,
   AlertCircle,
   Download,
-  Award,
-  Star,
-  UserCheck,
   UserPlus,
-  BarChart3,
   Target,
   Baby
 } from "lucide-react";
@@ -80,13 +73,8 @@ const processUserGrowthData = (users: AdminDashBoardUserMini[]): UserGrowthData[
   return weeklyData;
 };
 
-// Helper function to get month name
-const getMonthName = (date: Date): string => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return months[date.getMonth()];
-};
 
-// Helper function to format relative time
+
 const formatRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
@@ -113,8 +101,6 @@ const AdminHome = () => {
     vaccination_given: 0,
     new_users_count: 0
   });
-
-  console.log("stast: ", stats)
   
   const [recentUsers, setRecentUsers] = useState<AdminDashBoardUserMini[]>([]);
   const [ageDistribution, setAgeDistribution] = useState<AdminDashboardChilDistribution[]>([]);
@@ -133,11 +119,15 @@ const AdminHome = () => {
           getRequest('/admin/dashboard/child-age-distribution')
         ]);
 
-        setStats(statsRes)
-        setRecentUsers(usersRes)
-        setAgeDistribution(ageDistRes)
-     
-
+        setStats(statsRes);
+        setRecentUsers(usersRes);
+        setAgeDistribution(ageDistRes);
+        
+        // Process user growth data
+        if (usersRes && usersRes.length > 0) {
+          const growthData = processUserGrowthData(usersRes);
+          setUserGrowth(growthData);
+        }
         
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
@@ -164,7 +154,7 @@ const AdminHome = () => {
     {
       title: "Active Children",
       value: stats.children_count.toLocaleString(),
-      change: "+8.1%", // You might want to calculate this properly
+      change: "+8.1%",
       trend: "up",
       icon: Heart,
       bgColor: "bg-pink-50",
@@ -173,7 +163,7 @@ const AdminHome = () => {
     {
       title: "Vaccinations Given",
       value: stats.vaccination_given.toLocaleString(),
-      change: "+23.5%", // You might want to calculate this properly
+      change: "+23.5%",
       trend: "up",
       icon: Syringe,
       bgColor: "bg-purple-50",
@@ -182,7 +172,7 @@ const AdminHome = () => {
     {
       title: "New Signups",
       value: stats.new_users_count.toLocaleString(),
-      change: "+5.2%", // You might want to calculate this properly
+      change: "+5.2%",
       trend: "up",
       icon: UserPlus,
       bgColor: "bg-green-50",

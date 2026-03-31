@@ -1,33 +1,22 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import {
   Syringe,
-  Calendar,
-  CheckCircle,
+  CalendarDays,
   Clock,
   Baby,
-  Trash2,
-  Edit2,
-  X,
-  Save,
-  Bell,
-  BellOff,
   ChevronRight,
   User,
   AlertCircle,
-  CalendarDays,
   Shield,
   Plus,
   AlertTriangle,
   CheckSquare,
   Clock3,
-  ShieldAlert,
   TrendingUp,
-  FileText,
-  Pill,
   Stethoscope,
   HeartPulse,
-  Eye
+  Eye,
+  Pill
 } from "lucide-react";
 import VaccineDetailPopup from "./VaccineDetailPopup";
 
@@ -166,7 +155,7 @@ const ChildVaccinationCard = ({
     .sort((a, b) => {
       const aPending = vaccinationStatuses[a.vaccine_id]?.filter(s => s.status === "PENDING").length || 0;
       const bPending = vaccinationStatuses[b.vaccine_id]?.filter(s => s.status === "PENDING").length || 0;
-      return bPending - aPending; // Sort by pending count descending
+      return bPending - aPending;
     }) || [];
 
   const optionalVaccines = vaccinesData?.vaccines
@@ -174,52 +163,10 @@ const ChildVaccinationCard = ({
     .sort((a, b) => {
       const aPending = vaccinationStatuses[a.vaccine_id]?.filter(s => s.status === "PENDING").length || 0;
       const bPending = vaccinationStatuses[b.vaccine_id]?.filter(s => s.status === "PENDING").length || 0;
-      return bPending - aPending; // Sort by pending count descending
+      return bPending - aPending;
     }) || [];
 
-  // Helper functions
-  const getVaccineById = (vaccineId: string) => {
-    return vaccinesData?.vaccines?.find(v => v.vaccine_id === vaccineId);
-  };
-
-  const getStatusColor = (status: string) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case "PENDING": return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "GIVEN": return "bg-green-50 text-green-700 border-green-200";
-      case "MISSED": return "bg-red-50 text-red-700 border-red-200";
-      case "NOT_GIVEN": return "bg-gray-50 text-gray-700 border-gray-200";
-      default: return "bg-gray-50 text-gray-700 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case "PENDING": return Clock;
-      case "GIVEN": return CheckCircle;
-      case "MISSED": return AlertCircle;
-      case "NOT_GIVEN": return ShieldAlert;
-      default: return Clock;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusUpper = status?.toUpperCase();
-    switch (statusUpper) {
-      case "GIVEN": return "Given";
-      case "PENDING": return "Pending";
-      case "MISSED": return "Missed";
-      case "NOT_GIVEN": return "Not Given";
-      default: return status;
-    }
-  };
-
-  const hasReminder = (vaccineId: string, childId: string) => {
-    return reminders.some(reminder => 
-      reminder.vaccine_id === vaccineId && reminder.child_id === childId
-    );
-  };
+ 
 
   // Calculate child stats
   const getChildStats = () => {
@@ -228,10 +175,9 @@ const ChildVaccinationCard = ({
     const given = allVaccineStatuses.filter(v => v.status === "GIVEN").length;
     const pending = allVaccineStatuses.filter(v => v.status === "PENDING").length;
     const missed = allVaccineStatuses.filter(v => v.status === "MISSED").length;
-    const notGiven = allVaccineStatuses.filter(v => v.status === "NOT_GIVEN").length;
     const coverage = total > 0 ? Math.round((given / total) * 100) : 0;
     
-    return { total, given, pending, missed, notGiven, coverage };
+    return { total, given, pending, missed, coverage };
   };
 
   const stats = getChildStats();
