@@ -1,162 +1,112 @@
 import { useState } from 'react';
 import { 
-  MessageCircle, Plus, Search, Clock, Star, Archive, Trash2, 
-  MoreVertical, Edit2, Check, X, Sparkles, Bot, Heart, Smile, 
-  Coffee, Sun, ChevronLeft 
+  MessageCircle, Plus, Search, Clock, Star, Trash2, 
+  MoreVertical, Check, X, Bot, Sun, ChevronLeft, Loader2
 } from 'lucide-react';
+import { deleteRequest } from '../../../api/requests';
 
-interface BotLeftbarProps {
-  selectedChat?: number | null;
-  onChatSelect: (chatId: number) => void;
-  isMobile?: boolean;
-  onCloseSidebar?: () => void; // This is the correct prop name
+
+interface AiConversation {
+  id: string;
+  user_id: string;
+  topic: string;
+  created_at: string;
+  updated_at: string;
+  messages_exist?: boolean;
 }
 
-const BotLeftbar = ({ selectedChat, onChatSelect, isMobile, onCloseSidebar }: BotLeftbarProps) => {
+interface BotLeftbarProps {
+  conversations: AiConversation[];
+  loading?: boolean;
+  selectedChat?: AiConversation | null;
+  onChatSelect: (conversation: AiConversation) => void;
+  isMobile?: boolean;
+  onCloseSidebar?: () => void;
+  onNewChat: () => void;
+  onConversationDeleted: (id: string) => void;
+}
+
+const BotLeftbar = ({ 
+  conversations, 
+  loading, 
+  selectedChat, 
+  onChatSelect, 
+  isMobile, 
+  onCloseSidebar,
+  onNewChat,
+  onConversationDeleted,
+}: BotLeftbarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [showOptions, setShowOptions] = useState<number | null>(null);
+  const [showOptions, setShowOptions] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Sample conversations data
-  const [conversations, setConversations] = useState([
-    { 
-      id: 1, 
-      title: 'Baby feeding schedule', 
-      preview: 'How often should I feed my 3-month...',
-      time: '2 min ago',
-      isStarred: true,
-      mood: 'happy',
-      messages: 12
-    },
-    { 
-      id: 2, 
-      title: 'Sleep training tips', 
-      preview: 'My baby won\'t sleep through the night...',
-      time: '1 hour ago',
-      isStarred: false,
-      mood: 'tired',
-      messages: 8
-    },
-    { 
-      id: 3, 
-      title: 'Vaccination concerns', 
-      preview: 'Are there any side effects for the...',
-      time: 'Yesterday',
-      isStarred: true,
-      mood: 'worried',
-      messages: 15
-    },
-    { 
-      id: 4, 
-      title: 'Baby milestones', 
-      preview: 'When do babies start crawling?',
-      time: '2 days ago',
-      isStarred: false,
-      mood: 'excited',
-      messages: 5
-    },
-    { 
-      id: 5, 
-      title: 'Breastfeeding help', 
-      preview: 'Having trouble with latching...',
-      time: '3 days ago',
-      isStarred: false,
-      mood: 'frustrated',
-      messages: 20
-    },
-    { 
-      id: 6, 
-      title: 'Teething remedies', 
-      preview: 'What helps with teething pain?',
-      time: '1 week ago',
-      isStarred: false,
-      mood: 'curious',
-      messages: 7
-    },
-  ]);
+  console.log(conversations)
 
-  const getMoodIcon = (mood: string) => {
-    switch(mood) {
-      case 'happy': return <Smile className="w-3 h-3 text-yellow-500" />;
-      case 'tired': return <Coffee className="w-3 h-3 text-amber-600" />;
-      case 'worried': return <Heart className="w-3 h-3 text-pink-400" />;
-      case 'excited': return <Sparkles className="w-3 h-3 text-purple-400" />;
-      case 'frustrated': return <X className="w-3 h-3 text-red-400" />;
-      case 'curious': return <Search className="w-3 h-3 text-blue-400" />;
-      default: return <MessageCircle className="w-3 h-3 text-gray-400" />;
+  
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    setShowOptions(null);
+    try {
+      await deleteRequest(`/llm/conversations/${id}`);
+      onConversationDeleted(id);
+    } catch (err) {
+      console.error('Failed to delete conversation:', err);
+    } finally {
+      setDeletingId(null);
     }
-  };
-
-  const handleRename = (id: number, currentTitle: string) => {
-    setEditingId(id);
-    setEditTitle(currentTitle);
-    setShowOptions(null);
-  };
-
-  const handleSaveRename = (id: number) => {
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === id ? { ...conv, title: editTitle } : conv
-      )
-    );
-    setEditingId(null);
-    setEditTitle('');
-  };
-
-  const handleDelete = (id: number) => {
-    setConversations(prev => prev.filter(conv => conv.id !== id));
-    setShowOptions(null);
-  };
-
-  const toggleStar = (id: number) => {
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === id ? { ...conv, isStarred: !conv.isStarred } : conv
-      )
-    );
-    setShowOptions(null);
   };
 
   const filteredConversations = conversations.filter(conv =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.preview.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.topic.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const starredConversations = filteredConversations.filter(conv => conv.isStarred);
-  const otherConversations = filteredConversations.filter(conv => !conv.isStarred);
-
-  const handleChatClick = (chatId: number) => {
-    onChatSelect(chatId);
-    if (isMobile && onCloseSidebar) {
-      onCloseSidebar();
-    }
+  const handleChatClick = (conv: AiConversation) => {
+    onChatSelect(conv);
+    if (isMobile && onCloseSidebar) onCloseSidebar();
   };
 
-  const ConversationItem = ({ conv }: { conv: typeof conversations[0] }) => (
+  const ConversationItem = ({ conv }: { conv: AiConversation }) => (
     <div className="relative group">
-      <div 
+      <div
         className={`flex items-start space-x-3 p-3 rounded-xl transition-all duration-200 ${
-          editingId === conv.id 
-            ? 'bg-[#fceaea] ring-2 ring-[#e5989b] ring-opacity-50' 
-            : selectedChat === conv.id
-              ? 'bg-[#fceaea] shadow-md'
-              : 'hover:bg-[#fceaea] hover:shadow-sm cursor-pointer'
+          deletingId === conv.id
+            ? 'opacity-50 pointer-events-none'
+            : editingId === conv.id
+              ? 'bg-[#fceaea] ring-2 ring-[#e5989b] ring-opacity-50'
+              : selectedChat?.id === conv.id
+                ? 'bg-[#fceaea] shadow-md'
+                : 'hover:bg-[#fceaea] hover:shadow-sm cursor-pointer'
         }`}
-        onClick={() => {
-          if (editingId !== conv.id) {
-            handleChatClick(conv.id);
-          }
-        }}
+        onClick={() => { if (editingId !== conv.id) handleChatClick(conv); }}
       >
-        {/* Avatar/Bot Icon */}
+        {/* Avatar */}
         <div className="relative flex-shrink-0">
           <div className="w-10 h-10 bg-gradient-to-br from-[#e5989b] to-[#d88a8d] rounded-xl flex items-center justify-center shadow-md">
-            <Bot className="w-5 h-5 text-white" />
+            {deletingId === conv.id
+              ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+              : <Bot className="w-5 h-5 text-white" />
+            }
           </div>
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm">
-            {getMoodIcon(conv.mood)}
-          </div>
+          {conv.messages_exist && deletingId !== conv.id && (
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
+          )}
         </div>
 
         {/* Content */}
@@ -169,35 +119,27 @@ const BotLeftbar = ({ selectedChat, onChatSelect, isMobile, onCloseSidebar }: Bo
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="flex-1 text-sm font-medium bg-white border border-[#e5989b] rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#e5989b]"
                 autoFocus
-                onKeyPress={(e) => e.key === 'Enter' && handleSaveRename(conv.id)}
+                onKeyPress={(e) => e.key === 'Enter' && setEditingId(null)}
               />
-              <button
-                onClick={() => handleSaveRename(conv.id)}
-                className="p-1 text-green-500 hover:bg-green-50 rounded-lg transition-colors"
-              >
+              <button onClick={() => setEditingId(null)} className="p-1 text-green-500 hover:bg-green-50 rounded-lg transition-colors">
                 <Check className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => setEditingId(null)}
-                className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
+              <button onClick={() => setEditingId(null)} className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-gray-800 truncate">{conv.title}</h3>
-                <div className="flex items-center space-x-1">
-                  {conv.isStarred && (
-                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                  )}
-                  <span className="text-xs text-gray-400">{conv.time}</span>
+                <h3 className="font-medium text-gray-800 truncate">{conv.topic}</h3>
+                <div className="flex items-center space-x-1 flex-shrink-0 ml-2">
+                  <span className="text-xs text-gray-400">{formatTime(conv.updated_at)}</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 truncate mt-0.5">{conv.preview}</p>
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="text-xs text-[#e5989b] font-medium">{conv.messages} messages</span>
+              <p className="text-xs text-gray-400 truncate mt-0.5">
+                {conv.messages_exist ? 'Tap to continue conversation' : 'No messages yet'}
+              </p>
+              <div className="flex items-center justify-end mt-1.5">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -213,34 +155,12 @@ const BotLeftbar = ({ selectedChat, onChatSelect, isMobile, onCloseSidebar }: Bo
         </div>
       </div>
 
-      {/* Options Menu */}
+      {/* Options Menu — Delete only */}
       {showOptions === conv.id && (
-        <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50 animate-in slide-in-from-top-2 duration-200">
-          <button
-            onClick={() => toggleStar(conv.id)}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-[#fceaea] hover:text-[#e5989b] transition-colors"
-          >
-            <Star className={`w-4 h-4 mr-3 ${conv.isStarred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-            {conv.isStarred ? 'Unstar' : 'Star'}
-          </button>
-          <button
-            onClick={() => handleRename(conv.id, conv.title)}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-[#fceaea] hover:text-[#e5989b] transition-colors"
-          >
-            <Edit2 className="w-4 h-4 mr-3" />
-            Rename
-          </button>
-          <button
-            onClick={() => console.log('Archive:', conv.id)}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-[#fceaea] hover:text-[#e5989b] transition-colors"
-          >
-            <Archive className="w-4 h-4 mr-3" />
-            Archive
-          </button>
-          <div className="border-t border-gray-100 my-1"></div>
+        <div className="absolute right-0 mt-1 w-40 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-50">
           <button
             onClick={() => handleDelete(conv.id)}
-            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors rounded-xl"
           >
             <Trash2 className="w-4 h-4 mr-3" />
             Delete
@@ -252,119 +172,84 @@ const BotLeftbar = ({ selectedChat, onChatSelect, isMobile, onCloseSidebar }: Bo
 
   return (
     <div className="w-full md:w-80 h-full bg-white/95 backdrop-blur-sm border-r border-gray-200 flex flex-col relative">
-      {/* Mobile Header with Close Button */}
-      {isMobile && (
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rounded-lg flex items-center justify-center">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <h2 className="font-semibold text-gray-700">AI Assistant</h2>
           </div>
-          <button
-            onClick={onCloseSidebar}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-      )}
-
-      {/* Header for Desktop */}
-      {!isMobile && (
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rounded-lg flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
-              </div>
-              <h2 className="font-semibold text-gray-700">AI Assistant</h2>
-            </div>
-            <button className="p-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-xl hover:shadow-lg transition-all duration-200 group relative">
+          {isMobile ? (
+            <button onClick={onCloseSidebar} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+          ) : (
+            <button
+              onClick={onNewChat}
+              className="p-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white rounded-xl hover:shadow-lg transition-all duration-200 group relative"
+            >
               <Plus className="w-4 h-4" />
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] text-white text-xs py-1 px-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                 New Chat
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rotate-45"></div>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-1 w-2 h-2 bg-[#e5989b] rotate-45" />
               </div>
             </button>
-          </div>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-100 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-[#e5989b] focus:bg-white transition-all text-sm"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Search (separate for better UX) */}
-      {isMobile && (
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-100 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-[#e5989b] focus:bg-white transition-all text-sm"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Conversations List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
-        {/* Today's date */}
-        <div className="flex items-center space-x-2 px-2">
-          <Clock className="w-3 h-3 text-gray-400" />
-          <span className="text-xs font-medium text-gray-400">RECENT</span>
+          )}
         </div>
 
-        {/* Starred Conversations */}
-        {starredConversations.length > 0 && (
-          <div className="space-y-1">
-            {starredConversations.map(conv => (
-              <ConversationItem key={conv.id} conv={conv} />
-            ))}
-          </div>
-        )}
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 bg-gray-100 border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-[#e5989b] focus:bg-white transition-all text-sm"
+          />
+        </div>
+      </div>
 
-        {/* Other Conversations */}
-        {otherConversations.length > 0 && (
-          <div className="space-y-1">
-            {otherConversations.map(conv => (
-              <ConversationItem key={conv.id} conv={conv} />
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {filteredConversations.length === 0 && (
+      {/* Conversations List - with custom scrollbar */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+        {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rounded-2xl flex items-center justify-center mb-3 opacity-50">
-              <MessageCircle className="w-8 h-8 text-white" />
-            </div>
-            <p className="text-gray-500 font-medium">No conversations found</p>
-            <p className="text-sm text-gray-400 mt-1">Start a new chat to get help</p>
+            <Loader2 className="w-8 h-8 text-[#e5989b] animate-spin mb-3" />
+            <p className="text-sm text-gray-400">Loading conversations...</p>
           </div>
+        ) : (
+          <>
+            <div className="flex items-center space-x-2 px-2">
+              <Clock className="w-3 h-3 text-gray-400" />
+              <span className="text-xs font-medium text-gray-400">RECENT</span>
+            </div>
+
+            {filteredConversations.length > 0 ? (
+              <div className="space-y-1">
+                {filteredConversations.map(conv => (
+                  <ConversationItem key={conv.id} conv={conv} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-[#e5989b] to-[#d88a8d] rounded-2xl flex items-center justify-center mb-3 opacity-50">
+                  <MessageCircle className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-500 font-medium">No conversations found</p>
+                <p className="text-sm text-gray-400 mt-1">Start a new chat to get help</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       {/* Footer */}
       <div className="p-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-xs text-gray-400">
-          <div className="flex items-center space-x-2">
-            <Sun className="w-3 h-3" />
-            <span>{filteredConversations.length} conversations</span>
-          </div>
-          <button className="hover:text-[#e5989b] transition-colors">Clear all</button>
+        <div className="flex items-center space-x-2 text-xs text-gray-400">
+          <Sun className="w-3 h-3" />
+          <span>{filteredConversations.length} conversations</span>
         </div>
       </div>
     </div>

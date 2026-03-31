@@ -18,14 +18,14 @@ class AiConversationCreate(AiConversationBase):
 
 
 class AiConversationUpdate(BaseModel):
-    messages_exist: Optional[bool] = None
-    last_message: str | None = None
+    last_message: str
 
 
 
 class AiConversationResponse(AiConversationBase):
     id: UUID
     user_id: UUID
+    topic_message: str | None = None
     created_at: datetime
     messages_exist: Optional[bool] = False
     updated_at: datetime
@@ -47,7 +47,15 @@ class ChatbotMessageBase(BaseModel):
     conversation_id: UUID
 
 
+class AIChatOption(str, Enum):
+    VACCINATION_GENERAL = "vaccination_general"
+    VACCINATION_RECORD = "child_vaccine_record"
+    CHILD_GROWTH = "chid_growth"
+    GENERAL_PARENTING = "general_parent"
+
+
 class ChatbotMessageCreate(ChatbotMessageBase):
+    conv_type: AIChatOption
     pass
 
 
@@ -60,12 +68,7 @@ class ChatbotMessageResponse(ChatbotMessageBase):
     
 
 
-class AIChatOption(str, Enum):
-    MEDICAL = "child_medical"
-    ALLERGY = "child_allergy"
-    FEEDING = "child_sleep"
-    GENERAL = "general_parent"
-    CHILD = 'child'
+
 
 
 class AIBotVaccinationOption(str, Enum):

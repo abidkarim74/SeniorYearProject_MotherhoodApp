@@ -42,7 +42,6 @@ async def generate_streamed_response(
                         print(content)
                         yield content
                 
-                # Optional: break when done (though the stream will end naturally)
                 if msg.get("done"):
                     break
                     

@@ -1,6 +1,16 @@
 import api from "./axios_instance";
 
 
+
+export const postRequestStream = async (endpoint: string, data: any, options?: { signal?: AbortSignal }) => {
+  const res = await api.post(endpoint, data, {
+    responseType: 'stream',
+    signal: options?.signal,
+  });
+  return res;
+};
+
+
 export const postRequest = async (endpoint: string, data: any) => {
   const res = await api.post(endpoint, data);
   return res.data;
