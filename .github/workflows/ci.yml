@@ -23,7 +23,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: backend
+        working-directory: Backend
 
     steps:
       - uses: actions/checkout@v4
@@ -95,8 +95,8 @@ jobs:
       - name: Build and push Backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./Backend
+          file: ./Backend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/motherhood-backend:latest
@@ -120,8 +120,6 @@ jobs:
 
       - name: Update image tags in k8s manifests
         run: |
-          mkdir -p k8s/backend k8s/frontend
-
           if [ -f "k8s/backend/deployment.yaml" ]; then
             sed -i "s|image: .*motherhood-backend:.*|image: ghcr.io/${{ github.repository_owner }}/motherhood-backend:${{ github.sha }}|g" k8s/backend/deployment.yaml
           fi
