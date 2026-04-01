@@ -37,6 +37,21 @@ spec:
             secretKeyRef:
               name: backend-secrets
               key: SECRET_KEY
+        - name: SIGNER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: SIGNER_KEY
+        - name: ACCESS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: ACCESS_SECRET
+        - name: REFRESH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: REFRESH_SECRET
         resources:
           requests:
             memory: "256Mi"
