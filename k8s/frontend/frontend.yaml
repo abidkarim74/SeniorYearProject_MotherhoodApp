@@ -19,7 +19,7 @@ spec:
         - name: ghcr-secret
       containers:
       - name: frontend
-        image: ghcr.io/abidkarim74/motherhood-frontend:latest
+        image: ghcr.io/abidkarim74/motherhood-frontend:1740d756e112a2f530759adacb45f7a7e8a672ca
         imagePullPolicy: Always
         ports:
         - containerPort: 80
